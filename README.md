@@ -5,7 +5,7 @@ Developer portfolio focused on rebuilding and improving platforms like Steam, Yo
 Personal developer portfolio focused on rebuilding and improving large-scale platforms with better UX and clean engineering.
 
 ## Live Site
-Coming soon
+oUT NOW https://diegodevhq.vercel.app/
 
 ## Projects
 - SteemStore (in progress)  
