@@ -11,10 +11,10 @@ OUT NOW https://diegodevhq.vercel.app/
 - SteemStore (in progress)  
   A UX-focused reimagining of a digital game storefront inspired by Steam.
 
-- Video Platform (YouTube-inspired)  
+- Video Platform (YouTube-inspired) (in progress)  
   A simplified video platform focused on improving watch experience and content discovery.
 
-- E-commerce Platform (Amazon-inspired)  
+- E-commerce Platform (Amazon-inspired) (in progress)  
   A redesigned shopping experience focused on clarity, better product pages, and smoother checkout flow.
 
 ## Tech
