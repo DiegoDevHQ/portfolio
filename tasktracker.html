@@ -13,7 +13,7 @@
         }
         
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -24,84 +24,148 @@
         
         .container {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.05);
             width: 100%;
             max-width: 500px;
-            padding: 30px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
         }
         
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: #2d3748;
+            margin-bottom: 10px;
             text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .task-count {
+            text-align: center;
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 30px;
+            font-weight: 500;
         }
         
         .input-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
         input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input::placeholder {
+            color: #a0aec0;
         }
         
         button {
-            padding: 10px 20px;
-            background: #667eea;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
         
         button:hover {
-            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
         
         ul {
             list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         
         li {
-            background: #f5f5f5;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 18px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        li:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+        }
+        
+        li span {
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+            transition: all 0.3s ease;
+        }
+        
+        li span.completed {
+            color: #a0aec0;
+            text-decoration: line-through;
         }
         
         .delete-btn {
-            background: #e74c3c;
-            padding: 5px 10px;
-            font-size: 12px;
+            background: #f56565;
+            padding: 8px 14px;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
         }
         
         .delete-btn:hover {
-            background: #c0392b;
+            background: #e53e3e;
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.5);
         }
         
         .complete-btn {
-            background: #27ae60;
-            padding: 5px 10px;
-            font-size: 12px;
+            background: #48bb78;
+            padding: 8px 14px;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
         }
         
         .complete-btn:hover {
-            background: #229954;
+            background: #38a169;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.5);
         }
         
         .button-group {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -112,6 +176,7 @@
     
     <div class="container">
         <h1>📝 Task Tracker</h1>
+        <div class="task-count"><span id="taskCount">0</span> tasks</div>
         
         <div class="input-group">
             <input type="text" id="taskInput" placeholder="Add a new task...">
@@ -122,6 +187,11 @@
     </div>
     
     <script>
+        function updateTaskCount() {
+            const count = document.getElementById('taskList').children.length;
+            document.getElementById('taskCount').textContent = count;
+        }
+        
         function addTask() {
             const input = document.getElementById('taskInput');
             const taskList = document.getElementById('taskList');
@@ -136,35 +206,44 @@
                 <span>${input.value}</span>
                 <div class="button-group">
                     <button class="complete-btn" onclick="completeTask(this)">Complete</button>
-                    <button class="delete-btn" onclick="this.parentElement.parentElement.remove()">Delete</button>
+                    <button class="delete-btn" onclick="deleteTask(this)">Delete</button>
                 </div>
             `;
             
             taskList.appendChild(li);
             input.value = '';
             input.focus();
+            updateTaskCount();
         }
         
         const confetti = new JSConfetti();
         
         function completeTask(btn) {
-            const taskSpan = btn.parentElement.parentElement.querySelector('span');
-            const isCompleted = taskSpan.style.textDecoration !== 'line-through';
+            const li = btn.parentElement.parentElement;
+            const taskSpan = li.querySelector('span');
+            const isCompleting = !taskSpan.classList.contains('completed');
             
-            taskSpan.style.textDecoration = isCompleted ? 'line-through' : 'none';
-            taskSpan.style.color = isCompleted ? '#9b9b9b' : '';
-            
-            if (isCompleted) {
+            if (isCompleting) {
+                taskSpan.classList.add('completed');
                 confetti.addConfetti();
                 const sound = document.getElementById('hooraySound');
                 sound.currentTime = 0;
                 sound.play().catch(err => console.log('Sound play failed:', err));
+            } else {
+                taskSpan.classList.remove('completed');
             }
+        }
+        
+        function deleteTask(btn) {
+            btn.parentElement.parentElement.remove();
+            updateTaskCount();
         }
         
         document.getElementById('taskInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') addTask();
         });
+        
+        updateTaskCount();
     </script>
 </body>
 </html>
