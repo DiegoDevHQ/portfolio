@@ -1,3 +1,21 @@
 {
-  "version": 2
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/predict",
+      "destination": "/predict.py"
+    },
+    {
+      "source": "/api/predict.py",
+      "destination": "/predict.py"
+    },
+    {
+      "source": "/api/features",
+      "destination": "/features.py"
+    },
+    {
+      "source": "/api/features.py",
+      "destination": "/features.py"
+    }
+  ]
 }
