@@ -1,0 +1,8 @@
+{
+  "name": "diegodevhq-portfolio",
+  "private": true,
+  "scripts": {
+    "build": "echo \"No build necessary for static + Python functions\""
+  },
+  "dependencies": {}
+}
