@@ -2,7 +2,7 @@
   "name": "diegodevhq-portfolio",
   "private": true,
   "scripts": {
-    "build": "echo Vercel deploy uses root static files and /api Python functions"
+    "build": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});['index.html','predictor.html','styles.css','tasktracker.html'].forEach(f=>fs.copyFileSync(f,'public/'+f))\""
   },
   "dependencies": {}
 }
