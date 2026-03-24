@@ -1,4 +1,4 @@
-# Diego Dev HQ Portfolio
+# Diego Dev HQ Portfolio + Churn Predictor
 
 This repository contains a personal portfolio site and a machine learning demo for customer churn prediction.
 
@@ -44,6 +44,31 @@ A productivity-focused task management app built to help users organize work cle
 OUT NOW on my website.
 
 A machine learning-focused project designed to predict customer churn and highlight retention insights.
+
+### Churn Predictor Troubleshooting Notes (What Broke + Fixes)
+
+- Issue: `Failed to load form. Make sure the server is running.` on `predictor.html`.
+- Cause: API route returned an error in deployment, so `/api/features` failed.
+- Fix: Updated API handlers in `api/features.py` and `api/predict.py` to Vercel-compatible Python handler format and redeployed.
+
+- Issue: Vercel warning about `builds` and ignored Project Build Settings.
+- Cause: Older config style in `vercel.json`.
+- Fix: Removed `builds` usage and simplified routing config.
+
+- Issue: `Function Runtimes must have a valid version...`.
+- Cause: Invalid runtime value in `vercel.json`.
+- Fix: Removed explicit runtime override and used default Python function detection.
+
+- Issue: `The pattern "api/*.py" defined in functions doesn't match...`.
+- Cause: Functions glob config mismatch in Vercel validation.
+- Fix: Removed `functions` glob override and relied on standard `api/` auto-detection.
+
+- Issue: `No Output Directory named "public" found after Build completed.`
+- Cause: Build step expected static output folder.
+- Fix: Added a build step in `package.json` that creates `public/` and copies static files, and set `outputDirectory` to `public` in `vercel.json`.
+
+- Issue: Local testing confusion between static server, Flask, and Vercel routes.
+- Fix: Verified local testing paths and used `vercel dev` / local Flask fallback only for testing before production deploy.
 
 ---
 
