@@ -17,14 +17,24 @@ MODEL_PATH = ROOT / "model.pkl"
 ENCODERS_PATH = ROOT / "label_encoders.pkl"
 FEATURES_PATH = ROOT / "feature_columns.pkl"
 
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
+model = None
+label_encoders = None
+feature_columns = None
 
-with open(ENCODERS_PATH, "rb") as f:
-    label_encoders = pickle.load(f)
 
-with open(FEATURES_PATH, "rb") as f:
-    feature_columns = pickle.load(f)
+def _load_artifacts():
+    global model, label_encoders, feature_columns
+    if model is not None and label_encoders is not None and feature_columns is not None:
+        return
+
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
+
+    with open(ENCODERS_PATH, "rb") as f:
+        label_encoders = pickle.load(f)
+
+    with open(FEATURES_PATH, "rb") as f:
+        feature_columns = pickle.load(f)
 
 
 class handler(BaseHTTPRequestHandler):
@@ -37,6 +47,12 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
+        try:
+            _load_artifacts()
+        except Exception as exc:
+            self._send_json(500, {"error": f"Model artifacts failed to load: {exc}"})
+            return
+
         try:
             content_length = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(content_length).decode("utf-8")

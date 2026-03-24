@@ -221,7 +221,10 @@
 
         async function requestApi(path, options = {}, retries = 1) {
             const bases = getApiBaseCandidates();
-            const endpointPaths = path.endsWith('.py') ? [path] : [path, `${path}.py`];
+            const isPublicHttps = window.location.protocol === 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+            const endpointPaths = path.endsWith('.py')
+                ? [path]
+                : (isPublicHttps ? [path] : [path, `${path}.py`]);
             let lastError = new Error('No API base candidates available.');
 
             for (const base of bases) {
@@ -231,7 +234,16 @@
                         try {
                             const response = await fetchWithTimeout(url, options, 6000);
                             if (!response.ok) {
-                                throw new Error(`API responded ${response.status} for ${url}`);
+                                let details = '';
+                                try {
+                                    const bodyText = await response.text();
+                                    if (bodyText) {
+                                        details = ` - ${bodyText.slice(0, 300)}`;
+                                    }
+                                } catch (readErr) {
+                                    // Ignore response read issues and keep status-only error.
+                                }
+                                throw new Error(`API responded ${response.status} for ${url}${details}`);
                             }
                             return { response, apiBase: base };
                         } catch (error) {
