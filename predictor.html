@@ -139,61 +139,97 @@
     </main>
 
     <script>
+        const FALLBACK_SCHEMA = {
+            features: [
+                "Age",
+                "Tenure_Months",
+                "Monthly_Charges",
+                "Total_Charges",
+                "Contract_Type",
+                "Internet_Service",
+                "Online_Security",
+                "Online_Backup",
+                "Device_Protection",
+                "Tech_Support",
+                "Streaming_TV",
+                "Streaming_Movies",
+                "Paperless_Billing",
+                "Payment_Method"
+            ],
+            categorical_options: {
+                "Contract_Type": ["Month-to-month", "One year", "Two year"],
+                "Internet_Service": ["DSL", "Fiber optic", "No"],
+                "Online_Security": ["No", "No internet", "Yes"],
+                "Online_Backup": ["No", "No internet", "Yes"],
+                "Device_Protection": ["No", "No internet", "Yes"],
+                "Tech_Support": ["No", "No internet", "Yes"],
+                "Streaming_TV": ["No", "No internet", "Yes"],
+                "Streaming_Movies": ["No", "No internet", "Yes"],
+                "Paperless_Billing": ["No", "Yes"],
+                "Payment_Method": ["Bank transfer", "Credit card", "Electronic check", "Mailed check"]
+            }
+        };
+
         // Fetch features and build form on page load
         async function initializeForm() {
+            let data = FALLBACK_SCHEMA;
             try {
                 const response = await fetch('/api/features');
-                const data = await response.json();
-                
-                const formFields = document.getElementById('formFields');
-                const categoricalOptions = data.categorical_options || {};
-                
-                data.features.forEach(feature => {
-                    const group = document.createElement('div');
-                    group.className = 'form-group';
-                    
-                    const label = document.createElement('label');
-                    label.htmlFor = feature;
-                    label.textContent = feature.replace(/_/g, ' ').toUpperCase();
-                    
-                    group.appendChild(label);
-                    
-                    if (feature in categoricalOptions) {
-                        const select = document.createElement('select');
-                        select.id = feature;
-                        select.name = feature;
-                        select.required = true;
-                        
-                        const defaultOption = document.createElement('option');
-                        defaultOption.value = '';
-                        defaultOption.textContent = `Select ${label.textContent}`;
-                        select.appendChild(defaultOption);
-                        
-                        categoricalOptions[feature].forEach(option => {
-                            const opt = document.createElement('option');
-                            opt.value = option;
-                            opt.textContent = option;
-                            select.appendChild(opt);
-                        });
-                        
-                        group.appendChild(select);
-                    } else {
-                        const input = document.createElement('input');
-                        input.type = 'number';
-                        input.id = feature;
-                        input.name = feature;
-                        input.step = 'any';
-                        input.required = true;
-                        input.placeholder = `Enter ${label.textContent}`;
-                        group.appendChild(input);
-                    }
-                    
-                    formFields.appendChild(group);
-                });
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    throw new Error('Features API returned a non-200 response.');
+                }
             } catch (error) {
-                console.error('Error initializing form:', error);
-                document.getElementById('error').innerHTML = '<div class="error">Failed to load form. Make sure the server is running.</div>';
+                console.error('Error initializing form, using fallback schema:', error);
+                document.getElementById('error').innerHTML = '<div class="error">Features service is temporarily unavailable. Using fallback form schema.</div>';
             }
+
+            const formFields = document.getElementById('formFields');
+            const categoricalOptions = data.categorical_options || {};
+
+            data.features.forEach(feature => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.htmlFor = feature;
+                label.textContent = feature.replace(/_/g, ' ').toUpperCase();
+
+                group.appendChild(label);
+
+                if (feature in categoricalOptions) {
+                    const select = document.createElement('select');
+                    select.id = feature;
+                    select.name = feature;
+                    select.required = true;
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = `Select ${label.textContent}`;
+                    select.appendChild(defaultOption);
+
+                    categoricalOptions[feature].forEach(option => {
+                        const opt = document.createElement('option');
+                        opt.value = option;
+                        opt.textContent = option;
+                        select.appendChild(opt);
+                    });
+
+                    group.appendChild(select);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.id = feature;
+                    input.name = feature;
+                    input.step = 'any';
+                    input.required = true;
+                    input.placeholder = `Enter ${label.textContent}`;
+                    group.appendChild(input);
+                }
+
+                formFields.appendChild(group);
+            });
         }
         
         // Handle form submission

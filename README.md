@@ -70,6 +70,13 @@ A machine learning-focused project designed to predict customer churn and highli
 - Issue: Local testing confusion between static server, Flask, and Vercel routes.
 - Fix: Verified local testing paths and used `vercel dev` / local Flask fallback only for testing before production deploy.
 
+- Issue: Churn form sometimes still failed to render in production even when static page loaded.
+- Cause: Temporary API unavailability at `/api/features` blocked dynamic form generation.
+- Fix: Added a fallback schema in `predictor.html` so the form still renders with known feature fields and category options if `/api/features` fails.
+
+- Issue: Repeated redeploy loops from pushing too many unrelated files during troubleshooting.
+- Fix: For predictor deployment errors, push only the changed troubleshooting files (`vercel.json`, `package.json`, `api/features.py`, `api/predict.py`, `predictor.html`) and redeploy.
+
 ---
 
 ## Languages Learned
