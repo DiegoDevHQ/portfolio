@@ -1,4 +1,4 @@
-# Diego Dev HQ Portfolio + Churn Predictor
+# Diego Dev HQ Portfolio 
 
 This repository contains a personal portfolio site and a machine learning demo for customer churn prediction.
 
