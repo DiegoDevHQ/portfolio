@@ -4,4 +4,7 @@ __pycache__/
 *.pyc
 .vscode/
 .vercel/
+.vercel
 node_modules/
+*.pkl
+customer_data.csv

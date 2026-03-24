@@ -81,6 +81,10 @@ A machine learning-focused project designed to predict customer churn and highli
 - Issue: Repeated redeploy loops from pushing too many unrelated files during troubleshooting.
 - Fix: For predictor deployment errors, push only the changed troubleshooting files (`vercel.json`, `package.json`, `api/features.py`, `api/predict.py`, `predictor.html`) and redeploy.
 
+- Issue: Persistent `404 NOT_FOUND` for `/api/predict` and `/api/predict.py` during production testing.
+- Cause: Route and deployment entrypoint mismatch across preview URLs/config revisions, plus Flask dependency import errors in serverless runtime.
+- Fix: Standardized API calls to `/api/features` and `/api/predict`, simplified `vercel.json` to minimal config, and moved runtime handling to dependency-free `app.py` serverless entrypoint.
+
 ---
 
 ## Languages Learned
@@ -103,8 +107,8 @@ A machine learning-focused project designed to predict customer churn and highli
 - `generate_customer_data.py` - synthetic data generator
 - `churn_predictor.py` - local training demo (removed from deploy path)
 - `model.pkl`, `label_encoders.pkl`, `feature_columns.pkl` - trained model artifacts
-- `api/predict.py` - Vercel serverless prediction endpoint
-- `api/features.py` - Vercel serverless features metadata endpoint
+- `app.py` - Vercel serverless entrypoint serving static routes and churn API endpoints
+- `api/predict.py`, `api/features.py` - auxiliary endpoint handlers kept for compatibility/testing
 - `requirements.txt` - Python dependencies
 - `vercel.json` - Vercel config
 - `.venv` / `.venv-1` - local virtual environments (ignored for Git)

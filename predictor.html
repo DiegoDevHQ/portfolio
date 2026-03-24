@@ -221,13 +221,7 @@
 
         async function requestApi(path, options = {}, retries = 1) {
             const bases = getApiBaseCandidates();
-            const endpointPaths = path.endsWith('.py')
-                ? [path]
-                : [
-                    path,
-                    `${path}/index`,
-                    `${path}.py`
-                ];
+            const endpointPaths = [path];
             let lastError = new Error('No API base candidates available.');
 
             for (const base of bases) {
