@@ -1,8 +1,3 @@
-Diego's Portfolio
-
-Developer portfolio focused on rebuilding and improving platforms like Steam, YouTube and Amazon with better UX and clean engineering.
-
----
 
 Diego Dev HQ Portfolio
 Personal developer portfolio focused on rebuilding and improving large-scale platforms with better UX and clean engineering.
