@@ -74,6 +74,10 @@ A machine learning-focused project designed to predict customer churn and highli
 - Cause: Temporary API unavailability at `/api/features` blocked dynamic form generation.
 - Fix: Added a fallback schema in `predictor.html` so the form still renders with known feature fields and category options if `/api/features` fails.
 
+- Issue: Public portfolio visitors could still see fallback behavior if API base resolution tried localhost paths.
+- Cause: Mixed environment API lookup logic can accidentally include local-only endpoints that are unreachable for public users.
+- Fix: Updated `predictor.html` API resolution to prioritize same-origin `/api` on HTTPS production, keep localhost fallbacks for local development only, and use timeout/retry before switching to fallback schema.
+
 - Issue: Repeated redeploy loops from pushing too many unrelated files during troubleshooting.
 - Fix: For predictor deployment errors, push only the changed troubleshooting files (`vercel.json`, `package.json`, `api/features.py`, `api/predict.py`, `predictor.html`) and redeploy.
 
