@@ -1,8 +1,5 @@
 {
   "name": "diegodevhq-portfolio",
   "private": true,
-  "scripts": {
-    "build": "node -e \"const fs=require('fs');fs.mkdirSync('public',{recursive:true});['index.html','predictor.html','styles.css','tasktracker.html'].forEach(f=>fs.copyFileSync(f,'public/'+f))\""
-  },
   "dependencies": {}
 }
