@@ -3,7 +3,15 @@ import pickle
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+def _find_root():
+    candidate = Path(__file__).resolve().parent
+    for _ in range(4):
+        if (candidate / "feature_columns.pkl").exists():
+            return candidate
+        candidate = candidate.parent
+    return Path(__file__).resolve().parent.parent
+
+ROOT = _find_root()
 FEATURES_PATH = ROOT / "feature_columns.pkl"
 ENCODERS_PATH = ROOT / "label_encoders.pkl"
 

@@ -4,8 +4,15 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 # Load artifacts once per cold start.
-ROOT = Path(__file__).resolve().parent.parent
+def _find_root():
+    candidate = Path(__file__).resolve().parent
+    for _ in range(4):
+        if (candidate / "model.pkl").exists():
+            return candidate
+        candidate = candidate.parent
+    return Path(__file__).resolve().parent.parent
 
+ROOT = _find_root()
 MODEL_PATH = ROOT / "model.pkl"
 ENCODERS_PATH = ROOT / "label_encoders.pkl"
 FEATURES_PATH = ROOT / "feature_columns.pkl"
