@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Churn Predictor</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+        .predictor-container {
+            max-width: 600px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .result.churn {
+            border-left-color: #dc3545;
+        }
+        
+        .result.no-churn {
+            border-left-color: #28a745;
+        }
+        
+        .probability-bar {
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: width 0.3s;
+        }
+        
+        .probability-fill.no-churn {
+            background: #28a745;
+        }
+        
+        .error {
+            color: #dc3545;
+            padding: 1rem;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #007bff;
+            margin-top: 1rem;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header" role="banner">
+        <div class="container">
+            <h1>Customer Churn Predictor</h1>
+            <p>Predict customer churn probability based on their data</p>
+        </div>
+    </header>
+
+    <main id="main" class="site-main" role="main">
+        <div class="predictor-container">
+            <form id="predictionForm">
+                <div id="formFields"></div>
+                <button type="submit">Predict Churn</button>
+                <div class="loading" id="loading">Loading prediction...</div>
+            </form>
+
+            <div id="result"></div>
+            <div id="error"></div>
+        </div>
+    </main>
+
+    <script>
+        // Fetch features and build form on page load
+        async function initializeForm() {
+            try {
+                const response = await fetch('/api/features');
+                const data = await response.json();
+                
+                const formFields = document.getElementById('formFields');
+                const categoricalOptions = data.categorical_options || {};
+                
+                data.features.forEach(feature => {
+                    const group = document.createElement('div');
+                    group.className = 'form-group';
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = feature;
+                    label.textContent = feature.replace(/_/g, ' ').toUpperCase();
+                    
+                    group.appendChild(label);
+                    
+                    if (feature in categoricalOptions) {
+                        const select = document.createElement('select');
+                        select.id = feature;
+                        select.name = feature;
+                        select.required = true;
+                        
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = `Select ${label.textContent}`;
+                        select.appendChild(defaultOption);
+                        
+                        categoricalOptions[feature].forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option;
+                            opt.textContent = option;
+                            select.appendChild(opt);
+                        });
+                        
+                        group.appendChild(select);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.id = feature;
+                        input.name = feature;
+                        input.step = 'any';
+                        input.required = true;
+                        input.placeholder = `Enter ${label.textContent}`;
+                        group.appendChild(input);
+                    }
+                    
+                    formFields.appendChild(group);
+                });
+            } catch (error) {
+                console.error('Error initializing form:', error);
+                document.getElementById('error').innerHTML = '<div class="error">Failed to load form. Make sure the server is running.</div>';
+            }
+        }
+        
+        // Handle form submission
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            
+            loading.classList.add('active');
+            resultDiv.innerHTML = '';
+            errorDiv.innerHTML = '';
+            
+            try {
+                // Gather form data
+                const formData = new FormData(document.getElementById('predictionForm'));
+                const data = Object.fromEntries(formData);
+                
+                // Convert numeric fields to numbers
+                Object.keys(data).forEach(key => {
+                    const value = data[key];
+                    if (!isNaN(value) && value !== '') {
+                        data[key] = parseFloat(value);
+                    }
+                });
+                
+                // Send prediction request
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Prediction failed');
+                }
+                
+                const result = await response.json();
+                
+                // Display result
+                const resultClass = result.churn ? 'churn' : 'no-churn';
+                const churnText = result.churn ? 'WILL CHURN' : 'WILL NOT CHURN';
+                const churnProb = (result.churn_probability * 100).toFixed(2);
+                
+                resultDiv.innerHTML = `
+                    <div class="result ${resultClass}">
+                        <h3>Prediction: ${churnText}</h3>
+                        <p><strong>Churn Probability:</strong> ${churnProb}%</p>
+                        <div class="probability-bar">
+                            <div class="probability-fill ${resultClass}" style="width: ${result.churn_probability * 100}%">
+                                ${churnProb}%
+                            </div>
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                            No Churn Probability: ${(result.no_churn_probability * 100).toFixed(2)}%
+                        </p>
+                    </div>
+                `;
+            } catch (error) {
+                errorDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                loading.classList.remove('active');
+            }
+        });
+        
+        // Initialize form on page load
+        initializeForm();
+    </script>
+</body>
+</html>
