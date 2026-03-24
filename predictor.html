@@ -104,6 +104,15 @@
             border-radius: 4px;
             margin-top: 1rem;
         }
+
+        .notice {
+            color: #664d03;
+            padding: 1rem;
+            background: #fff3cd;
+            border: 1px solid #ffecb5;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
         
         .loading {
             display: none;
@@ -139,6 +148,13 @@
     </main>
 
     <script>
+        const API_FALLBACK_BASES = [
+            'http://127.0.0.1:5000/api',
+            'http://localhost:5000/api',
+            'http://127.0.0.1:3000/api',
+            'http://localhost:3000/api'
+        ];
+
         const FALLBACK_SCHEMA = {
             features: [
                 "Age",
@@ -170,19 +186,70 @@
             }
         };
 
+        function getApiBaseCandidates() {
+            const candidates = [];
+
+            const protocol = window.location.protocol;
+            const host = window.location.hostname;
+            const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+
+            if (protocol === 'http:' || protocol === 'https:') {
+                candidates.push(`${window.location.origin}/api`);
+            }
+
+            // For public HTTPS sites, avoid localhost fallbacks that cannot be reached by visitors.
+            if (protocol === 'https:' && !isLocalHost) {
+                return candidates;
+            }
+
+            API_FALLBACK_BASES.forEach(base => {
+                if (!candidates.includes(base)) {
+                    candidates.push(base);
+                }
+            });
+
+            return candidates;
+        }
+
+        function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+            return fetch(url, { ...options, signal: controller.signal })
+                .finally(() => clearTimeout(timer));
+        }
+
+        async function requestApi(path, options = {}, retries = 1) {
+            const bases = getApiBaseCandidates();
+            let lastError = new Error('No API base candidates available.');
+
+            for (const base of bases) {
+                const url = `${base}${path}`;
+                for (let attempt = 0; attempt <= retries; attempt += 1) {
+                    try {
+                        const response = await fetchWithTimeout(url, options, 6000);
+                        if (!response.ok) {
+                            throw new Error(`API responded ${response.status} for ${url}`);
+                        }
+                        return { response, apiBase: base };
+                    } catch (error) {
+                        lastError = error;
+                    }
+                }
+            }
+
+            throw lastError;
+        }
+
         // Fetch features and build form on page load
         async function initializeForm() {
             let data = FALLBACK_SCHEMA;
             try {
-                const response = await fetch('/api/features');
-                if (response.ok) {
-                    data = await response.json();
-                } else {
-                    throw new Error('Features API returned a non-200 response.');
-                }
+                const { response } = await requestApi('/features', {}, 1);
+                data = await response.json();
             } catch (error) {
                 console.error('Error initializing form, using fallback schema:', error);
-                document.getElementById('error').innerHTML = '<div class="error">Features service is temporarily unavailable. Using fallback form schema.</div>';
+                document.getElementById('error').innerHTML = '<div class="notice">Using built-in form schema while feature service is unavailable.</div>';
             }
 
             const formFields = document.getElementById('formFields');
@@ -258,18 +325,13 @@
                 });
                 
                 // Send prediction request
-                const response = await fetch('/api/predict', {
+                const { response } = await requestApi('/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Prediction failed');
-                }
+                }, 0);
                 
                 const result = await response.json();
                 
