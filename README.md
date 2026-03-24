@@ -1,6 +1,6 @@
 
-Diego Dev HQ Portfolio
-Personal developer portfolio focused on rebuilding and improving large-scale platforms with better UX and clean engineering.
+Diego Dev HQ's Portfolio
+This is a personal developer portfolio focused on rebuilding and improving large-scale platforms with better UX and clean engineering.
 
 ---
 
