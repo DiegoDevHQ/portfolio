@@ -221,19 +221,22 @@
 
         async function requestApi(path, options = {}, retries = 1) {
             const bases = getApiBaseCandidates();
+            const endpointPaths = path.endsWith('.py') ? [path] : [path, `${path}.py`];
             let lastError = new Error('No API base candidates available.');
 
             for (const base of bases) {
-                const url = `${base}${path}`;
-                for (let attempt = 0; attempt <= retries; attempt += 1) {
-                    try {
-                        const response = await fetchWithTimeout(url, options, 6000);
-                        if (!response.ok) {
-                            throw new Error(`API responded ${response.status} for ${url}`);
+                for (const endpointPath of endpointPaths) {
+                    const url = `${base}${endpointPath}`;
+                    for (let attempt = 0; attempt <= retries; attempt += 1) {
+                        try {
+                            const response = await fetchWithTimeout(url, options, 6000);
+                            if (!response.ok) {
+                                throw new Error(`API responded ${response.status} for ${url}`);
+                            }
+                            return { response, apiBase: base };
+                        } catch (error) {
+                            lastError = error;
                         }
-                        return { response, apiBase: base };
-                    } catch (error) {
-                        lastError = error;
                     }
                 }
             }
@@ -249,7 +252,7 @@
                 data = await response.json();
             } catch (error) {
                 console.error('Error initializing form, using fallback schema:', error);
-                document.getElementById('error').innerHTML = '<div class="notice">Using built-in form schema while feature service is unavailable.</div>';
+                document.getElementById('error').innerHTML = '<div class="notice">Using backup form fields. Predictions are still available.</div>';
             }
 
             const formFields = document.getElementById('formFields');
