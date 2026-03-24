@@ -2,7 +2,7 @@
   "name": "diegodevhq-portfolio",
   "private": true,
   "scripts": {
-    "build": "echo \"No build necessary for static + Python functions\""
+    "build": "mkdir -p public && cp index.html predictor.html styles.css tasktracker.html public/"
   },
   "dependencies": {}
 }
