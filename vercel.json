@@ -1,15 +1,12 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/*.py", "use": "@vercel/python" },
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "predictor.html", "use": "@vercel/static" },
-    { "src": "styles.css", "use": "@vercel/static" }
-  ],
+  "functions": {
+    "api/*.py": {
+      "runtime": "@vercel/python"
+    }
+  },
   "routes": [
-    { "src": "^/api/(.*)", "dest": "/api/$1" },
-    { "src": "^/$", "dest": "/index.html" },
-    { "src": "^/predictor$", "dest": "/predictor.html" },
-    { "src": "^/(.*)$", "dest": "/$1" }
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
