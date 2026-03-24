@@ -1,5 +1,6 @@
 import json
 import pickle
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 # Load artifacts once per cold start.
@@ -19,58 +20,51 @@ with open(FEATURES_PATH, "rb") as f:
     feature_columns = pickle.load(f)
 
 
-def handler(request):
-    try:
-        payload = request.get_json(force=True)
-    except Exception:
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Request must be JSON."}),
-            "headers": {"content-type": "application/json"},
-        }
+class handler(BaseHTTPRequestHandler):
+    def _send_json(self, status_code, payload):
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
-    # Validate and coerce
-    if not isinstance(payload, dict):
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Payload must be an object."}),
-            "headers": {"content-type": "application/json"},
-        }
+    def do_POST(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+            raw = self.rfile.read(content_length).decode("utf-8")
+            payload = json.loads(raw)
+        except Exception:
+            self._send_json(400, {"error": "Request must be valid JSON."})
+            return
 
-    # Build row in expected order.
-    row = []
-    for col in feature_columns:
-        if col not in payload:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": f"Missing feature: {col}"}),
-                "headers": {"content-type": "application/json"},
-            }
+        if not isinstance(payload, dict):
+            self._send_json(400, {"error": "Payload must be an object."})
+            return
 
-        value = payload[col]
+        row = []
+        for col in feature_columns:
+            if col not in payload:
+                self._send_json(400, {"error": f"Missing feature: {col}"})
+                return
 
-        # For categorical features apply encoder
-        if col in label_encoders:
-            try:
-                value = label_encoders[col].transform([value])[0]
-            except Exception as exc:
-                return {
-                    "statusCode": 400,
-                    "body": json.dumps({"error": f"Invalid category for {col}: {value}. {exc}"}),
-                    "headers": {"content-type": "application/json"},
-                }
+            value = payload[col]
+            if col in label_encoders:
+                try:
+                    value = label_encoders[col].transform([value])[0]
+                except Exception as exc:
+                    self._send_json(400, {"error": f"Invalid category for {col}: {value}. {exc}"})
+                    return
 
-        row.append(float(value))
+            row.append(float(value))
 
-    prediction = model.predict([row])[0]
-    prob = model.predict_proba([row])[0]
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "churn": int(prediction),
-            "churn_probability": float(prob[1]),
-            "no_churn_probability": float(prob[0]),
-        }),
-        "headers": {"content-type": "application/json"},
-    }
+        prediction = model.predict([row])[0]
+        prob = model.predict_proba([row])[0]
+        self._send_json(
+            200,
+            {
+                "churn": int(prediction),
+                "churn_probability": float(prob[1]),
+                "no_churn_probability": float(prob[0]),
+            },
+        )
