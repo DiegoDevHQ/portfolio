@@ -48,6 +48,31 @@
             margin-bottom: 30px;
             font-weight: 500;
         }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 14px;
+        }
+
+        .lang-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f7fafc;
+            color: #2d3748;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
         
         .input-group {
             display: flex;
@@ -110,11 +135,15 @@
             padding: 18px;
             border-radius: 12px;
             border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .task-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
+            gap: 12px;
         }
         
         li:hover {
@@ -166,82 +195,621 @@
             display: flex;
             gap: 8px;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .manage-panel {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .manage-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .edit-btn {
+            background: #4299e1;
+            padding: 8px 14px;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+        }
+
+        .edit-btn:hover {
+            background: #3182ce;
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.5);
+        }
+
+        .subtask-btn {
+            background: #805ad5;
+            padding: 8px 14px;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(128, 90, 213, 0.3);
+        }
+
+        .subtask-btn:hover {
+            background: #6b46c1;
+            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.5);
+        }
+
+        .manage-btn {
+            background: #ed8936;
+            box-shadow: 0 2px 8px rgba(237, 137, 54, 0.35);
+        }
+
+        .manage-btn:hover {
+            background: #dd6b20;
+            box-shadow: 0 4px 12px rgba(237, 137, 54, 0.5);
+        }
+
+        .subtask-list {
+            margin-top: 12px;
+            padding-left: 20px;
+            list-style: disc;
+            color: #4a5568;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .subtask-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .subtask-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 9px;
+            font-size: 13px;
+            background: #ffffff;
+            color: #2d3748;
+        }
+
+        .subtask-input:focus {
+            outline: none;
+            border-color: #805ad5;
+            box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.12);
+        }
+
+        .subtask-add-btn {
+            background: #805ad5;
+            padding: 8px 12px;
+            font-size: 13px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(128, 90, 213, 0.3);
+        }
+
+        .subtask-add-btn:hover {
+            background: #6b46c1;
+            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.5);
+        }
+
+        .subtask-list li {
+            background: transparent;
+            border: none;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            font-size: 14px;
+        }
+
+        .subtask-list li:hover {
+            transform: none;
+            box-shadow: none;
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .subtask-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtask-text {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .subtask-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .subtask-edit-btn,
+        .subtask-delete-btn {
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+
+        .subtask-edit-btn {
+            background: #4299e1;
+        }
+
+        .subtask-edit-btn:hover {
+            background: #3182ce;
+        }
+
+        .subtask-delete-btn {
+            background: #f56565;
+        }
+
+        .subtask-delete-btn:hover {
+            background: #e53e3e;
         }
     </style>
 </head>
 <body>
     <audio id="hooraySound" preload="auto">
-        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
     </audio>
     
     <div class="container">
-        <h1>📝 Task Tracker</h1>
+        <div class="toolbar">
+            <select id="languageSelect" class="lang-select" aria-label="Language selector">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="zh">中文</option>
+            </select>
+        </div>
+
+        <h1 id="titleText">📝 Task Tracker</h1>
         <div class="task-count"><span id="taskCount">0</span> tasks</div>
         
         <div class="input-group">
             <input type="text" id="taskInput" placeholder="Add a new task...">
-            <button onclick="addTask()">Add</button>
+            <button id="addBtn" onclick="addTask()">Add</button>
         </div>
         
         <ul id="taskList"></ul>
     </div>
     
     <script>
+        const STORAGE_KEY = 'taskTrackerDataV101';
+        const TRANSLATIONS = {
+            en: {
+                pageLang: 'en',
+                title: '📝 Task Tracker',
+                placeholder: 'Add a new task...',
+                add: 'Add',
+                complete: 'Complete',
+                manage: 'Manage',
+                delete: 'Delete',
+                edit: 'Edit',
+                addSubtask: 'Subtask',
+                addSubtaskAction: 'Add Subtask',
+                closeSubtask: 'Close Subtask',
+                editSubtask: 'Edit',
+                deleteSubtask: 'Delete',
+                taskOne: 'task',
+                taskMany: 'tasks',
+                emptyAlert: 'Please enter a task!',
+                editPrompt: 'Edit task:',
+                editSubtaskPrompt: 'Edit subtask:',
+                subtaskPlaceholder: 'Add a subtask...',
+                leaveWarning: 'You have tasks saved in this tracker. Are you sure you want to leave?'
+            },
+            es: {
+                pageLang: 'es',
+                title: '📝 Gestor de Tareas',
+                placeholder: 'Agrega una nueva tarea...',
+                add: 'Agregar',
+                complete: 'Completar',
+                manage: 'Gestionar',
+                delete: 'Eliminar',
+                edit: 'Editar',
+                addSubtask: 'Subtarea',
+                addSubtaskAction: 'Agregar Subtarea',
+                closeSubtask: 'Cerrar Subtarea',
+                editSubtask: 'Editar',
+                deleteSubtask: 'Eliminar',
+                taskOne: 'tarea',
+                taskMany: 'tareas',
+                emptyAlert: '¡Por favor escribe una tarea!',
+                editPrompt: 'Editar tarea:',
+                editSubtaskPrompt: 'Editar subtarea:',
+                subtaskPlaceholder: 'Agregar una subtarea...',
+                leaveWarning: 'Tienes tareas guardadas en este gestor. ¿Seguro que quieres salir?'
+            },
+            zh: {
+                pageLang: 'zh-CN',
+                title: '📝 任务管理器',
+                placeholder: '添加新任务...',
+                add: '添加',
+                complete: '完成',
+                manage: '管理',
+                delete: '删除',
+                edit: '编辑',
+                addSubtask: '子任务',
+                addSubtaskAction: '添加子任务',
+                closeSubtask: '关闭子任务',
+                editSubtask: '编辑',
+                deleteSubtask: '删除',
+                taskOne: '个任务',
+                taskMany: '个任务',
+                emptyAlert: '请输入任务内容！',
+                editPrompt: '编辑任务：',
+                editSubtaskPrompt: '编辑子任务：',
+                subtaskPlaceholder: '添加子任务...',
+                leaveWarning: '你有已保存的任务。确定要离开吗？'
+            }
+        };
+
+        let currentLang = 'en';
+        let tasks = [];
+        let openManageIndex = null;
+        let openSubtaskIndex = null;
+
+        function t() {
+            return TRANSLATIONS[currentLang];
+        }
+
+        function saveState() {
+            const payload = { lang: currentLang, tasks };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+
+                const parsed = JSON.parse(raw);
+                if (parsed && Array.isArray(parsed.tasks)) {
+                    tasks = parsed.tasks.map(task => ({
+                        text: String(task.text || ''),
+                        completed: Boolean(task.completed),
+                        subtasks: Array.isArray(task.subtasks)
+                            ? task.subtasks.map(sub => String(sub)).filter(Boolean)
+                            : []
+                    }));
+                }
+
+                if (parsed && TRANSLATIONS[parsed.lang]) {
+                    currentLang = parsed.lang;
+                }
+            } catch (err) {
+                console.log('Could not load saved task state:', err);
+            }
+        }
+
+        function applyLanguage() {
+            document.documentElement.lang = t().pageLang;
+            document.getElementById('titleText').textContent = t().title;
+            document.getElementById('taskInput').placeholder = t().placeholder;
+            document.getElementById('addBtn').textContent = t().add;
+            document.getElementById('languageSelect').value = currentLang;
+
+            updateTaskCount();
+            renderTasks();
+            saveState();
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                const taskRow = document.createElement('div');
+                taskRow.className = 'task-row';
+
+                const textSpan = document.createElement('span');
+                textSpan.textContent = task.text;
+                if (task.completed) {
+                    textSpan.classList.add('completed');
+                }
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.className = 'button-group';
+
+                const completeButton = document.createElement('button');
+                completeButton.className = 'complete-btn';
+                completeButton.textContent = t().complete;
+                completeButton.onclick = () => completeTask(index);
+
+                const manageButton = document.createElement('button');
+                manageButton.className = 'subtask-btn manage-btn';
+                manageButton.textContent = t().manage;
+                manageButton.onclick = () => toggleManage(index);
+
+                buttonGroup.appendChild(completeButton);
+                buttonGroup.appendChild(manageButton);
+
+                taskRow.appendChild(textSpan);
+                taskRow.appendChild(buttonGroup);
+                li.appendChild(taskRow);
+
+                if (openManageIndex === index) {
+                    const managePanel = document.createElement('div');
+                    managePanel.className = 'manage-panel';
+
+                    const manageButtons = document.createElement('div');
+                    manageButtons.className = 'manage-buttons';
+
+                    const editButton = document.createElement('button');
+                    editButton.className = 'edit-btn';
+                    editButton.textContent = t().edit;
+                    editButton.onclick = () => editTask(index);
+
+                    const subtaskButton = document.createElement('button');
+                    subtaskButton.className = 'subtask-btn';
+                    subtaskButton.textContent = openSubtaskIndex === index ? t().closeSubtask : t().addSubtask;
+                    subtaskButton.onclick = () => addSubtask(index);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-btn';
+                    deleteButton.textContent = t().delete;
+                    deleteButton.onclick = () => deleteTask(index);
+
+                    manageButtons.appendChild(editButton);
+                    manageButtons.appendChild(subtaskButton);
+                    manageButtons.appendChild(deleteButton);
+                    managePanel.appendChild(manageButtons);
+
+                    if (task.subtasks && task.subtasks.length > 0) {
+                        const subtaskList = document.createElement('ul');
+                        subtaskList.className = 'subtask-list';
+
+                        task.subtasks.forEach((subtask, subIndex) => {
+                            const subtaskItem = document.createElement('li');
+
+                            const subtaskRow = document.createElement('div');
+                            subtaskRow.className = 'subtask-row';
+
+                            const subtaskText = document.createElement('span');
+                            subtaskText.className = 'subtask-text';
+                            subtaskText.textContent = subtask;
+
+                            const subtaskActions = document.createElement('div');
+                            subtaskActions.className = 'subtask-actions';
+
+                            const subtaskEditBtn = document.createElement('button');
+                            subtaskEditBtn.className = 'subtask-edit-btn';
+                            subtaskEditBtn.textContent = t().editSubtask;
+                            subtaskEditBtn.onclick = () => editSubtask(index, subIndex);
+
+                            const subtaskDeleteBtn = document.createElement('button');
+                            subtaskDeleteBtn.className = 'subtask-delete-btn';
+                            subtaskDeleteBtn.textContent = t().deleteSubtask;
+                            subtaskDeleteBtn.onclick = () => deleteSubtask(index, subIndex);
+
+                            subtaskActions.appendChild(subtaskEditBtn);
+                            subtaskActions.appendChild(subtaskDeleteBtn);
+                            subtaskRow.appendChild(subtaskText);
+                            subtaskRow.appendChild(subtaskActions);
+                            subtaskItem.appendChild(subtaskRow);
+                            subtaskList.appendChild(subtaskItem);
+                        });
+
+                        managePanel.appendChild(subtaskList);
+                    }
+
+                    if (openSubtaskIndex === index) {
+                        const subtaskInputGroup = document.createElement('div');
+                        subtaskInputGroup.className = 'subtask-input-group';
+
+                        const subtaskInput = document.createElement('input');
+                        subtaskInput.type = 'text';
+                        subtaskInput.className = 'subtask-input';
+                        subtaskInput.placeholder = t().subtaskPlaceholder;
+
+                        const subtaskAddButton = document.createElement('button');
+                        subtaskAddButton.className = 'subtask-add-btn';
+                        subtaskAddButton.textContent = t().addSubtaskAction;
+                        subtaskAddButton.onclick = () => addSubtaskFromInput(index, subtaskInput);
+
+                        subtaskInput.addEventListener('keypress', function (event) {
+                            if (event.key === 'Enter') {
+                                addSubtaskFromInput(index, subtaskInput);
+                            }
+                        });
+
+                        subtaskInputGroup.appendChild(subtaskInput);
+                        subtaskInputGroup.appendChild(subtaskAddButton);
+                        managePanel.appendChild(subtaskInputGroup);
+
+                        setTimeout(() => subtaskInput.focus(), 0);
+                    }
+
+                    li.appendChild(managePanel);
+                }
+
+                taskList.appendChild(li);
+            });
+        }
+
         function updateTaskCount() {
-            const count = document.getElementById('taskList').children.length;
-            document.getElementById('taskCount').textContent = count;
+            const count = tasks.length;
+            const taskCountContainer = document.querySelector('.task-count');
+            const label = (currentLang === 'zh')
+                ? t().taskMany
+                : (count === 1 ? t().taskOne : t().taskMany);
+            taskCountContainer.innerHTML = `<span id="taskCount">${count}</span> ${label}`;
         }
         
         function addTask() {
             const input = document.getElementById('taskInput');
-            const taskList = document.getElementById('taskList');
             
             if (input.value.trim() === '') {
-                alert('Please enter a task!');
+                alert(t().emptyAlert);
                 return;
             }
             
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${input.value}</span>
-                <div class="button-group">
-                    <button class="complete-btn" onclick="completeTask(this)">Complete</button>
-                    <button class="delete-btn" onclick="deleteTask(this)">Delete</button>
-                </div>
-            `;
-            
-            taskList.appendChild(li);
+            tasks.push({ text: input.value.trim(), completed: false, subtasks: [] });
+            renderTasks();
+            saveState();
             input.value = '';
             input.focus();
             updateTaskCount();
         }
-        
+
         const confetti = new JSConfetti();
-        
-        function completeTask(btn) {
-            const li = btn.parentElement.parentElement;
-            const taskSpan = li.querySelector('span');
-            const isCompleting = !taskSpan.classList.contains('completed');
-            
+
+        function completeTask(index) {
+            const isCompleting = !tasks[index].completed;
+            tasks[index].completed = isCompleting;
+
             if (isCompleting) {
-                taskSpan.classList.add('completed');
                 confetti.addConfetti();
                 const sound = document.getElementById('hooraySound');
                 sound.currentTime = 0;
+                sound.volume = 0.35;
+                sound.playbackRate = 1.05;
                 sound.play().catch(err => console.log('Sound play failed:', err));
-            } else {
-                taskSpan.classList.remove('completed');
             }
+
+            renderTasks();
+            saveState();
+        }
+
+        function toggleManage(index) {
+            if (openManageIndex === index) {
+                openManageIndex = null;
+                openSubtaskIndex = null;
+            } else {
+                openManageIndex = index;
+                openSubtaskIndex = null;
+            }
+            renderTasks();
         }
         
-        function deleteTask(btn) {
-            btn.parentElement.parentElement.remove();
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            if (openManageIndex === index) {
+                openManageIndex = null;
+            } else if (openManageIndex !== null && openManageIndex > index) {
+                openManageIndex -= 1;
+            }
+            if (openSubtaskIndex === index) {
+                openSubtaskIndex = null;
+            } else if (openSubtaskIndex !== null && openSubtaskIndex > index) {
+                openSubtaskIndex -= 1;
+            }
+            renderTasks();
+            saveState();
             updateTaskCount();
+        }
+
+        function editTask(index) {
+            const currentText = tasks[index].text;
+            const updated = prompt(t().editPrompt, currentText);
+            if (updated === null) {
+                return;
+            }
+
+            const trimmed = updated.trim();
+            if (!trimmed) {
+                return;
+            }
+
+            tasks[index].text = trimmed;
+            renderTasks();
+            saveState();
+        }
+
+        function editSubtask(taskIndex, subtaskIndex) {
+            const currentText = tasks[taskIndex].subtasks[subtaskIndex];
+            const updated = prompt(t().editSubtaskPrompt, currentText);
+            if (updated === null) {
+                return;
+            }
+
+            const trimmed = updated.trim();
+            if (!trimmed) {
+                return;
+            }
+
+            tasks[taskIndex].subtasks[subtaskIndex] = trimmed;
+            renderTasks();
+            saveState();
+        }
+
+        function deleteSubtask(taskIndex, subtaskIndex) {
+            tasks[taskIndex].subtasks.splice(subtaskIndex, 1);
+            renderTasks();
+            saveState();
+        }
+
+        function addSubtask(index) {
+            openManageIndex = index;
+            openSubtaskIndex = openSubtaskIndex === index ? null : index;
+            renderTasks();
+        }
+
+        function addSubtaskFromInput(index, inputElement) {
+            const trimmed = inputElement.value.trim();
+            if (!trimmed) {
+                return;
+            }
+
+            if (!Array.isArray(tasks[index].subtasks)) {
+                tasks[index].subtasks = [];
+            }
+
+            tasks[index].subtasks.push(trimmed);
+            openSubtaskIndex = null;
+            renderTasks();
+            saveState();
+            updateTaskCount();
+        }
+
+        function handleLanguageChange(event) {
+            const selected = event.target.value;
+            if (!TRANSLATIONS[selected]) return;
+
+            currentLang = selected;
+            applyLanguage();
         }
         
         document.getElementById('taskInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') addTask();
         });
+
+        document.getElementById('languageSelect').addEventListener('change', handleLanguageChange);
+
+        function hasUnsavedDraftText() {
+            const mainInput = document.getElementById('taskInput');
+            if (mainInput && mainInput.value.trim() !== '') {
+                return true;
+            }
+
+            const subtaskInputs = document.querySelectorAll('.subtask-input');
+            for (const input of subtaskInputs) {
+                if (input.value.trim() !== '') {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        window.addEventListener('beforeunload', function (event) {
+            // Tasks are auto-saved, so only warn if there is typed text not yet submitted.
+            if (!hasUnsavedDraftText()) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue = t().leaveWarning;
+        });
+
+        loadState();
+        applyLanguage();
+        renderTasks();
         
         updateTaskCount();
     </script>

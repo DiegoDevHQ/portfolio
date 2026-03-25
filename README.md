@@ -38,6 +38,28 @@ OUT NOW on my website.
 
 A productivity-focused task management app built to help users organize work clearly and efficiently.
 
+#### Task Tracker 1.1.0 Patch Notes
+
+- Added language selector with support for English, Spanish, and Mandarin.
+- Added automatic task persistence with local storage so tasks are retained after refresh.
+- Updated accidental refresh/leave protection to warn only when unsaved draft text is present.
+- Added task editing so users can rename existing tasks.
+- Added nested subtasks under each task (for example: Clean House -> Kitchen, Bathroom).
+- Added per-subtask edit and delete controls.
+- Changed subtasks input flow to open only when the Subtask action is clicked.
+- Updated task controls to keep Complete exposed, with a Manage button that reveals edit/delete/subtask actions.
+- Updated Manage button styling to orange for clearer action hierarchy.
+- Replaced the completion sound with a softer celebratory chime and lowered playback intensity.
+
+#### Why These Changes (User Feedback)
+
+- Users asked for multilingual support, so EN/ES/ZH language options were added.
+- Users reported losing tasks on refresh, so auto-save persistence was added.
+- Users found refresh warnings too aggressive, so warnings now trigger only for unsaved typed drafts.
+- Users requested better task control visibility, so Complete stays exposed and Manage reveals advanced actions.
+- Users wanted subtasks to feel easier and more structured, so subtasks now support inline creation plus edit/delete actions.
+- Users asked for less harsh audio feedback, so completion sound was changed to a softer celebratory cue.
+
 ---
 
 5. **Customer Churn Predictor (complete)**
