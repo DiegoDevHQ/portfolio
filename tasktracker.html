@@ -319,11 +319,17 @@
             word-break: break-word;
         }
 
+        .subtask-text.completed {
+            color: #a0aec0;
+            text-decoration: line-through;
+        }
+
         .subtask-actions {
             display: flex;
             gap: 6px;
         }
 
+        .subtask-complete-btn,
         .subtask-edit-btn,
         .subtask-delete-btn {
             border: none;
@@ -333,6 +339,14 @@
             font-weight: 600;
             padding: 5px 8px;
             cursor: pointer;
+        }
+
+        .subtask-complete-btn {
+            background: #48bb78;
+        }
+
+        .subtask-complete-btn:hover {
+            background: #38a169;
         }
 
         .subtask-edit-btn {
@@ -392,6 +406,7 @@
                 addSubtask: 'Subtask',
                 addSubtaskAction: 'Add Subtask',
                 closeSubtask: 'Close Subtask',
+                completeSubtask: 'Complete',
                 editSubtask: 'Edit',
                 deleteSubtask: 'Delete',
                 taskOne: 'task',
@@ -414,6 +429,7 @@
                 addSubtask: 'Subtarea',
                 addSubtaskAction: 'Agregar Subtarea',
                 closeSubtask: 'Cerrar Subtarea',
+                completeSubtask: 'Completar',
                 editSubtask: 'Editar',
                 deleteSubtask: 'Eliminar',
                 taskOne: 'tarea',
@@ -436,6 +452,7 @@
                 addSubtask: '子任务',
                 addSubtaskAction: '添加子任务',
                 closeSubtask: '关闭子任务',
+                completeSubtask: '完成',
                 editSubtask: '编辑',
                 deleteSubtask: '删除',
                 taskOne: '个任务',
@@ -473,9 +490,21 @@
                         text: String(task.text || ''),
                         completed: Boolean(task.completed),
                         subtasks: Array.isArray(task.subtasks)
-                            ? task.subtasks.map(sub => String(sub)).filter(Boolean)
+                            ? task.subtasks
+                                .map(sub => {
+                                    if (typeof sub === 'string') {
+                                        return { text: sub, completed: false };
+                                    }
+                                    return {
+                                        text: String((sub && sub.text) || ''),
+                                        completed: Boolean(sub && sub.completed)
+                                    };
+                                })
+                                .filter(sub => sub.text)
                             : []
                     }));
+
+                    tasks.forEach(syncTaskCompletionFromSubtasks);
                 }
 
                 if (parsed && TRANSLATIONS[parsed.lang]) {
@@ -533,6 +562,57 @@
                 taskRow.appendChild(buttonGroup);
                 li.appendChild(taskRow);
 
+                if (task.subtasks && task.subtasks.length > 0) {
+                    const subtaskList = document.createElement('ul');
+                    subtaskList.className = 'subtask-list';
+
+                    task.subtasks.forEach((subtask, subIndex) => {
+                        const subtaskItem = document.createElement('li');
+
+                        const subtaskRow = document.createElement('div');
+                        subtaskRow.className = 'subtask-row';
+
+                        const subtaskText = document.createElement('span');
+                        subtaskText.className = 'subtask-text';
+                        subtaskText.textContent = subtask.text;
+                        if (subtask.completed) {
+                            subtaskText.classList.add('completed');
+                        }
+
+                        const subtaskActions = document.createElement('div');
+                        subtaskActions.className = 'subtask-actions';
+
+                        const subtaskCompleteBtn = document.createElement('button');
+                        subtaskCompleteBtn.className = 'subtask-complete-btn';
+                        subtaskCompleteBtn.textContent = t().completeSubtask;
+                        subtaskCompleteBtn.onclick = () => completeSubtask(index, subIndex);
+
+                        subtaskActions.appendChild(subtaskCompleteBtn);
+
+                        if (openManageIndex === index) {
+                            const subtaskEditBtn = document.createElement('button');
+                            subtaskEditBtn.className = 'subtask-edit-btn';
+                            subtaskEditBtn.textContent = t().editSubtask;
+                            subtaskEditBtn.onclick = () => editSubtask(index, subIndex);
+
+                            const subtaskDeleteBtn = document.createElement('button');
+                            subtaskDeleteBtn.className = 'subtask-delete-btn';
+                            subtaskDeleteBtn.textContent = t().deleteSubtask;
+                            subtaskDeleteBtn.onclick = () => deleteSubtask(index, subIndex);
+
+                            subtaskActions.appendChild(subtaskEditBtn);
+                            subtaskActions.appendChild(subtaskDeleteBtn);
+                        }
+
+                        subtaskRow.appendChild(subtaskText);
+                        subtaskRow.appendChild(subtaskActions);
+                        subtaskItem.appendChild(subtaskRow);
+                        subtaskList.appendChild(subtaskItem);
+                    });
+
+                    li.appendChild(subtaskList);
+                }
+
                 if (openManageIndex === index) {
                     const managePanel = document.createElement('div');
                     managePanel.className = 'manage-panel';
@@ -559,44 +639,6 @@
                     manageButtons.appendChild(subtaskButton);
                     manageButtons.appendChild(deleteButton);
                     managePanel.appendChild(manageButtons);
-
-                    if (task.subtasks && task.subtasks.length > 0) {
-                        const subtaskList = document.createElement('ul');
-                        subtaskList.className = 'subtask-list';
-
-                        task.subtasks.forEach((subtask, subIndex) => {
-                            const subtaskItem = document.createElement('li');
-
-                            const subtaskRow = document.createElement('div');
-                            subtaskRow.className = 'subtask-row';
-
-                            const subtaskText = document.createElement('span');
-                            subtaskText.className = 'subtask-text';
-                            subtaskText.textContent = subtask;
-
-                            const subtaskActions = document.createElement('div');
-                            subtaskActions.className = 'subtask-actions';
-
-                            const subtaskEditBtn = document.createElement('button');
-                            subtaskEditBtn.className = 'subtask-edit-btn';
-                            subtaskEditBtn.textContent = t().editSubtask;
-                            subtaskEditBtn.onclick = () => editSubtask(index, subIndex);
-
-                            const subtaskDeleteBtn = document.createElement('button');
-                            subtaskDeleteBtn.className = 'subtask-delete-btn';
-                            subtaskDeleteBtn.textContent = t().deleteSubtask;
-                            subtaskDeleteBtn.onclick = () => deleteSubtask(index, subIndex);
-
-                            subtaskActions.appendChild(subtaskEditBtn);
-                            subtaskActions.appendChild(subtaskDeleteBtn);
-                            subtaskRow.appendChild(subtaskText);
-                            subtaskRow.appendChild(subtaskActions);
-                            subtaskItem.appendChild(subtaskRow);
-                            subtaskList.appendChild(subtaskItem);
-                        });
-
-                        managePanel.appendChild(subtaskList);
-                    }
 
                     if (openSubtaskIndex === index) {
                         const subtaskInputGroup = document.createElement('div');
@@ -663,6 +705,12 @@
             const isCompleting = !tasks[index].completed;
             tasks[index].completed = isCompleting;
 
+            if (Array.isArray(tasks[index].subtasks) && tasks[index].subtasks.length > 0) {
+                tasks[index].subtasks.forEach(subtask => {
+                    subtask.completed = isCompleting;
+                });
+            }
+
             if (isCompleting) {
                 confetti.addConfetti();
                 const sound = document.getElementById('hooraySound');
@@ -722,7 +770,7 @@
         }
 
         function editSubtask(taskIndex, subtaskIndex) {
-            const currentText = tasks[taskIndex].subtasks[subtaskIndex];
+            const currentText = tasks[taskIndex].subtasks[subtaskIndex].text;
             const updated = prompt(t().editSubtaskPrompt, currentText);
             if (updated === null) {
                 return;
@@ -733,13 +781,32 @@
                 return;
             }
 
-            tasks[taskIndex].subtasks[subtaskIndex] = trimmed;
+            tasks[taskIndex].subtasks[subtaskIndex].text = trimmed;
+            renderTasks();
+            saveState();
+        }
+
+        function completeSubtask(taskIndex, subtaskIndex) {
+            const current = tasks[taskIndex].subtasks[subtaskIndex].completed;
+            tasks[taskIndex].subtasks[subtaskIndex].completed = !current;
+            syncTaskCompletionFromSubtasks(tasks[taskIndex]);
+
+            if (!current) {
+                confetti.addConfetti();
+                const sound = document.getElementById('hooraySound');
+                sound.currentTime = 0;
+                sound.volume = 0.35;
+                sound.playbackRate = 1.05;
+                sound.play().catch(err => console.log('Sound play failed:', err));
+            }
+
             renderTasks();
             saveState();
         }
 
         function deleteSubtask(taskIndex, subtaskIndex) {
             tasks[taskIndex].subtasks.splice(subtaskIndex, 1);
+            syncTaskCompletionFromSubtasks(tasks[taskIndex]);
             renderTasks();
             saveState();
         }
@@ -760,11 +827,20 @@
                 tasks[index].subtasks = [];
             }
 
-            tasks[index].subtasks.push(trimmed);
+            tasks[index].subtasks.push({ text: trimmed, completed: false });
+            syncTaskCompletionFromSubtasks(tasks[index]);
             openSubtaskIndex = null;
             renderTasks();
             saveState();
             updateTaskCount();
+        }
+
+        function syncTaskCompletionFromSubtasks(task) {
+            if (!task || !Array.isArray(task.subtasks) || task.subtasks.length === 0) {
+                return;
+            }
+
+            task.completed = task.subtasks.every(subtask => Boolean(subtask.completed));
         }
 
         function handleLanguageChange(event) {

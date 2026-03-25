@@ -38,7 +38,7 @@ OUT NOW on my website.
 
 A productivity-focused task management app built to help users organize work clearly and efficiently.
 
-#### Task Tracker 1.1.0 Patch Notes
+#### Task Tracker 1.1.1 Hotfix Patch Notes
 
 - Added language selector with support for English, Spanish, and Mandarin.
 - Added automatic task persistence with local storage so tasks are retained after refresh.
@@ -50,6 +50,9 @@ A productivity-focused task management app built to help users organize work cle
 - Updated task controls to keep Complete exposed, with a Manage button that reveals edit/delete/subtask actions.
 - Updated Manage button styling to orange for clearer action hierarchy.
 - Replaced the completion sound with a softer celebratory chime and lowered playback intensity.
+- Added complete button for each subtask.
+- Updated task completion logic so a parent task automatically completes when all subtasks are complete.
+- Made subtasks always visible in the task card (not hidden behind Manage).
 
 #### Why These Changes (User Feedback)
 
@@ -59,6 +62,9 @@ A productivity-focused task management app built to help users organize work cle
 - Users requested better task control visibility, so Complete stays exposed and Manage reveals advanced actions.
 - Users wanted subtasks to feel easier and more structured, so subtasks now support inline creation plus edit/delete actions.
 - Users asked for less harsh audio feedback, so completion sound was changed to a softer celebratory cue.
+- Users asked for clearer subtask progress, so each subtask now has its own complete action.
+- Users wanted parent progress to reflect child progress, so the main task now auto-completes when all subtasks are done.
+- Users asked to always see subtasks, so subtasks are now always visible under each task.
 
 ---
 
