@@ -25,16 +25,32 @@ body{
   margin:0;
   font-family:var(--font);
   color:var(--text);
+  position: relative;
+  isolation: isolate;
   background:
-    radial-gradient(1000px 600px at 12% 8%, rgba(124,92,255,.22), transparent 60%),
-    radial-gradient(900px 500px at 88% 18%, rgba(43,212,195,.16), transparent 55%),
-    radial-gradient(900px 600px at 50% 100%, rgba(255,255,255,.06), transparent 70%),
+    radial-gradient(1200px 780px at 10% 6%, rgba(124,92,255,.24) 0%, rgba(124,92,255,.15) 32%, rgba(124,92,255,.07) 52%, rgba(124,92,255,0) 74%),
+    radial-gradient(1100px 700px at 90% 14%, rgba(43,212,195,.20) 0%, rgba(43,212,195,.11) 34%, rgba(43,212,195,.05) 54%, rgba(43,212,195,0) 76%),
+    radial-gradient(1200px 760px at 50% 100%, rgba(255,255,255,.07) 0%, rgba(255,255,255,.04) 30%, rgba(255,255,255,.02) 54%, rgba(255,255,255,0) 82%),
     var(--bg);
   line-height:1.6;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::before{
+  content: "";
+  position: fixed;
+  inset: -20vmax;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(40vmax 30vmax at 15% 12%, rgba(124,92,255,.09), rgba(124,92,255,0) 72%),
+    radial-gradient(36vmax 28vmax at 84% 18%, rgba(43,212,195,.08), rgba(43,212,195,0) 74%),
+    radial-gradient(46vmax 30vmax at 50% 96%, rgba(255,255,255,.04), rgba(255,255,255,0) 76%);
+  filter: blur(28px) saturate(110%);
+  opacity: .95;
 }
 
 a{ color:inherit; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.35); }
