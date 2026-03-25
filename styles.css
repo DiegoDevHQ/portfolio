@@ -28,9 +28,9 @@ body{
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(1200px 780px at 10% 6%, rgba(124,92,255,.24) 0%, rgba(124,92,255,.15) 32%, rgba(124,92,255,.07) 52%, rgba(124,92,255,0) 74%),
-    radial-gradient(1100px 700px at 90% 14%, rgba(43,212,195,.20) 0%, rgba(43,212,195,.11) 34%, rgba(43,212,195,.05) 54%, rgba(43,212,195,0) 76%),
-    radial-gradient(1200px 760px at 50% 100%, rgba(255,255,255,.07) 0%, rgba(255,255,255,.04) 30%, rgba(255,255,255,.02) 54%, rgba(255,255,255,0) 82%),
+    radial-gradient(1400px 900px at 8% 4%, rgba(124,92,255,.20) 0%, rgba(124,92,255,.13) 36%, rgba(124,92,255,.06) 58%, rgba(124,92,255,0) 84%),
+    radial-gradient(1300px 860px at 92% 10%, rgba(43,212,195,.17) 0%, rgba(43,212,195,.10) 38%, rgba(43,212,195,.05) 60%, rgba(43,212,195,0) 86%),
+    radial-gradient(1500px 900px at 50% 102%, rgba(255,255,255,.06) 0%, rgba(255,255,255,.035) 34%, rgba(255,255,255,.015) 58%, rgba(255,255,255,0) 86%),
     var(--bg);
   line-height:1.6;
   overflow-x: hidden;
@@ -41,16 +41,31 @@ body{
 
 body::before{
   content: "";
-  position: fixed;
-  inset: -20vmax;
+  position: absolute;
+  inset: 0;
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(40vmax 30vmax at 15% 12%, rgba(124,92,255,.09), rgba(124,92,255,0) 72%),
-    radial-gradient(36vmax 28vmax at 84% 18%, rgba(43,212,195,.08), rgba(43,212,195,0) 74%),
-    radial-gradient(46vmax 30vmax at 50% 96%, rgba(255,255,255,.04), rgba(255,255,255,0) 76%);
-  filter: blur(28px) saturate(110%);
-  opacity: .95;
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0) 32%),
+    radial-gradient(900px 600px at 50% -10%, rgba(255,255,255,.05), rgba(255,255,255,0) 72%);
+  opacity: .75;
+}
+
+body::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.014) 0px,
+      rgba(255,255,255,.014) 1px,
+      rgba(0,0,0,.014) 2px,
+      rgba(0,0,0,.014) 3px
+    );
+  opacity: .18;
 }
 
 a{ color:inherit; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.35); }
