@@ -145,8 +145,16 @@ a:hover{ text-decoration-color: rgba(255,255,255,.75); }
   font-weight:700;
   letter-spacing:.01em;
   box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, filter 0.25s ease;
 }
-.btn:hover{ background: rgba(255,255,255,.07); }
+.btn:hover{
+  background: rgba(255,255,255,.07);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.24);
+}
+.btn:active{
+  transform: translateY(0);
+}
 .btn:focus-visible{
   outline: 3px solid var(--ring);
   outline-offset: 2px;
