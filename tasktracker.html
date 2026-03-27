@@ -1107,6 +1107,7 @@
 
         let currentLang = 'en';
         let currentTheme = 'light';
+        let themeManuallySet = false;
         let currentFilter = 'all';
         let showAdvancedComposer = false;
         let showExtraFilters = false;
@@ -1181,6 +1182,7 @@
             const payload = {
                 lang: currentLang,
                 theme: currentTheme,
+                themeManuallySet,
                 tasks
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -1259,13 +1261,15 @@
                 currentLang = detectLanguageFromDevice();
             }
 
+            themeManuallySet = Boolean(payload && payload.themeManuallySet);
             currentTheme = payload && (payload.theme === 'dark' || payload.theme === 'light')
                 ? payload.theme
                 : detectThemeFromSystem();
         }
 
-        function setTheme(theme) {
+        function setTheme(theme, manual) {
             currentTheme = theme === 'dark' ? 'dark' : 'light';
+            if (manual) themeManuallySet = true;
             document.documentElement.setAttribute('data-theme', currentTheme);
             document.getElementById('themeToggleBtn').textContent = currentTheme === 'dark' ? t().lightMode : t().darkMode;
             saveState();
@@ -1963,7 +1967,7 @@
             saveState();
         });
         document.getElementById('themeToggleBtn').addEventListener('click', function () {
-            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark', true);
         });
         document.getElementById('notifyBtn').addEventListener('click', requestNotificationPermission);
         document.getElementById('toggleAdvancedComposerBtn').addEventListener('click', function () {
@@ -1991,6 +1995,16 @@
         renderTasks();
         checkReminders();
         setInterval(checkReminders, 30000);
+
+        // Live system dark/light mode listener — updates if user switches device theme,
+        // but only if they haven't manually set a preference via the toggle.
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+                if (!themeManuallySet) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
     </script>
 </body>
 </html>
