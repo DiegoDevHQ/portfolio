@@ -105,6 +105,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 **Page Title**
 - Updated app title to "Task Tracker 2.0" across all 8 languages.
 
+#### Task Tracker 2.0.1 Hotfix Patch Notes
+
+- Fixed mobile task action buttons where the "More" label could render vertically.
+- Updated small-screen action button sizing and text wrapping so labels stay horizontal.
+- Improved expanded task action readability on phones without changing desktop layout.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.
