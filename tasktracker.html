@@ -1832,6 +1832,12 @@
                 task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
             ].filter(Boolean).join(' | ');
 
+            if (isAppleMobileDevice()) {
+                const iosCalendarTimestamp = Math.floor(startDate.getTime() / 1000);
+                window.location.href = `calshow:${iosCalendarTimestamp}`;
+                return;
+            }
+
             const uidValue = `${task.id || uid()}@task-planner-2`;
             const now = new Date();
             const icsContent = [
@@ -1861,11 +1867,6 @@
                     navigator.share({ files: [file], title: title }).catch(function () {});
                     return;
                 }
-            }
-
-            if (isAppleMobileDevice()) {
-                openCalendarForTask(task);
-                return;
             }
 
             const url = URL.createObjectURL(blob);
