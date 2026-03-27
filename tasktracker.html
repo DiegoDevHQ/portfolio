@@ -1937,10 +1937,6 @@
             return isIOS || isTouchMac;
         }
 
-        function isChromeOnIOS() {
-            return /CriOS/i.test(navigator.userAgent || '');
-        }
-
         function openCalendarInHiddenFrame(url) {
             let frame = document.getElementById('calendarExportFrame');
             if (!frame) {
@@ -2001,11 +1997,6 @@
                 `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
                 task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
             ].filter(Boolean).join(' | ');
-
-            if (isChromeOnIOS()) {
-                openCalendarForTask(task);
-                return;
-            }
 
             if (isAppleMobileDevice()) {
                 showIosCalendarChoice(task);

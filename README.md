@@ -165,6 +165,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Chrome on iOS now opens Google Calendar directly because the Apple import handoff kept returning users to a blank white browser screen.
 - Keeps the Apple-vs-Google chooser for Safari on iPhone while using a more reliable browser-specific default on `CriOS`.
 
+#### Task Tracker 2.0.11 Hotfix Patch Notes
+
+- Removed the forced Chrome-on-iOS Google Calendar redirect.
+- iPhone/iPad users now get the same Apple vs Google calendar choice modal in both Safari and Chrome.
+- Restored user control so Chrome on iOS no longer bypasses the calendar option prompt.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.
