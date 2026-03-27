@@ -4,6 +4,7 @@ import json
 import math
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent
 
@@ -97,6 +98,44 @@ def _heuristic_churn_probability(payload):
     return max(min(prob, 0.99), 0.01)
 
 
+def _escape_ics_value(text):
+    return str(text or "").replace("\\", "\\\\").replace("\n", "\\n").replace(",", "\\,").replace(";", "\\;")
+
+
+def _sanitize_filename(text):
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "-" for ch in str(text or "task"))
+    safe = safe.strip("-")[:40] or "task"
+    return f"{safe}.ics"
+
+
+def _to_ics_date(value):
+    cleaned = str(value or "").strip()
+    if not cleaned:
+        return ""
+    return cleaned.replace("-", "").replace(":", "").replace(".000", "")
+
+
+def _build_ics(title, details, start, end, uid_value):
+    return "\r\n".join(
+        [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Task Planner 2.0//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VEVENT",
+            f"UID:{_escape_ics_value(uid_value)}",
+            f"DTSTAMP:{_to_ics_date(start)}",
+            f"DTSTART:{_to_ics_date(start)}",
+            f"DTEND:{_to_ics_date(end)}",
+            f"SUMMARY:{_escape_ics_value(title)}",
+            f"DESCRIPTION:{_escape_ics_value(details)}",
+            "END:VEVENT",
+            "END:VCALENDAR",
+        ]
+    )
+
+
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, status_code, payload):
         body = json.dumps(payload).encode("utf-8")
@@ -119,8 +158,31 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_calendar_event(self, query):
+        title = query.get("title", ["Task"])[0]
+        details = query.get("details", [""])[0]
+        start = query.get("start", [""])[0]
+        end = query.get("end", [""])[0]
+        uid_value = query.get("uid", [title])[0]
+        filename = _sanitize_filename(query.get("filename", [title])[0])
+
+        if not start or not end:
+            self._send_json(400, {"error": "Missing calendar start/end values."})
+            return
+
+        body = _build_ics(title, details, start, end, uid_value).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/calendar; charset=utf-8")
+        self.send_header("Content-Disposition", f'inline; filename="{filename}"')
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_GET(self):
-        path = self.path.split("?", 1)[0]
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
 
         if path in ("/api/features", "/api/features.py", "/features.py"):
             payload = {
@@ -129,6 +191,10 @@ class handler(BaseHTTPRequestHandler):
                 "categorical_options": CATEGORICAL_OPTIONS,
             }
             self._send_json(200, payload)
+            return
+
+        if path == "/api/calendar-event":
+            self._send_calendar_event(query)
             return
 
         if path in ("/", "/index.html"):

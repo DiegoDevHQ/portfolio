@@ -1862,6 +1862,18 @@
             return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
         }
 
+        function buildCalendarEventUrl(task, startDate, endDate, title, details) {
+            const params = new URLSearchParams({
+                title,
+                details,
+                start: toIcsDate(startDate),
+                end: toIcsDate(endDate),
+                uid: `${task.id || uid()}@task-planner-2`,
+                filename: task.text || 'task'
+            });
+            return `/api/calendar-event?${params.toString()}`;
+        }
+
         function isAppleMobileDevice() {
             const ua = navigator.userAgent || '';
             const isIOS = /iPad|iPhone|iPod/.test(ua);
@@ -1882,8 +1894,7 @@
             ].filter(Boolean).join(' | ');
 
             if (isAppleMobileDevice()) {
-                const iosCalendarTimestamp = Math.floor(startDate.getTime() / 1000);
-                window.location.href = `calshow:${iosCalendarTimestamp}`;
+                window.location.href = buildCalendarEventUrl(task, startDate, endDate, title, details);
                 return;
             }
 
