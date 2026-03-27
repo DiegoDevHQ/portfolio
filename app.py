@@ -193,7 +193,7 @@ class handler(BaseHTTPRequestHandler):
             self._send_json(200, payload)
             return
 
-        if path == "/api/calendar-event":
+        if path in ("/api/calendar-event", "/api/calendar_event"):
             self._send_calendar_event(query)
             return
 

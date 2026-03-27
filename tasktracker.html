@@ -1871,7 +1871,7 @@
                 uid: `${task.id || uid()}@task-planner-2`,
                 filename: task.text || 'task'
             });
-            return `/api/calendar-event?${params.toString()}`;
+            return `/api/calendar_event?${params.toString()}`;
         }
 
         function isAppleMobileDevice() {
