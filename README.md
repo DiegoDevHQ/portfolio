@@ -123,6 +123,24 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Added visible schedule and deadline helper labels so all users see `Click to add date` instead of blank date fields.
 - Improved advanced composer sizing across devices to keep date and reminder controls inside the card layout.
 
+#### Task Tracker 2.0.4 Hotfix Patch Notes
+
+- Fixed iOS Device Calendar behavior that could jump to the wrong year and fail to preserve task event details.
+- Replaced the iPhone/iPad `calshow:` shortcut path with a real server-served calendar event endpoint.
+- iOS calendar exports now send a proper `.ics` event response with the task title, date, and time included.
+
+#### Task Tracker 2.0.5 Hotfix Patch Notes
+
+- Fixed production `404 Not Found` errors for iOS calendar exports on Vercel.
+- Added a dedicated `api/calendar_event.py` serverless function so the calendar export route exists as a real deployed endpoint.
+- Updated Task Tracker to use the deployed calendar function path consistently in both production and local routing.
+
+#### Task Tracker 2.0.6 Hotfix Patch Notes
+
+- Improved iOS calendar export handoff so Safari no longer tends to sit on a blank white viewer screen after approval.
+- Updated iPhone/iPad calendar export to open through a temporary tab and attempt to close it after the handoff starts.
+- Changed calendar event responses to download as attachments instead of remaining inline in the browser view.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.

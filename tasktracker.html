@@ -1881,6 +1881,23 @@
             return isIOS || isTouchMac;
         }
 
+        function openTemporaryCalendarWindow(url) {
+            const popup = window.open('about:blank', '_blank');
+            if (!popup) {
+                window.location.href = url;
+                return;
+            }
+
+            popup.location.replace(url);
+            setTimeout(function () {
+                try {
+                    popup.close();
+                } catch (error) {
+                    // Safari may ignore close() after handing off the calendar file.
+                }
+            }, 1800);
+        }
+
         function openDeviceCalendarForTask(task) {
             const start = task.scheduledAt || task.deadlineAt || task.createdAt;
             const startDate = new Date(start);
@@ -1894,7 +1911,7 @@
             ].filter(Boolean).join(' | ');
 
             if (isAppleMobileDevice()) {
-                window.location.href = buildCalendarEventUrl(task, startDate, endDate, title, details);
+                openTemporaryCalendarWindow(buildCalendarEventUrl(task, startDate, endDate, title, details));
                 return;
             }
 
