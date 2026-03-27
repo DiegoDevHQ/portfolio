@@ -3,366 +3,520 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Tracker</title>
+    <title>Task Tracker 2.0</title>
     <script src="https://cdn.jsdelivr.net/npm/js-confetti@0.12.0/dist/js-confetti.browser.js"></script>
     <style>
+        :root {
+            --bg-1: #f4f7ff;
+            --bg-2: #ecfff6;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-strong: #ffffff;
+            --text: #0f172a;
+            --text-soft: #475569;
+            --text-muted: #64748b;
+            --border: #dbe4f0;
+            --primary: #1d4ed8;
+            --primary-strong: #1e40af;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --chip: #e7eefc;
+            --shadow: 0 20px 55px rgba(15, 23, 42, 0.14);
+        }
+
+        [data-theme="dark"] {
+            --bg-1: #0b1220;
+            --bg-2: #111827;
+            --surface: rgba(18, 26, 42, 0.92);
+            --surface-strong: #131c2d;
+            --text: #e2e8f0;
+            --text-soft: #bfccdf;
+            --text-muted: #94a3b8;
+            --border: #2a3a55;
+            --primary: #60a5fa;
+            --primary-strong: #3b82f6;
+            --success: #34d399;
+            --warning: #f59e0b;
+            --danger: #f87171;
+            --chip: #1d2a44;
+            --shadow: 0 24px 60px rgba(2, 6, 23, 0.5);
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            writing-mode: horizontal-tb;
+            text-orientation: mixed;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            font-family: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(900px 500px at 5% 5%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 70%),
+                radial-gradient(800px 450px at 96% 12%, color-mix(in srgb, var(--success) 24%, transparent), transparent 72%),
+                linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 100%);
+            padding: 26px;
             display: flex;
+            align-items: flex-start;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            -webkit-text-size-adjust: 100%;
+            overflow-wrap: anywhere;
         }
-        
-        .container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 1px rgba(0, 0, 0, 0.05);
+
+        .app-shell {
             width: 100%;
-            max-width: 500px;
-            padding: 40px;
+            max-width: 1080px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
+            overflow: hidden;
         }
-        
+
+        .header {
+            padding: 28px;
+            display: grid;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(145deg, color-mix(in srgb, var(--surface-strong) 85%, transparent), color-mix(in srgb, var(--chip) 45%, transparent));
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
         h1 {
-            color: #2d3748;
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 30px;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 6px;
         }
-        
-        .task-count {
-            text-align: center;
-            color: #718096;
-            font-size: 13px;
-            margin-bottom: 30px;
+
+        .subtitle {
+            color: var(--text-soft);
+            font-size: 15px;
             font-weight: 500;
         }
 
         .toolbar {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 14px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .lang-select {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            background: #f7fafc;
-            color: #2d3748;
-            font-size: 13px;
+        .select,
+        .btn,
+        .field,
+        .datetime,
+        .search {
+            border-radius: 11px;
+            border: 1px solid var(--border);
+            background: var(--surface-strong);
+            color: var(--text);
+            font-size: 14px;
             font-weight: 600;
-            padding: 8px 10px;
-            cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .lang-select:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .select,
+        .btn {
+            padding: 10px 12px;
         }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+
+        .btn {
+            cursor: pointer;
         }
-        
-        input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            background: #f7fafc;
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
         }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        input::placeholder {
-            color: #a0aec0;
-        }
-        
-        button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-strong));
             color: white;
             border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        ul {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        li {
-            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-            padding: 18px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s ease;
-            position: relative;
         }
 
-        .task-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        li:hover {
-            border-color: #cbd5e0;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
-            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-        }
-        
-        li span {
-            font-size: 16px;
-            color: #2d3748;
-            font-weight: 500;
-            flex: 1;
-            word-break: break-word;
-            transition: all 0.3s ease;
-        }
-        
-        li span.completed {
-            color: #a0aec0;
-            text-decoration: line-through;
-        }
-        
-        .delete-btn {
-            background: #f56565;
-            padding: 8px 14px;
-            font-size: 13px;
-            box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
-        }
-        
-        .delete-btn:hover {
-            background: #e53e3e;
-            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.5);
-        }
-        
-        .complete-btn {
-            background: #48bb78;
-            padding: 8px 14px;
-            font-size: 13px;
-            box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
-        }
-        
-        .complete-btn:hover {
-            background: #38a169;
-            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.5);
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+        .btn-ghost {
+            background: var(--chip);
         }
 
-        .manage-panel {
-            margin-top: 12px;
-            display: flex;
-            flex-direction: column;
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
         }
 
-        .manage-buttons {
+        .stat {
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .progress-wrap {
+            margin-top: 2px;
+        }
+
+        .progress-label {
+            color: var(--text-soft);
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            width: 100%;
+            background: color-mix(in srgb, var(--chip) 60%, transparent);
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-fill {
+            width: 0;
+            height: 100%;
+            transition: width 0.3s ease;
+            background: linear-gradient(135deg, var(--success), color-mix(in srgb, var(--success) 70%, #16a34a));
+        }
+
+        .main {
+            padding: 24px 28px 30px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .composer {
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .composer-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .composer-advanced {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .composer-advanced.hidden {
+            display: none;
+        }
+
+        .field,
+        .datetime,
+        .search {
+            padding: 12px;
+            width: 100%;
+            font-weight: 500;
+        }
+
+        .datetime {
+            color-scheme: light;
+        }
+
+        [data-theme="dark"] .datetime {
+            color-scheme: dark;
+        }
+
+        .field::placeholder,
+        .search::placeholder {
+            color: var(--text-muted);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .left-controls,
+        .right-controls {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
-        .edit-btn {
-            background: #4299e1;
-            padding: 8px 14px;
+        .chip {
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--chip);
+            color: var(--text-soft);
             font-size: 13px;
-            box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+            font-weight: 700;
+            padding: 9px 13px;
+            cursor: pointer;
         }
 
-        .edit-btn:hover {
-            background: #3182ce;
-            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.5);
-        }
-
-        .subtask-btn {
-            background: #805ad5;
-            padding: 8px 14px;
-            font-size: 13px;
-            box-shadow: 0 2px 8px rgba(128, 90, 213, 0.3);
-        }
-
-        .subtask-btn:hover {
-            background: #6b46c1;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.5);
-        }
-
-        .manage-btn {
-            background: #ed8936;
-            box-shadow: 0 2px 8px rgba(237, 137, 54, 0.35);
-        }
-
-        .manage-btn:hover {
-            background: #dd6b20;
-            box-shadow: 0 4px 12px rgba(237, 137, 54, 0.5);
-        }
-
-        .subtask-list {
-            margin-top: 12px;
-            padding-left: 20px;
-            list-style: disc;
-            color: #4a5568;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .subtask-input-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .subtask-input {
-            flex: 1;
-            padding: 10px 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 9px;
-            font-size: 13px;
-            background: #ffffff;
-            color: #2d3748;
-        }
-
-        .subtask-input:focus {
-            outline: none;
-            border-color: #805ad5;
-            box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.12);
-        }
-
-        .subtask-add-btn {
-            background: #805ad5;
-            padding: 8px 12px;
-            font-size: 13px;
-            white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(128, 90, 213, 0.3);
-        }
-
-        .subtask-add-btn:hover {
-            background: #6b46c1;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.5);
-        }
-
-        .subtask-list li {
-            background: transparent;
-            border: none;
-            padding: 0;
-            border-radius: 0;
-            box-shadow: none;
-            font-size: 14px;
-        }
-
-        .subtask-list li:hover {
-            transform: none;
-            box-shadow: none;
-            background: transparent;
+        .chip.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+            color: white;
             border-color: transparent;
         }
 
-        .subtask-row {
+        .chip.hidden {
+            display: none;
+        }
+
+        .reminder-banner {
+            border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border));
+            background: color-mix(in srgb, var(--warning) 12%, var(--surface-strong));
+            color: var(--text);
+            padding: 11px 12px;
+            border-radius: 11px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .task-list {
+            list-style: none;
+            display: grid;
+            gap: 12px;
+        }
+
+        .task-card {
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            display: grid;
+            gap: 11px;
+        }
+
+        .task-main {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .task-text-block {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 17px;
+            line-height: 1.25;
+            font-weight: 700;
+            color: var(--text);
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .task-title.completed {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .meta-row {
+            margin-top: 7px;
+            display: flex;
             gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .meta-pill {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-soft);
+            border: 1px solid var(--border);
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--chip) 65%, transparent);
+        }
+
+        .meta-pill.warning {
+            color: #9a5a00;
+            border-color: color-mix(in srgb, var(--warning) 55%, var(--border));
+            background: color-mix(in srgb, var(--warning) 14%, transparent);
+        }
+
+        [data-theme="dark"] .meta-pill.warning {
+            color: #ffd07e;
+        }
+
+        .meta-pill.danger {
+            color: #9f1239;
+            border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+            background: color-mix(in srgb, var(--danger) 14%, transparent);
+        }
+
+        [data-theme="dark"] .meta-pill.danger {
+            color: #ffc0cd;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            justify-content: flex-end;
+        }
+
+        .btn-mini {
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .btn-success {
+            background: color-mix(in srgb, var(--success) 18%, var(--surface-strong));
+            border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+        }
+
+        .btn-danger {
+            background: color-mix(in srgb, var(--danger) 18%, var(--surface-strong));
+            border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+        }
+
+        .subtasks {
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            display: grid;
+            gap: 7px;
+        }
+
+        .subtask-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: flex-start;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px;
+            background: color-mix(in srgb, var(--chip) 48%, transparent);
         }
 
         .subtask-text {
-            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-soft);
             word-break: break-word;
+            overflow-wrap: anywhere;
+            flex: 1;
         }
 
         .subtask-text.completed {
-            color: #a0aec0;
             text-decoration: line-through;
+            color: var(--text-muted);
         }
 
         .subtask-actions {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
         }
 
-        .subtask-complete-btn,
-        .subtask-edit-btn,
-        .subtask-delete-btn {
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 5px 8px;
-            cursor: pointer;
+        .empty {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            text-align: center;
+            color: var(--text-soft);
+            font-size: 15px;
+            background: color-mix(in srgb, var(--chip) 42%, transparent);
         }
 
-        .subtask-complete-btn {
-            background: #48bb78;
+        @media (max-width: 980px) {
+            .composer-row {
+                grid-template-columns: 1fr auto;
+            }
+
+            .composer-row .field {
+                grid-column: 1 / 2;
+            }
+
+            .composer-advanced {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
-        .subtask-complete-btn:hover {
-            background: #38a169;
-        }
+        @media (max-width: 720px) {
+            body {
+                padding: 10px;
+            }
 
-        .subtask-edit-btn {
-            background: #4299e1;
-        }
+            .app-shell {
+                border-radius: 16px;
+            }
 
-        .subtask-edit-btn:hover {
-            background: #3182ce;
-        }
+            .header,
+            .main {
+                padding: 16px;
+            }
 
-        .subtask-delete-btn {
-            background: #f56565;
-        }
+            h1 {
+                font-size: 24px;
+            }
 
-        .subtask-delete-btn:hover {
-            background: #e53e3e;
+            .composer-row {
+                grid-template-columns: 1fr;
+            }
+
+            .composer-advanced {
+                grid-template-columns: 1fr;
+            }
+
+            .task-main {
+                flex-direction: column;
+            }
+
+            .task-actions,
+            .subtask-actions {
+                width: 100%;
+            }
+
+            .task-actions .btn,
+            .subtask-actions .btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .composer-row .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -370,524 +524,1473 @@
     <audio id="hooraySound" preload="auto">
         <source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg">
     </audio>
-    
-    <div class="container">
-        <div class="toolbar">
-            <select id="languageSelect" class="lang-select" aria-label="Language selector">
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="zh">中文</option>
-            </select>
-        </div>
 
-        <h1 id="titleText">📝 Task Tracker</h1>
-        <div class="task-count"><span id="taskCount">0</span> tasks</div>
-        
-        <div class="input-group">
-            <input type="text" id="taskInput" placeholder="Add a new task...">
-            <button id="addBtn" onclick="addTask()">Add</button>
-        </div>
-        
-        <ul id="taskList"></ul>
+    <div class="app-shell">
+        <header class="header">
+            <div class="top-row">
+                <div>
+                    <h1 id="titleText">Task Tracker 2.0</h1>
+                    <div id="subtitleText" class="subtitle">Plan, schedule, and finish your work with confidence.</div>
+                </div>
+                <div class="toolbar">
+                    <select id="languageSelect" class="select" aria-label="Language selector">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="ar">العربية</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="pt">Português</option>
+                        <option value="zh">中文</option>
+                        <option value="ro">Română</option>
+                    </select>
+                    <button id="themeToggleBtn" class="btn btn-ghost" type="button">Dark Mode</button>
+                    <button id="notifyBtn" class="btn btn-ghost" type="button">Enable Notifications</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <span id="statTotalLabel" class="stat-label">Total</span>
+                    <span id="statTotalValue" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span id="statActiveLabel" class="stat-label">Active</span>
+                    <span id="statActiveValue" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span id="statCompletedLabel" class="stat-label">Completed</span>
+                    <span id="statCompletedValue" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span id="statDueSoonLabel" class="stat-label">Due Soon</span>
+                    <span id="statDueSoonValue" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="progress-wrap">
+                <div id="progressLabel" class="progress-label">0 of 0 tasks completed</div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="composer" aria-label="Task composer">
+                <div class="composer-row">
+                    <input type="text" id="taskInput" class="field" placeholder="Add a task title...">
+                    <button id="toggleAdvancedComposerBtn" class="btn btn-ghost" type="button">Advanced</button>
+                    <button id="addToCalendarBtn" class="btn btn-ghost" type="button" title="Add current task to device calendar">📅 Calendar</button>
+                    <button id="addBtn" class="btn btn-primary" type="button">Add</button>
+                </div>
+
+                <div id="advancedComposerFields" class="composer-advanced hidden">
+                    <input type="datetime-local" id="scheduleInput" class="datetime" aria-label="Schedule date and time">
+                    <input type="datetime-local" id="deadlineInput" class="datetime" aria-label="Deadline date and time">
+                    <select id="reminderSelect" class="select" aria-label="Reminder lead time">
+                        <option value="">No reminder</option>
+                        <option value="5">5 min before</option>
+                        <option value="15">15 min before</option>
+                        <option value="30">30 min before</option>
+                        <option value="60">1 hour before</option>
+                        <option value="1440">1 day before</option>
+                    </select>
+                </div>
+
+                <div class="controls">
+                    <div class="left-controls">
+                        <input type="text" id="searchInput" class="search" placeholder="Search tasks, dates, subtasks...">
+                        <button class="chip active" data-filter="all" type="button" id="filterAllBtn">All</button>
+                        <button class="chip" data-filter="active" type="button" id="filterActiveBtn">Active</button>
+                        <button class="chip" data-filter="completed" type="button" id="filterCompletedBtn">Completed</button>
+                        <button class="chip hidden" data-filter="scheduled" type="button" id="filterScheduledBtn">Scheduled</button>
+                        <button class="chip hidden" data-filter="overdue" type="button" id="filterOverdueBtn">Overdue</button>
+                    </div>
+                    <div class="right-controls">
+                        <button id="toggleExtraFiltersBtn" class="btn btn-ghost" type="button">More Filters</button>
+                        <button id="clearCompletedBtn" class="btn btn-ghost" type="button">Clear Completed</button>
+                    </div>
+                </div>
+
+                <div id="reminderBanner" class="reminder-banner"></div>
+            </section>
+
+            <ul id="taskList" class="task-list"></ul>
+        </main>
     </div>
-    
+
     <script>
-        const STORAGE_KEY = 'taskTrackerDataV101';
+        const STORAGE_KEY = 'taskTrackerDataV200';
+        const LEGACY_STORAGE_KEY = 'taskTrackerDataV101';
+        const confetti = new JSConfetti();
+
         const TRANSLATIONS = {
             en: {
                 pageLang: 'en',
-                title: '📝 Task Tracker',
-                placeholder: 'Add a new task...',
+                title: 'Task Tracker 2.0',
+                subtitle: 'Plan, schedule, and finish your work with confidence.',
                 add: 'Add',
+                darkMode: 'Dark Mode',
+                lightMode: 'Light Mode',
+                enableNotifications: 'Enable Notifications',
+                notificationsEnabled: 'Notifications Enabled',
+                notificationsBlocked: 'Notifications Blocked',
+                total: 'Total',
+                active: 'Active',
+                completed: 'Completed',
+                dueSoon: 'Due Soon',
+                progressLabel: '{completed} of {total} tasks completed',
+                placeholderTask: 'Add a task title...',
+                placeholderSearch: 'Search tasks, dates, subtasks...',
+                noReminder: 'No reminder',
+                remind5: '5 min before',
+                remind15: '15 min before',
+                remind30: '30 min before',
+                remind60: '1 hour before',
+                remind1440: '1 day before',
+                advancedOptions: 'Advanced',
+                hideAdvancedOptions: 'Hide Advanced',
+                moreFilters: 'More Filters',
+                fewerFilters: 'Fewer Filters',
+                filterAll: 'All',
+                filterActive: 'Active',
+                filterCompleted: 'Completed',
+                filterScheduled: 'Scheduled',
+                filterOverdue: 'Overdue',
+                clearCompleted: 'Clear Completed',
                 complete: 'Complete',
-                manage: 'Manage',
-                delete: 'Delete',
-                edit: 'Edit',
+                reopen: 'Reopen',
+                calendar: 'Calendar',
+                calendarDevice: 'Device Calendar',
+                moreActions: 'More',
+                lessActions: 'Less',
                 addSubtask: 'Subtask',
-                addSubtaskAction: 'Add Subtask',
-                closeSubtask: 'Close Subtask',
-                completeSubtask: 'Complete',
-                editSubtask: 'Edit',
-                deleteSubtask: 'Delete',
-                taskOne: 'task',
-                taskMany: 'tasks',
-                emptyAlert: 'Please enter a task!',
+                edit: 'Edit',
+                delete: 'Delete',
+                createdAt: 'Created',
+                scheduledAt: 'Scheduled',
+                deadlineAt: 'Deadline',
+                completedAt: 'Completed',
+                overdue: 'Overdue',
+                dueSoonPill: 'Due soon',
+                empty: 'No tasks to show yet. Add your first task to get started.',
+                emptyFiltered: 'No tasks match your search/filter settings.',
+                invalidTask: 'Please add a task title first.',
+                invalidScheduleDeadline: 'Deadline cannot be earlier than schedule time.',
                 editPrompt: 'Edit task:',
-                editSubtaskPrompt: 'Edit subtask:',
-                subtaskPlaceholder: 'Add a subtask...',
-                leaveWarning: 'You have tasks saved in this tracker. Are you sure you want to leave?'
+                subtaskPrompt: 'Enter a subtask:',
+                reminderBanner: '{count} task reminders are coming up soon.',
+                reminderBody: 'Task "{task}" is due at {time}.',
+                taskCalendarTitle: 'Task: {task}',
+                calendarDownloadFallback: 'Calendar file downloaded. Open it on your device to add the event.',
+                leaveWarning: 'You have unsaved typed text. Are you sure you want to leave?'
             },
             es: {
                 pageLang: 'es',
-                title: '📝 Gestor de Tareas',
-                placeholder: 'Agrega una nueva tarea...',
+                title: 'Rastreador de Tareas 2.0',
+                subtitle: 'Planifica, programa y completa tu trabajo con confianza.',
                 add: 'Agregar',
+                darkMode: 'Modo Oscuro',
+                lightMode: 'Modo Claro',
+                enableNotifications: 'Activar Notificaciones',
+                notificationsEnabled: 'Notificaciones Activas',
+                notificationsBlocked: 'Notificaciones Bloqueadas',
+                total: 'Total',
+                active: 'Activas',
+                completed: 'Completadas',
+                dueSoon: 'Proximas',
+                progressLabel: '{completed} de {total} tareas completadas',
+                placeholderTask: 'Agrega un titulo de tarea...',
+                placeholderSearch: 'Busca tareas, fechas y subtareas...',
+                noReminder: 'Sin recordatorio',
+                remind5: '5 min antes',
+                remind15: '15 min antes',
+                remind30: '30 min antes',
+                remind60: '1 hora antes',
+                remind1440: '1 dia antes',
+                advancedOptions: 'Avanzado',
+                hideAdvancedOptions: 'Ocultar Avanzado',
+                moreFilters: 'Mas Filtros',
+                fewerFilters: 'Menos Filtros',
+                filterAll: 'Todas',
+                filterActive: 'Activas',
+                filterCompleted: 'Completadas',
+                filterScheduled: 'Programadas',
+                filterOverdue: 'Atrasadas',
+                clearCompleted: 'Borrar Completadas',
                 complete: 'Completar',
-                manage: 'Gestionar',
-                delete: 'Eliminar',
-                edit: 'Editar',
+                reopen: 'Reabrir',
+                calendar: 'Calendario',
+                calendarDevice: 'Calendario del dispositivo',
+                moreActions: 'Mas',
+                lessActions: 'Menos',
                 addSubtask: 'Subtarea',
-                addSubtaskAction: 'Agregar Subtarea',
-                closeSubtask: 'Cerrar Subtarea',
-                completeSubtask: 'Completar',
-                editSubtask: 'Editar',
-                deleteSubtask: 'Eliminar',
-                taskOne: 'tarea',
-                taskMany: 'tareas',
-                emptyAlert: '¡Por favor escribe una tarea!',
+                edit: 'Editar',
+                delete: 'Eliminar',
+                createdAt: 'Creada',
+                scheduledAt: 'Programada',
+                deadlineAt: 'Limite',
+                completedAt: 'Completada',
+                overdue: 'Atrasada',
+                dueSoonPill: 'Pronto',
+                empty: 'No hay tareas para mostrar. Agrega la primera tarea.',
+                emptyFiltered: 'No hay tareas para esta busqueda o filtro.',
+                invalidTask: 'Primero agrega un titulo de tarea.',
+                invalidScheduleDeadline: 'La fecha limite no puede ser antes de la fecha programada.',
                 editPrompt: 'Editar tarea:',
-                editSubtaskPrompt: 'Editar subtarea:',
-                subtaskPlaceholder: 'Agregar una subtarea...',
-                leaveWarning: 'Tienes tareas guardadas en este gestor. ¿Seguro que quieres salir?'
+                subtaskPrompt: 'Escribe una subtarea:',
+                reminderBanner: 'Se acercan {count} recordatorios de tareas.',
+                reminderBody: 'La tarea "{task}" vence a las {time}.',
+                taskCalendarTitle: 'Tarea: {task}',
+                calendarDownloadFallback: 'Se descargo un archivo de calendario. Abrelo en tu dispositivo para agregar el evento.',
+                leaveWarning: 'Tienes texto escrito sin guardar. Seguro que quieres salir?'
             },
             zh: {
                 pageLang: 'zh-CN',
-                title: '📝 任务管理器',
-                placeholder: '添加新任务...',
+                title: '任务追踪器 2.0',
+                subtitle: '更轻松地规划、安排并完成你的任务。',
                 add: '添加',
+                darkMode: '深色模式',
+                lightMode: '浅色模式',
+                enableNotifications: '开启通知',
+                notificationsEnabled: '通知已开启',
+                notificationsBlocked: '通知被阻止',
+                total: '总数',
+                active: '进行中',
+                completed: '已完成',
+                dueSoon: '即将到期',
+                progressLabel: '已完成 {completed}/{total} 个任务',
+                placeholderTask: '输入任务标题...',
+                placeholderSearch: '搜索任务、日期或子任务...',
+                noReminder: '不提醒',
+                remind5: '提前5分钟',
+                remind15: '提前15分钟',
+                remind30: '提前30分钟',
+                remind60: '提前1小时',
+                remind1440: '提前1天',
+                advancedOptions: '高级选项',
+                hideAdvancedOptions: '收起高级选项',
+                moreFilters: '更多筛选',
+                fewerFilters: '收起筛选',
+                filterAll: '全部',
+                filterActive: '进行中',
+                filterCompleted: '已完成',
+                filterScheduled: '已安排',
+                filterOverdue: '已逾期',
+                clearCompleted: '清除已完成',
                 complete: '完成',
-                manage: '管理',
-                delete: '删除',
-                edit: '编辑',
+                reopen: '重新打开',
+                calendar: '日历',
+                calendarDevice: '设备日历',
+                moreActions: '更多',
+                lessActions: '收起',
                 addSubtask: '子任务',
-                addSubtaskAction: '添加子任务',
-                closeSubtask: '关闭子任务',
-                completeSubtask: '完成',
-                editSubtask: '编辑',
-                deleteSubtask: '删除',
-                taskOne: '个任务',
-                taskMany: '个任务',
-                emptyAlert: '请输入任务内容！',
+                edit: '编辑',
+                delete: '删除',
+                createdAt: '创建于',
+                scheduledAt: '计划于',
+                deadlineAt: '截止于',
+                completedAt: '完成于',
+                overdue: '已逾期',
+                dueSoonPill: '即将到期',
+                empty: '还没有任务，先添加一个吧。',
+                emptyFiltered: '当前搜索或筛选下没有匹配任务。',
+                invalidTask: '请先输入任务标题。',
+                invalidScheduleDeadline: '截止时间不能早于计划时间。',
                 editPrompt: '编辑任务：',
-                editSubtaskPrompt: '编辑子任务：',
-                subtaskPlaceholder: '添加子任务...',
-                leaveWarning: '你有已保存的任务。确定要离开吗？'
+                subtaskPrompt: '输入子任务：',
+                reminderBanner: '你有 {count} 个任务提醒即将到来。',
+                reminderBody: '任务“{task}”将在 {time} 到期。',
+                taskCalendarTitle: '任务：{task}',
+                calendarDownloadFallback: '已下载日历文件。请在设备上打开并添加事件。',
+                leaveWarning: '你有未提交的输入内容，确定离开吗？'
+            },
+            fr: {
+                pageLang: 'fr',
+                title: 'Suivi des Tâches 2.0',
+                subtitle: 'Planifiez, programmez et accomplissez votre travail en toute confiance.',
+                add: 'Ajouter',
+                darkMode: 'Mode Sombre',
+                lightMode: 'Mode Clair',
+                enableNotifications: 'Activer les Notifications',
+                notificationsEnabled: 'Notifications Activées',
+                notificationsBlocked: 'Notifications Bloquées',
+                total: 'Total',
+                active: 'Actif',
+                completed: 'Complété',
+                dueSoon: 'Bientôt',
+                progressLabel: '{completed} sur {total} tâches complétées',
+                placeholderTask: 'Ajouter un titre de tâche...',
+                placeholderSearch: 'Rechercher des tâches, dates, sous-tâches...',
+                noReminder: 'Pas de rappel',
+                remind5: '5 min avant',
+                remind15: '15 min avant',
+                remind30: '30 min avant',
+                remind60: '1 heure avant',
+                remind1440: '1 jour avant',
+                advancedOptions: 'Avancé',
+                hideAdvancedOptions: 'Masquer Avancé',
+                moreFilters: 'Plus de Filtres',
+                fewerFilters: 'Moins de Filtres',
+                filterAll: 'Tous',
+                filterActive: 'Actif',
+                filterCompleted: 'Complété',
+                filterScheduled: 'Programmé',
+                filterOverdue: 'En Retard',
+                clearCompleted: 'Effacer Complétés',
+                complete: 'Compléter',
+                reopen: 'Réouvrir',
+                calendar: 'Calendrier',
+                calendarDevice: 'Calendrier de l\'Appareil',
+                moreActions: 'Plus',
+                lessActions: 'Moins',
+                addSubtask: 'Sous-tâche',
+                edit: 'Modifier',
+                delete: 'Supprimer',
+                createdAt: 'Créé',
+                scheduledAt: 'Programmé',
+                deadlineAt: 'Échéance',
+                completedAt: 'Complété',
+                overdue: 'En Retard',
+                dueSoonPill: 'Bientôt',
+                empty: 'Aucune tâche pour le moment. Ajoutez votre première tâche pour commencer.',
+                emptyFiltered: 'Aucune tâche ne correspond à vos paramètres de recherche/filtre.',
+                invalidTask: 'Veuillez d\'abord ajouter un titre de tâche.',
+                invalidScheduleDeadline: 'L\'échéance ne peut pas être antérieure à l\'heure prévue.',
+                editPrompt: 'Modifier la tâche:',
+                subtaskPrompt: 'Entrez une sous-tâche:',
+                reminderBanner: '{count} rappels de tâche arrivent bientôt.',
+                reminderBody: 'La tâche "{task}" est due à {time}.',
+                taskCalendarTitle: 'Tâche: {task}',
+                calendarDownloadFallback: 'Fichier calendrier téléchargé. Ouvrez-le sur votre appareil pour ajouter l\'événement.',
+                leaveWarning: 'Vous avez du texte non enregistré. Êtes-vous sûr de vouloir partir?'
+            },
+            ar: {
+                pageLang: 'ar',
+                title: 'متتبع المهام 2.0',
+                subtitle: 'خطط وجدول وأنهي عملك بثقة.',
+                add: 'إضافة',
+                darkMode: 'الوضع المظلم',
+                lightMode: 'الوضع الفاتح',
+                enableNotifications: 'تفعيل الإشعارات',
+                notificationsEnabled: 'الإشعارات مفعلة',
+                notificationsBlocked: 'الإشعارات محظورة',
+                total: 'إجمالي',
+                active: 'نشط',
+                completed: 'مكتمل',
+                dueSoon: 'قريبا',
+                progressLabel: '{completed} من {total} مهام مكتملة',
+                placeholderTask: 'أضف عنوان المهمة...',
+                placeholderSearch: 'ابحث عن المهام والتواريخ والمهام الفرعية...',
+                noReminder: 'لا تذكير',
+                remind5: '5 دقائق قبل',
+                remind15: '15 دقيقة قبل',
+                remind30: '30 دقيقة قبل',
+                remind60: 'ساعة واحدة قبل',
+                remind1440: 'يوم واحد قبل',
+                advancedOptions: 'خيارات متقدمة',
+                hideAdvancedOptions: 'إخفاء المتقدمة',
+                moreFilters: 'المزيد من المرشحات',
+                fewerFilters: 'عدد أقل من المرشحات',
+                filterAll: 'الكل',
+                filterActive: 'نشط',
+                filterCompleted: 'مكتمل',
+                filterScheduled: 'مجدول',
+                filterOverdue: 'متأخر',
+                clearCompleted: 'مسح المكتملة',
+                complete: 'إكمال',
+                reopen: 'إعادة فتح',
+                calendar: 'التقويم',
+                calendarDevice: 'تقويم الجهاز',
+                moreActions: 'المزيد',
+                lessActions: 'أقل',
+                addSubtask: 'مهمة فرعية',
+                edit: 'تحرير',
+                delete: 'حذف',
+                createdAt: 'أنشئت',
+                scheduledAt: 'مجدولة',
+                deadlineAt: 'الموعد النهائي',
+                completedAt: 'مكتملة',
+                overdue: 'متأخرة',
+                dueSoonPill: 'قريبا',
+                empty: 'لا توجد مهام حتى الآن. أضف مهمتك الأولى للبدء.',
+                emptyFiltered: 'لا توجد مهام تطابق إعدادات البحث/التصفية لديك.',
+                invalidTask: 'يرجى إضافة عنوان المهمة أولاً.',
+                invalidScheduleDeadline: 'لا يمكن أن يكون الموعد النهائي أبكر من وقت الجدولة.',
+                editPrompt: 'تحرير المهمة:',
+                subtaskPrompt: 'أدخل مهمة فرعية:',
+                reminderBanner: '{count} تذكيرات المهام ستأتي قريبا.',
+                reminderBody: 'المهمة "{task}" مستحقة في {time}.',
+                taskCalendarTitle: 'مهمة: {task}',
+                calendarDownloadFallback: 'تم تحميل ملف التقويم. افتحه على جهازك لإضافة الحدث.',
+                leaveWarning: 'لديك نص لم يتم حفظه. هل أنت متأكد أنك تريد المغادرة؟'
+            },
+            hi: {
+                pageLang: 'hi',
+                title: 'कार्य ट्रैकर 2.0',
+                subtitle: 'आत्मविश्वास के साथ अपना काम योजना बनाएं, शेड्यूल करें और पूरा करें।',
+                add: 'जोड़ें',
+                darkMode: 'डार्क मोड',
+                lightMode: 'लाइट मोड',
+                enableNotifications: 'सूचनाएं सक्षम करें',
+                notificationsEnabled: 'सूचनाएं सक्षम',
+                notificationsBlocked: 'सूचनाएं अवरुद्ध',
+                total: 'कुल',
+                active: 'सक्रिय',
+                completed: 'पूर्ण',
+                dueSoon: 'शीघ्र ही',
+                progressLabel: '{total} में से {completed} कार्य पूर्ण',
+                placeholderTask: 'कार्य शीर्षक जोड़ें...',
+                placeholderSearch: 'कार्य, तारीखें, उप-कार्य खोजें...',
+                noReminder: 'कोई अनुस्मारक नहीं',
+                remind5: '5 मिनट पहले',
+                remind15: '15 मिनट पहले',
+                remind30: '30 मिनट पहले',
+                remind60: '1 घंटा पहले',
+                remind1440: '1 दिन पहले',
+                advancedOptions: 'उन्नत विकल्प',
+                hideAdvancedOptions: 'उन्नत छुपाएं',
+                moreFilters: 'अधिक फिल्टर',
+                fewerFilters: 'कम फिल्टर',
+                filterAll: 'सभी',
+                filterActive: 'सक्रिय',
+                filterCompleted: 'पूर्ण',
+                filterScheduled: 'निर्धारित',
+                filterOverdue: 'अतिदेय',
+                clearCompleted: 'पूर्ण साफ़ करें',
+                complete: 'पूर्ण करें',
+                reopen: 'दोबारा खोलें',
+                calendar: 'कैलेंडर',
+                calendarDevice: 'डिवाइस कैलेंडर',
+                moreActions: 'अधिक',
+                lessActions: 'कम',
+                addSubtask: 'उप-कार्य',
+                edit: 'संपादित करें',
+                delete: 'हटाएं',
+                createdAt: 'निर्मित',
+                scheduledAt: 'निर्धारित',
+                deadlineAt: 'समय सीमा',
+                completedAt: 'पूर्ण',
+                overdue: 'अतिदेय',
+                dueSoonPill: 'शीघ्र ही',
+                empty: 'अभी कोई कार्य नहीं। शुरू करने के लिए अपना पहला कार्य जोड़ें।',
+                emptyFiltered: 'कोई भी कार्य आपकी खोज/फ़िल्टर सेटिंग से मेल नहीं खाता।',
+                invalidTask: 'कृपया पहले कार्य शीर्षक जोड़ें।',
+                invalidScheduleDeadline: 'समय सीमा अनुसूची के समय से पहले नहीं हो सकती।',
+                editPrompt: 'कार्य संपादित करें:',
+                subtaskPrompt: 'उप-कार्य दर्ज करें:',
+                reminderBanner: '{count} कार्य अनुस्मारक जल्द ही आ रहे हैं।',
+                reminderBody: 'कार्य "{task}" {time} को देय है।',
+                taskCalendarTitle: 'कार्य: {task}',
+                calendarDownloadFallback: 'कैलेंडर फ़ाइल डाउनलोड की गई। घटना जोड़ने के लिए इसे अपने डिवाइस पर खोलें।',
+                leaveWarning: 'आपके पास अहस्ताक्षरित पाठ है। क्या आप छोड़ना सुनिश्चित हैं?'
+            },
+            pt: {
+                pageLang: 'pt',
+                title: 'Rastreador de Tarefas 2.0',
+                subtitle: 'Planeje, agende e conclua seu trabalho com confiança.',
+                add: 'Adicionar',
+                darkMode: 'Modo Escuro',
+                lightMode: 'Modo Claro',
+                enableNotifications: 'Ativar Notificações',
+                notificationsEnabled: 'Notificações Ativadas',
+                notificationsBlocked: 'Notificações Bloqueadas',
+                total: 'Total',
+                active: 'Ativo',
+                completed: 'Concluído',
+                dueSoon: 'Em Breve',
+                progressLabel: '{completed} de {total} tarefas concluídas',
+                placeholderTask: 'Adicionar título da tarefa...',
+                placeholderSearch: 'Pesquisar tarefas, datas, subtarefas...',
+                noReminder: 'Sem lembrete',
+                remind5: '5 minutos antes',
+                remind15: '15 minutos antes',
+                remind30: '30 minutos antes',
+                remind60: '1 hora antes',
+                remind1440: '1 dia antes',
+                advancedOptions: 'Avançado',
+                hideAdvancedOptions: 'Ocultar Avançado',
+                moreFilters: 'Mais Filtros',
+                fewerFilters: 'Menos Filtros',
+                filterAll: 'Tudo',
+                filterActive: 'Ativo',
+                filterCompleted: 'Concluído',
+                filterScheduled: 'Agendado',
+                filterOverdue: 'Atrasado',
+                clearCompleted: 'Limpar Concluídos',
+                complete: 'Concluir',
+                reopen: 'Reabrir',
+                calendar: 'Calendário',
+                calendarDevice: 'Calendário do Dispositivo',
+                moreActions: 'Mais',
+                lessActions: 'Menos',
+                addSubtask: 'Subtarefa',
+                edit: 'Editar',
+                delete: 'Excluir',
+                createdAt: 'Criado',
+                scheduledAt: 'Agendado',
+                deadlineAt: 'Prazo',
+                completedAt: 'Concluído',
+                overdue: 'Atrasado',
+                dueSoonPill: 'Em breve',
+                empty: 'Nenhuma tarefa por enquanto. Adicione sua primeira tarefa para começar.',
+                emptyFiltered: 'Nenhuma tarefa corresponde às suas configurações de pesquisa/filtro.',
+                invalidTask: 'Adicione um título de tarefa primeiro.',
+                invalidScheduleDeadline: 'O prazo não pode ser anterior à hora agendada.',
+                editPrompt: 'Editar tarefa:',
+                subtaskPrompt: 'Insira uma subtarefa:',
+                reminderBanner: '{count} lembretes de tarefas estão chegando em breve.',
+                reminderBody: 'A tarefa "{task}" vence em {time}.',
+                taskCalendarTitle: 'Tarefa: {task}',
+                calendarDownloadFallback: 'Arquivo de calendário baixado. Abra-o em seu dispositivo para adicionar o evento.',
+                leaveWarning: 'Você tem texto não salvo. Tem certeza de que deseja sair?'
+            },
+            ro: {
+                pageLang: 'ro',
+                title: 'Urmăritor de Sarcini 2.0',
+                subtitle: 'Planifică, programează și finalizează-ți munca cu încredere.',
+                add: 'Adaugă',
+                darkMode: 'Mod Întunecat',
+                lightMode: 'Mod Luminos',
+                enableNotifications: 'Activare Notificări',
+                notificationsEnabled: 'Notificări Activate',
+                notificationsBlocked: 'Notificări Blocate',
+                total: 'Total',
+                active: 'Activ',
+                completed: 'Finalizat',
+                dueSoon: 'In Curând',
+                progressLabel: '{completed} din {total} sarcini finalizate',
+                placeholderTask: 'Adaugă titlu sarcină...',
+                placeholderSearch: 'Cauta sarcini, date, subsarcini...',
+                noReminder: 'Fără minder',
+                remind5: '5 min inainte',
+                remind15: '15 min inainte',
+                remind30: '30 min inainte',
+                remind60: '1 ora inainte',
+                remind1440: '1 zi inainte',
+                advancedOptions: 'Avansat',
+                hideAdvancedOptions: 'Ascunde Avansat',
+                moreFilters: 'Mai Multe Filtre',
+                fewerFilters: 'Mai Puține Filtre',
+                filterAll: 'Toate',
+                filterActive: 'Activ',
+                filterCompleted: 'Finalizat',
+                filterScheduled: 'Programat',
+                filterOverdue: 'Expirat',
+                clearCompleted: 'Șterge Finalizate',
+                complete: 'Finalizeaza',
+                reopen: 'Redeschide',
+                calendar: 'Calendar',
+                calendarDevice: 'Calendar Dispozitiv',
+                moreActions: 'Mai Mult',
+                lessActions: 'Mai Puțin',
+                addSubtask: 'Subsarcina',
+                edit: 'Editeaza',
+                delete: 'Șterge',
+                createdAt: 'Creat',
+                scheduledAt: 'Programat',
+                deadlineAt: 'Termen Limita',
+                completedAt: 'Finalizat',
+                overdue: 'Expirat',
+                dueSoonPill: 'In curând',
+                empty: 'Niciun task deocamdata. Adauga-ti prima sarcina ca sa incepi.',
+                emptyFiltered: 'Niciun task nu se potriveste cu setarile tale de cautare/filtru.',
+                invalidTask: 'Adauga titlu sarcina mai intai.',
+                invalidScheduleDeadline: 'Termenul limita nu poate fi mai devreme decat ora programata.',
+                editPrompt: 'Editeaza sarcina:',
+                subtaskPrompt: 'Introdu o subsarcina:',
+                reminderBanner: '{count} memento sarcini vor sosi in curand.',
+                reminderBody: 'Sarcina "{task}" scade la {time}.',
+                taskCalendarTitle: 'Sarcina: {task}',
+                calendarDownloadFallback: 'Fisier calendar descarcat. Deschide-l pe dispozitivul tau pentru a adauga evenimentul.',
+                leaveWarning: 'Ai text nesalvat. Esti sigur ca vrei sa pleci?'
             }
         };
 
         let currentLang = 'en';
+        let currentTheme = 'light';
+        let currentFilter = 'all';
+        let showAdvancedComposer = false;
+        let showExtraFilters = false;
+        let openTaskActionsTaskId = null;
         let tasks = [];
-        let openManageIndex = null;
-        let openSubtaskIndex = null;
 
         function t() {
             return TRANSLATIONS[currentLang];
         }
 
+        function uid() {
+            return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+
+        function formatText(template, values) {
+            return String(template).replace(/\{(\w+)\}/g, function (_, key) {
+                return Object.prototype.hasOwnProperty.call(values, key) ? values[key] : '';
+            });
+        }
+
+        function detectLanguageFromDevice() {
+            const locale = String(navigator.language || '').toLowerCase();
+            if (locale.startsWith('es')) return 'es';
+            if (locale.startsWith('fr')) return 'fr';
+            if (locale.startsWith('ar')) return 'ar';
+            if (locale.startsWith('hi')) return 'hi';
+            if (locale.startsWith('pt')) return 'pt';
+            if (locale.startsWith('zh')) return 'zh';
+            if (locale.startsWith('ro')) return 'ro';
+            return 'en';
+        }
+
+        function detectThemeFromSystem() {
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        function toIsoOrNull(value) {
+            if (!value) return null;
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+        }
+
+        function parseReminderMinutes(value) {
+            if (!value) return null;
+            const n = Number(value);
+            return Number.isFinite(n) && n > 0 ? n : null;
+        }
+
+        function formatLocalDate(isoString) {
+            if (!isoString) return null;
+            const d = new Date(isoString);
+            if (Number.isNaN(d.getTime())) return null;
+            return d.toLocaleString();
+        }
+
+        function isDueSoon(deadlineAt) {
+            if (!deadlineAt) return false;
+            const now = Date.now();
+            const due = new Date(deadlineAt).getTime();
+            if (Number.isNaN(due)) return false;
+            return due > now && due - now <= 1000 * 60 * 60 * 24;
+        }
+
+        function isOverdue(task) {
+            if (task.completed || !task.deadlineAt) return false;
+            const due = new Date(task.deadlineAt).getTime();
+            if (Number.isNaN(due)) return false;
+            return due < Date.now();
+        }
+
         function saveState() {
-            const payload = { lang: currentLang, tasks };
+            const payload = {
+                lang: currentLang,
+                theme: currentTheme,
+                tasks
+            };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         }
 
+        function normalizeTask(task) {
+            const createdAt = toIsoOrNull(task && task.createdAt) || new Date().toISOString();
+            const completed = Boolean(task && task.completed);
+            const completedAt = completed ? (toIsoOrNull(task && task.completedAt) || new Date().toISOString()) : null;
+
+            const normalizedSubtasks = Array.isArray(task && task.subtasks)
+                ? task.subtasks.map(function (sub) {
+                    if (typeof sub === 'string') {
+                        return { id: uid(), text: sub.trim(), completed: false, completedAt: null };
+                    }
+                    const subCompleted = Boolean(sub && sub.completed);
+                    return {
+                        id: String((sub && sub.id) || uid()),
+                        text: String((sub && sub.text) || '').trim(),
+                        completed: subCompleted,
+                        completedAt: subCompleted ? (toIsoOrNull(sub && sub.completedAt) || new Date().toISOString()) : null
+                    };
+                }).filter(function (sub) { return sub.text; })
+                : [];
+
+            return {
+                id: String((task && task.id) || uid()),
+                text: String((task && task.text) || '').trim(),
+                completed,
+                createdAt,
+                scheduledAt: toIsoOrNull(task && task.scheduledAt),
+                deadlineAt: toIsoOrNull(task && task.deadlineAt),
+                reminderOffsetMinutes: parseReminderMinutes(task && task.reminderOffsetMinutes),
+                reminderSentAt: toIsoOrNull(task && task.reminderSentAt),
+                completedAt,
+                subtasks: normalizedSubtasks
+            };
+        }
+
+        function migrateLegacyState() {
+            const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+            if (!raw) return null;
+            try {
+                const parsed = JSON.parse(raw);
+                const legacyTasks = Array.isArray(parsed && parsed.tasks) ? parsed.tasks : [];
+                return {
+                    lang: parsed && parsed.lang,
+                    tasks: legacyTasks.map(normalizeTask)
+                };
+            } catch (err) {
+                console.log('Could not parse legacy data', err);
+                return null;
+            }
+        }
+
         function loadState() {
+            let payload = null;
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-
-                const parsed = JSON.parse(raw);
-                if (parsed && Array.isArray(parsed.tasks)) {
-                    tasks = parsed.tasks.map(task => ({
-                        text: String(task.text || ''),
-                        completed: Boolean(task.completed),
-                        subtasks: Array.isArray(task.subtasks)
-                            ? task.subtasks
-                                .map(sub => {
-                                    if (typeof sub === 'string') {
-                                        return { text: sub, completed: false };
-                                    }
-                                    return {
-                                        text: String((sub && sub.text) || ''),
-                                        completed: Boolean(sub && sub.completed)
-                                    };
-                                })
-                                .filter(sub => sub.text)
-                            : []
-                    }));
-
-                    tasks.forEach(syncTaskCompletionFromSubtasks);
-                }
-
-                if (parsed && TRANSLATIONS[parsed.lang]) {
-                    currentLang = parsed.lang;
-                }
+                if (raw) payload = JSON.parse(raw);
             } catch (err) {
-                console.log('Could not load saved task state:', err);
+                console.log('Could not parse saved data', err);
             }
+
+            if (!payload) {
+                payload = migrateLegacyState();
+            }
+
+            if (payload && Array.isArray(payload.tasks)) {
+                tasks = payload.tasks.map(normalizeTask).filter(function (task) { return task.text; });
+            }
+
+            if (payload && TRANSLATIONS[payload.lang]) {
+                currentLang = payload.lang;
+            } else {
+                currentLang = detectLanguageFromDevice();
+            }
+
+            currentTheme = payload && (payload.theme === 'dark' || payload.theme === 'light')
+                ? payload.theme
+                : detectThemeFromSystem();
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme === 'dark' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            document.getElementById('themeToggleBtn').textContent = currentTheme === 'dark' ? t().lightMode : t().darkMode;
+            saveState();
+        }
+
+        function syncReminderSelectText() {
+            const select = document.getElementById('reminderSelect');
+            select.options[0].textContent = t().noReminder;
+            select.options[1].textContent = t().remind5;
+            select.options[2].textContent = t().remind15;
+            select.options[3].textContent = t().remind30;
+            select.options[4].textContent = t().remind60;
+            select.options[5].textContent = t().remind1440;
+        }
+
+        function notificationButtonLabel() {
+            if (!('Notification' in window)) return t().notificationsBlocked;
+            if (Notification.permission === 'granted') return t().notificationsEnabled;
+            if (Notification.permission === 'denied') return t().notificationsBlocked;
+            return t().enableNotifications;
         }
 
         function applyLanguage() {
             document.documentElement.lang = t().pageLang;
             document.getElementById('titleText').textContent = t().title;
-            document.getElementById('taskInput').placeholder = t().placeholder;
+            document.getElementById('subtitleText').textContent = t().subtitle;
             document.getElementById('addBtn').textContent = t().add;
-            document.getElementById('languageSelect').value = currentLang;
+            document.getElementById('notifyBtn').textContent = notificationButtonLabel();
+            document.getElementById('toggleAdvancedComposerBtn').textContent = showAdvancedComposer ? t().hideAdvancedOptions : t().advancedOptions;
+            document.getElementById('toggleExtraFiltersBtn').textContent = showExtraFilters ? t().fewerFilters : t().moreFilters;
+            document.getElementById('taskInput').placeholder = t().placeholderTask;
+            document.getElementById('searchInput').placeholder = t().placeholderSearch;
 
-            updateTaskCount();
+            document.getElementById('statTotalLabel').textContent = t().total;
+            document.getElementById('statActiveLabel').textContent = t().active;
+            document.getElementById('statCompletedLabel').textContent = t().completed;
+            document.getElementById('statDueSoonLabel').textContent = t().dueSoon;
+
+            document.getElementById('filterAllBtn').textContent = t().filterAll;
+            document.getElementById('filterActiveBtn').textContent = t().filterActive;
+            document.getElementById('filterCompletedBtn').textContent = t().filterCompleted;
+            document.getElementById('filterScheduledBtn').textContent = t().filterScheduled;
+            document.getElementById('filterOverdueBtn').textContent = t().filterOverdue;
+            document.getElementById('clearCompletedBtn').textContent = t().clearCompleted;
+
+            document.getElementById('languageSelect').value = currentLang;
+            syncReminderSelectText();
+            updateComposerVisibility();
+            updateFilterVisibility();
+            setTheme(currentTheme);
+            updateDashboard();
             renderTasks();
-            saveState();
         }
 
-        function renderTasks() {
-            const taskList = document.getElementById('taskList');
-            taskList.innerHTML = '';
+        function updateComposerVisibility() {
+            const advanced = document.getElementById('advancedComposerFields');
+            advanced.classList.toggle('hidden', !showAdvancedComposer);
+            document.getElementById('toggleAdvancedComposerBtn').textContent = showAdvancedComposer ? t().hideAdvancedOptions : t().advancedOptions;
+        }
 
-            tasks.forEach((task, index) => {
-                const li = document.createElement('li');
-                const taskRow = document.createElement('div');
-                taskRow.className = 'task-row';
-
-                const textSpan = document.createElement('span');
-                textSpan.textContent = task.text;
-                if (task.completed) {
-                    textSpan.classList.add('completed');
-                }
-
-                const buttonGroup = document.createElement('div');
-                buttonGroup.className = 'button-group';
-
-                const completeButton = document.createElement('button');
-                completeButton.className = 'complete-btn';
-                completeButton.textContent = t().complete;
-                completeButton.onclick = () => completeTask(index);
-
-                const manageButton = document.createElement('button');
-                manageButton.className = 'subtask-btn manage-btn';
-                manageButton.textContent = t().manage;
-                manageButton.onclick = () => toggleManage(index);
-
-                buttonGroup.appendChild(completeButton);
-                buttonGroup.appendChild(manageButton);
-
-                taskRow.appendChild(textSpan);
-                taskRow.appendChild(buttonGroup);
-                li.appendChild(taskRow);
-
-                if (task.subtasks && task.subtasks.length > 0) {
-                    const subtaskList = document.createElement('ul');
-                    subtaskList.className = 'subtask-list';
-
-                    task.subtasks.forEach((subtask, subIndex) => {
-                        const subtaskItem = document.createElement('li');
-
-                        const subtaskRow = document.createElement('div');
-                        subtaskRow.className = 'subtask-row';
-
-                        const subtaskText = document.createElement('span');
-                        subtaskText.className = 'subtask-text';
-                        subtaskText.textContent = subtask.text;
-                        if (subtask.completed) {
-                            subtaskText.classList.add('completed');
-                        }
-
-                        const subtaskActions = document.createElement('div');
-                        subtaskActions.className = 'subtask-actions';
-
-                        const subtaskCompleteBtn = document.createElement('button');
-                        subtaskCompleteBtn.className = 'subtask-complete-btn';
-                        subtaskCompleteBtn.textContent = t().completeSubtask;
-                        subtaskCompleteBtn.onclick = () => completeSubtask(index, subIndex);
-
-                        subtaskActions.appendChild(subtaskCompleteBtn);
-
-                        if (openManageIndex === index) {
-                            const subtaskEditBtn = document.createElement('button');
-                            subtaskEditBtn.className = 'subtask-edit-btn';
-                            subtaskEditBtn.textContent = t().editSubtask;
-                            subtaskEditBtn.onclick = () => editSubtask(index, subIndex);
-
-                            const subtaskDeleteBtn = document.createElement('button');
-                            subtaskDeleteBtn.className = 'subtask-delete-btn';
-                            subtaskDeleteBtn.textContent = t().deleteSubtask;
-                            subtaskDeleteBtn.onclick = () => deleteSubtask(index, subIndex);
-
-                            subtaskActions.appendChild(subtaskEditBtn);
-                            subtaskActions.appendChild(subtaskDeleteBtn);
-                        }
-
-                        subtaskRow.appendChild(subtaskText);
-                        subtaskRow.appendChild(subtaskActions);
-                        subtaskItem.appendChild(subtaskRow);
-                        subtaskList.appendChild(subtaskItem);
-                    });
-
-                    li.appendChild(subtaskList);
-                }
-
-                if (openManageIndex === index) {
-                    const managePanel = document.createElement('div');
-                    managePanel.className = 'manage-panel';
-
-                    const manageButtons = document.createElement('div');
-                    manageButtons.className = 'manage-buttons';
-
-                    const editButton = document.createElement('button');
-                    editButton.className = 'edit-btn';
-                    editButton.textContent = t().edit;
-                    editButton.onclick = () => editTask(index);
-
-                    const subtaskButton = document.createElement('button');
-                    subtaskButton.className = 'subtask-btn';
-                    subtaskButton.textContent = openSubtaskIndex === index ? t().closeSubtask : t().addSubtask;
-                    subtaskButton.onclick = () => addSubtask(index);
-
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-btn';
-                    deleteButton.textContent = t().delete;
-                    deleteButton.onclick = () => deleteTask(index);
-
-                    manageButtons.appendChild(editButton);
-                    manageButtons.appendChild(subtaskButton);
-                    manageButtons.appendChild(deleteButton);
-                    managePanel.appendChild(manageButtons);
-
-                    if (openSubtaskIndex === index) {
-                        const subtaskInputGroup = document.createElement('div');
-                        subtaskInputGroup.className = 'subtask-input-group';
-
-                        const subtaskInput = document.createElement('input');
-                        subtaskInput.type = 'text';
-                        subtaskInput.className = 'subtask-input';
-                        subtaskInput.placeholder = t().subtaskPlaceholder;
-
-                        const subtaskAddButton = document.createElement('button');
-                        subtaskAddButton.className = 'subtask-add-btn';
-                        subtaskAddButton.textContent = t().addSubtaskAction;
-                        subtaskAddButton.onclick = () => addSubtaskFromInput(index, subtaskInput);
-
-                        subtaskInput.addEventListener('keypress', function (event) {
-                            if (event.key === 'Enter') {
-                                addSubtaskFromInput(index, subtaskInput);
-                            }
-                        });
-
-                        subtaskInputGroup.appendChild(subtaskInput);
-                        subtaskInputGroup.appendChild(subtaskAddButton);
-                        managePanel.appendChild(subtaskInputGroup);
-
-                        setTimeout(() => subtaskInput.focus(), 0);
-                    }
-
-                    li.appendChild(managePanel);
-                }
-
-                taskList.appendChild(li);
+        function updateFilterVisibility() {
+            document.getElementById('filterScheduledBtn').classList.toggle('hidden', !showExtraFilters);
+            document.getElementById('filterOverdueBtn').classList.toggle('hidden', !showExtraFilters);
+            document.getElementById('toggleExtraFiltersBtn').textContent = showExtraFilters ? t().fewerFilters : t().moreFilters;
+            if (!showExtraFilters && (currentFilter === 'scheduled' || currentFilter === 'overdue')) {
+                currentFilter = 'all';
+            }
+            document.querySelectorAll('.chip[data-filter]').forEach(function (btn) {
+                btn.classList.toggle('active', btn.dataset.filter === currentFilter);
             });
         }
 
-        function updateTaskCount() {
-            const count = tasks.length;
-            const taskCountContainer = document.querySelector('.task-count');
-            const label = (currentLang === 'zh')
-                ? t().taskMany
-                : (count === 1 ? t().taskOne : t().taskMany);
-            taskCountContainer.innerHTML = `<span id="taskCount">${count}</span> ${label}`;
-        }
-        
-        function addTask() {
-            const input = document.getElementById('taskInput');
-            
-            if (input.value.trim() === '') {
-                alert(t().emptyAlert);
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                alert(t().notificationsBlocked);
                 return;
             }
-            
-            tasks.push({ text: input.value.trim(), completed: false, subtasks: [] });
-            renderTasks();
-            saveState();
-            input.value = '';
-            input.focus();
-            updateTaskCount();
+
+            Notification.requestPermission().then(function () {
+                document.getElementById('notifyBtn').textContent = notificationButtonLabel();
+            });
         }
 
-        const confetti = new JSConfetti();
+        function getStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(function (task) { return task.completed; }).length;
+            const active = total - completed;
+            const dueSoon = tasks.filter(function (task) {
+                return !task.completed && isDueSoon(task.deadlineAt);
+            }).length;
+            return {
+                total,
+                completed,
+                active,
+                dueSoon,
+                percent: total === 0 ? 0 : Math.round((completed / total) * 100)
+            };
+        }
 
-        function completeTask(index) {
-            const isCompleting = !tasks[index].completed;
-            tasks[index].completed = isCompleting;
+        function updateDashboard() {
+            const stats = getStats();
+            document.getElementById('statTotalValue').textContent = String(stats.total);
+            document.getElementById('statActiveValue').textContent = String(stats.active);
+            document.getElementById('statCompletedValue').textContent = String(stats.completed);
+            document.getElementById('statDueSoonValue').textContent = String(stats.dueSoon);
+            document.getElementById('progressLabel').textContent = formatText(t().progressLabel, {
+                completed: stats.completed,
+                total: stats.total
+            });
+            document.getElementById('progressFill').style.width = `${stats.percent}%`;
+            document.getElementById('notifyBtn').textContent = notificationButtonLabel();
+        }
 
-            if (Array.isArray(tasks[index].subtasks) && tasks[index].subtasks.length > 0) {
-                tasks[index].subtasks.forEach(subtask => {
-                    subtask.completed = isCompleting;
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const scheduleInput = document.getElementById('scheduleInput');
+            const deadlineInput = document.getElementById('deadlineInput');
+            const reminderSelect = document.getElementById('reminderSelect');
+
+            const text = taskInput.value.trim();
+            if (!text) {
+                alert(t().invalidTask);
+                taskInput.focus();
+                return;
+            }
+
+            const scheduledAt = toIsoOrNull(scheduleInput.value);
+            const deadlineAt = toIsoOrNull(deadlineInput.value);
+            if (scheduledAt && deadlineAt && new Date(deadlineAt) < new Date(scheduledAt)) {
+                alert(t().invalidScheduleDeadline);
+                return;
+            }
+
+            const reminderOffsetMinutes = parseReminderMinutes(reminderSelect.value);
+
+            const newTask = {
+                id: uid(),
+                text,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                scheduledAt,
+                deadlineAt,
+                reminderOffsetMinutes,
+                reminderSentAt: null,
+                completedAt: null,
+                subtasks: []
+            };
+
+            tasks.unshift(newTask);
+
+            taskInput.value = '';
+            scheduleInput.value = '';
+            deadlineInput.value = '';
+            reminderSelect.value = '';
+            taskInput.focus();
+            openTaskActionsTaskId = null;
+
+            saveState();
+            updateDashboard();
+            renderTasks();
+        }
+
+        function subtaskProgress(task) {
+            if (!Array.isArray(task.subtasks) || task.subtasks.length === 0) return null;
+            const done = task.subtasks.filter(function (sub) { return sub.completed; }).length;
+            return `${done}/${task.subtasks.length}`;
+        }
+
+        function taskSearchBlob(task) {
+            const fields = [
+                task.text,
+                formatLocalDate(task.createdAt) || '',
+                formatLocalDate(task.scheduledAt) || '',
+                formatLocalDate(task.deadlineAt) || '',
+                formatLocalDate(task.completedAt) || ''
+            ];
+
+            if (Array.isArray(task.subtasks)) {
+                task.subtasks.forEach(function (sub) {
+                    fields.push(sub.text || '');
                 });
             }
 
-            if (isCompleting) {
-                confetti.addConfetti();
-                const sound = document.getElementById('hooraySound');
-                sound.currentTime = 0;
-                sound.volume = 0.35;
-                sound.playbackRate = 1.05;
-                sound.play().catch(err => console.log('Sound play failed:', err));
-            }
-
-            renderTasks();
-            saveState();
+            return fields.join(' ').toLowerCase();
         }
 
-        function toggleManage(index) {
-            if (openManageIndex === index) {
-                openManageIndex = null;
-                openSubtaskIndex = null;
-            } else {
-                openManageIndex = index;
-                openSubtaskIndex = null;
-            }
-            renderTasks();
-        }
-        
-        function deleteTask(index) {
-            tasks.splice(index, 1);
-            if (openManageIndex === index) {
-                openManageIndex = null;
-            } else if (openManageIndex !== null && openManageIndex > index) {
-                openManageIndex -= 1;
-            }
-            if (openSubtaskIndex === index) {
-                openSubtaskIndex = null;
-            } else if (openSubtaskIndex !== null && openSubtaskIndex > index) {
-                openSubtaskIndex -= 1;
-            }
-            renderTasks();
-            saveState();
-            updateTaskCount();
+        function taskMatchesFilter(task) {
+            if (currentFilter === 'active') return !task.completed;
+            if (currentFilter === 'completed') return task.completed;
+            if (currentFilter === 'scheduled') return Boolean(task.scheduledAt);
+            if (currentFilter === 'overdue') return isOverdue(task);
+            return true;
         }
 
-        function editTask(index) {
-            const currentText = tasks[index].text;
-            const updated = prompt(t().editPrompt, currentText);
-            if (updated === null) {
+        function getVisibleTasks() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            return tasks.filter(function (task) {
+                if (!taskMatchesFilter(task)) return false;
+                if (!query) return true;
+                return taskSearchBlob(task).includes(query);
+            });
+        }
+
+        function createMetaPill(label, value, styleClass) {
+            const span = document.createElement('span');
+            span.className = `meta-pill${styleClass ? ' ' + styleClass : ''}`;
+            span.textContent = `${label}: ${value}`;
+            return span;
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+
+            const visibleTasks = getVisibleTasks();
+            showReminderBanner();
+
+            if (visibleTasks.length === 0) {
+                const empty = document.createElement('li');
+                empty.className = 'empty';
+                empty.textContent = tasks.length ? t().emptyFiltered : t().empty;
+                list.appendChild(empty);
                 return;
             }
 
-            const trimmed = updated.trim();
-            if (!trimmed) {
-                return;
+            visibleTasks.forEach(function (task) {
+                const card = document.createElement('li');
+                card.className = 'task-card';
+
+                const main = document.createElement('div');
+                main.className = 'task-main';
+
+                const textBlock = document.createElement('div');
+                textBlock.className = 'task-text-block';
+
+                const title = document.createElement('div');
+                title.className = `task-title${task.completed ? ' completed' : ''}`;
+                title.textContent = task.text;
+                textBlock.appendChild(title);
+
+                const meta = document.createElement('div');
+                meta.className = 'meta-row';
+                meta.appendChild(createMetaPill(t().createdAt, formatLocalDate(task.createdAt) || '-'));
+
+                if (task.scheduledAt) {
+                    meta.appendChild(createMetaPill(t().scheduledAt, formatLocalDate(task.scheduledAt) || '-'));
+                }
+
+                if (task.deadlineAt) {
+                    const cls = isOverdue(task) ? 'danger' : (isDueSoon(task.deadlineAt) ? 'warning' : '');
+                    meta.appendChild(createMetaPill(t().deadlineAt, formatLocalDate(task.deadlineAt) || '-', cls));
+                }
+
+                if (task.completed && task.completedAt) {
+                    meta.appendChild(createMetaPill(t().completedAt, formatLocalDate(task.completedAt) || '-'));
+                }
+
+                if (isOverdue(task)) {
+                    meta.appendChild(createMetaPill(t().overdue, t().overdue, 'danger'));
+                } else if (isDueSoon(task.deadlineAt) && !task.completed) {
+                    meta.appendChild(createMetaPill(t().dueSoonPill, t().dueSoonPill, 'warning'));
+                }
+
+                const subtaskInfo = subtaskProgress(task);
+                if (subtaskInfo) {
+                    meta.appendChild(createMetaPill('Subtasks', subtaskInfo));
+                }
+
+                textBlock.appendChild(meta);
+                main.appendChild(textBlock);
+
+                const actions = document.createElement('div');
+                actions.className = 'task-actions';
+
+                const completeBtn = document.createElement('button');
+                completeBtn.type = 'button';
+                completeBtn.className = 'btn btn-mini btn-success';
+                completeBtn.textContent = task.completed ? t().reopen : t().complete;
+                completeBtn.onclick = function () { toggleTaskCompletion(task.id); };
+
+                const moreBtn = document.createElement('button');
+                moreBtn.type = 'button';
+                moreBtn.className = 'btn btn-mini';
+                moreBtn.textContent = openTaskActionsTaskId === task.id ? t().lessActions : t().moreActions;
+                moreBtn.onclick = function () { toggleTaskActions(task.id); };
+
+                actions.appendChild(completeBtn);
+                actions.appendChild(moreBtn);
+
+                if (openTaskActionsTaskId === task.id) {
+                    const editBtn = document.createElement('button');
+                    editBtn.type = 'button';
+                    editBtn.className = 'btn btn-mini';
+                    editBtn.textContent = t().edit;
+                    editBtn.onclick = function () { editTask(task.id); };
+
+                    const calBtn = document.createElement('button');
+                    calBtn.type = 'button';
+                    calBtn.className = 'btn btn-mini';
+                    calBtn.textContent = t().calendar;
+                    calBtn.onclick = function () { openCalendarForTask(task); };
+
+                    const deviceCalBtn = document.createElement('button');
+                    deviceCalBtn.type = 'button';
+                    deviceCalBtn.className = 'btn btn-mini';
+                    deviceCalBtn.textContent = t().calendarDevice;
+                    deviceCalBtn.onclick = function () { openDeviceCalendarForTask(task); };
+
+                    const subtaskBtn = document.createElement('button');
+                    subtaskBtn.type = 'button';
+                    subtaskBtn.className = 'btn btn-mini';
+                    subtaskBtn.textContent = t().addSubtask;
+                    subtaskBtn.onclick = function () { promptSubtask(task.id); };
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.className = 'btn btn-mini btn-danger';
+                    deleteBtn.textContent = t().delete;
+                    deleteBtn.onclick = function () { deleteTask(task.id); };
+
+                    actions.appendChild(editBtn);
+                    actions.appendChild(calBtn);
+                    actions.appendChild(deviceCalBtn);
+                    actions.appendChild(subtaskBtn);
+                    actions.appendChild(deleteBtn);
+                }
+
+                main.appendChild(actions);
+                card.appendChild(main);
+
+                if (task.subtasks.length > 0) {
+                    const subtaskWrap = document.createElement('div');
+                    subtaskWrap.className = 'subtasks';
+
+                    task.subtasks.forEach(function (subtask) {
+                        const item = document.createElement('div');
+                        item.className = 'subtask-item';
+
+                        const text = document.createElement('div');
+                        text.className = `subtask-text${subtask.completed ? ' completed' : ''}`;
+                        text.textContent = subtask.text;
+
+                        const subActions = document.createElement('div');
+                        subActions.className = 'subtask-actions';
+
+                        const doneBtn = document.createElement('button');
+                        doneBtn.type = 'button';
+                        doneBtn.className = 'btn btn-mini';
+                        doneBtn.textContent = subtask.completed ? t().reopen : t().complete;
+                        doneBtn.onclick = function () { toggleSubtask(task.id, subtask.id); };
+
+                        const delBtn = document.createElement('button');
+                        delBtn.type = 'button';
+                        delBtn.className = 'btn btn-mini btn-danger';
+                        delBtn.textContent = t().delete;
+                        delBtn.onclick = function () { deleteSubtask(task.id, subtask.id); };
+
+                        subActions.appendChild(doneBtn);
+                        subActions.appendChild(delBtn);
+                        item.appendChild(text);
+                        item.appendChild(subActions);
+                        subtaskWrap.appendChild(item);
+                    });
+
+                    card.appendChild(subtaskWrap);
+                }
+
+                list.appendChild(card);
+            });
+        }
+
+        function findTask(taskId) {
+            return tasks.find(function (task) { return task.id === taskId; });
+        }
+
+        function toggleTaskCompletion(taskId) {
+            const task = findTask(taskId);
+            if (!task) return;
+
+            task.completed = !task.completed;
+            task.completedAt = task.completed ? new Date().toISOString() : null;
+
+            if (task.completed) {
+                task.subtasks.forEach(function (sub) {
+                    sub.completed = true;
+                    sub.completedAt = new Date().toISOString();
+                });
+                celebrate();
             }
 
-            tasks[index].text = trimmed;
-            renderTasks();
             saveState();
+            updateDashboard();
+            renderTasks();
         }
 
-        function editSubtask(taskIndex, subtaskIndex) {
-            const currentText = tasks[taskIndex].subtasks[subtaskIndex].text;
-            const updated = prompt(t().editSubtaskPrompt, currentText);
-            if (updated === null) {
-                return;
-            }
+        function celebrate() {
+            confetti.addConfetti();
+            const sound = document.getElementById('hooraySound');
+            sound.currentTime = 0;
+            sound.volume = 0.35;
+            sound.playbackRate = 1.05;
+            sound.play().catch(function () {});
+        }
 
-            const trimmed = updated.trim();
-            if (!trimmed) {
-                return;
-            }
-
-            tasks[taskIndex].subtasks[subtaskIndex].text = trimmed;
-            renderTasks();
+        function deleteTask(taskId) {
+            tasks = tasks.filter(function (task) { return task.id !== taskId; });
             saveState();
+            updateDashboard();
+            renderTasks();
         }
 
-        function completeSubtask(taskIndex, subtaskIndex) {
-            const current = tasks[taskIndex].subtasks[subtaskIndex].completed;
-            tasks[taskIndex].subtasks[subtaskIndex].completed = !current;
-            syncTaskCompletionFromSubtasks(tasks[taskIndex]);
+        function editTask(taskId) {
+            const task = findTask(taskId);
+            if (!task) return;
 
-            if (!current) {
-                confetti.addConfetti();
-                const sound = document.getElementById('hooraySound');
-                sound.currentTime = 0;
-                sound.volume = 0.35;
-                sound.playbackRate = 1.05;
-                sound.play().catch(err => console.log('Sound play failed:', err));
-            }
+            const next = prompt(t().editPrompt, task.text);
+            if (next === null) return;
 
-            renderTasks();
+            const trimmed = next.trim();
+            if (!trimmed) return;
+
+            task.text = trimmed;
             saveState();
+            renderTasks();
         }
 
-        function deleteSubtask(taskIndex, subtaskIndex) {
-            tasks[taskIndex].subtasks.splice(subtaskIndex, 1);
-            syncTaskCompletionFromSubtasks(tasks[taskIndex]);
-            renderTasks();
+        function promptSubtask(taskId) {
+            const task = findTask(taskId);
+            if (!task) return;
+
+            const text = prompt(t().subtaskPrompt, '');
+            if (text === null) return;
+            const trimmed = text.trim();
+            if (!trimmed) return;
+
+            task.subtasks.push({
+                id: uid(),
+                text: trimmed,
+                completed: false,
+                completedAt: null
+            });
+
             saveState();
-        }
-
-        function addSubtask(index) {
-            openManageIndex = index;
-            openSubtaskIndex = openSubtaskIndex === index ? null : index;
+            updateDashboard();
             renderTasks();
         }
 
-        function addSubtaskFromInput(index, inputElement) {
-            const trimmed = inputElement.value.trim();
-            if (!trimmed) {
-                return;
+        function toggleSubtask(taskId, subtaskId) {
+            const task = findTask(taskId);
+            if (!task) return;
+
+            const subtask = task.subtasks.find(function (sub) { return sub.id === subtaskId; });
+            if (!subtask) return;
+
+            subtask.completed = !subtask.completed;
+            subtask.completedAt = subtask.completed ? new Date().toISOString() : null;
+
+            if (task.subtasks.length > 0 && task.subtasks.every(function (sub) { return sub.completed; })) {
+                task.completed = true;
+                task.completedAt = new Date().toISOString();
+            } else if (!subtask.completed) {
+                task.completed = false;
+                task.completedAt = null;
             }
 
-            if (!Array.isArray(tasks[index].subtasks)) {
-                tasks[index].subtasks = [];
-            }
+            if (subtask.completed) celebrate();
 
-            tasks[index].subtasks.push({ text: trimmed, completed: false });
-            syncTaskCompletionFromSubtasks(tasks[index]);
-            openSubtaskIndex = null;
-            renderTasks();
             saveState();
-            updateTaskCount();
+            updateDashboard();
+            renderTasks();
         }
 
-        function syncTaskCompletionFromSubtasks(task) {
-            if (!task || !Array.isArray(task.subtasks) || task.subtasks.length === 0) {
-                return;
+        function deleteSubtask(taskId, subtaskId) {
+            const task = findTask(taskId);
+            if (!task) return;
+
+            task.subtasks = task.subtasks.filter(function (sub) { return sub.id !== subtaskId; });
+            if (task.subtasks.length === 0 && task.completed) {
+                task.completed = false;
+                task.completedAt = null;
             }
 
-            task.completed = task.subtasks.every(subtask => Boolean(subtask.completed));
+            saveState();
+            updateDashboard();
+            renderTasks();
         }
 
-        function handleLanguageChange(event) {
-            const selected = event.target.value;
-            if (!TRANSLATIONS[selected]) return;
-
-            currentLang = selected;
-            applyLanguage();
+        function clearCompletedTasks() {
+            tasks = tasks.filter(function (task) { return !task.completed; });
+            openTaskActionsTaskId = null;
+            saveState();
+            updateDashboard();
+            renderTasks();
         }
-        
-        document.getElementById('taskInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addTask();
-        });
 
-        document.getElementById('languageSelect').addEventListener('change', handleLanguageChange);
+        function toggleTaskActions(taskId) {
+            openTaskActionsTaskId = openTaskActionsTaskId === taskId ? null : taskId;
+            renderTasks();
+        }
 
-        function hasUnsavedDraftText() {
-            const mainInput = document.getElementById('taskInput');
-            if (mainInput && mainInput.value.trim() !== '') {
-                return true;
-            }
+        function openCalendarForTask(task) {
+            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
+            const startDate = new Date(start);
+            if (Number.isNaN(startDate.getTime())) return;
 
-            const subtaskInputs = document.querySelectorAll('.subtask-input');
-            for (const input of subtaskInputs) {
-                if (input.value.trim() !== '') {
-                    return true;
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const toCalendarDate = function (date) {
+                return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+            };
+
+            const title = formatText(t().taskCalendarTitle, { task: task.text });
+            const details = [
+                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
+                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
+            ].filter(Boolean).join(' | ');
+
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}&dates=${toCalendarDate(startDate)}/${toCalendarDate(endDate)}`;
+            window.open(url, '_blank', 'noopener');
+        }
+
+        function escapeICSValue(text) {
+            return String(text || '')
+                .replace(/\\/g, '\\\\')
+                .replace(/\n/g, '\\n')
+                .replace(/,/g, '\\,')
+                .replace(/;/g, '\\;');
+        }
+
+        function toIcsDate(date) {
+            return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+        }
+
+        function openDeviceCalendarForTask(task) {
+            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
+            const startDate = new Date(start);
+            if (Number.isNaN(startDate.getTime())) return;
+
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const title = formatText(t().taskCalendarTitle, { task: task.text });
+            const details = [
+                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
+                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
+            ].filter(Boolean).join(' | ');
+
+            const uidValue = `${task.id || uid()}@task-planner-2`;
+            const now = new Date();
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Task Planner 2.0//EN',
+                'CALSCALE:GREGORIAN',
+                'BEGIN:VEVENT',
+                `UID:${escapeICSValue(uidValue)}`,
+                `DTSTAMP:${toIcsDate(now)}`,
+                `DTSTART:${toIcsDate(startDate)}`,
+                `DTEND:${toIcsDate(endDate)}`,
+                `SUMMARY:${escapeICSValue(title)}`,
+                `DESCRIPTION:${escapeICSValue(details)}`,
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const filenameSafeTitle = task.text.replace(/[^a-z0-9_-]+/gi, '-').slice(0, 40) || 'task';
+            const fileName = `${filenameSafeTitle}.ics`;
+
+            if (navigator.share && navigator.canShare) {
+                const file = new File([blob], fileName, { type: 'text/calendar' });
+                if (navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: title }).catch(function () {});
+                    return;
                 }
             }
 
-            return false;
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+            alert(t().calendarDownloadFallback);
         }
 
-        window.addEventListener('beforeunload', function (event) {
-            // Tasks are auto-saved, so only warn if there is typed text not yet submitted.
-            if (!hasUnsavedDraftText()) {
+        function sendNotificationForTask(task) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            if (!task.deadlineAt) return;
+
+            const dueTime = formatLocalDate(task.deadlineAt) || '';
+            const body = formatText(t().reminderBody, { task: task.text, time: dueTime });
+            new Notification(t().title, { body });
+        }
+
+        function showReminderBanner(forcedCount) {
+            const banner = document.getElementById('reminderBanner');
+            const count = Number.isFinite(forcedCount)
+                ? forcedCount
+                : tasks.filter(function (task) {
+                    return !task.completed && task.deadlineAt && isDueSoon(task.deadlineAt);
+                }).length;
+
+            if (count > 0) {
+                banner.style.display = 'block';
+                banner.textContent = formatText(t().reminderBanner, { count });
+            } else {
+                banner.style.display = 'none';
+                banner.textContent = '';
+            }
+        }
+
+        function checkReminders() {
+            const now = Date.now();
+            let upcomingCount = 0;
+
+            tasks.forEach(function (task) {
+                if (task.completed || !task.deadlineAt || !task.reminderOffsetMinutes) return;
+
+                const deadline = new Date(task.deadlineAt).getTime();
+                if (Number.isNaN(deadline)) return;
+
+                const reminderTime = deadline - (task.reminderOffsetMinutes * 60 * 1000);
+
+                if (now >= reminderTime && now <= deadline + 60 * 1000) {
+                    upcomingCount += 1;
+                }
+
+                if (task.reminderSentAt) return;
+
+                if (now >= reminderTime) {
+                    sendNotificationForTask(task);
+                    task.reminderSentAt = new Date().toISOString();
+                    saveState();
+                }
+            });
+
+            showReminderBanner(upcomingCount);
+        }
+
+        function handleFilterChange(event) {
+            const chip = event.target.closest('.chip[data-filter]');
+            if (!chip) return;
+            currentFilter = chip.dataset.filter;
+
+            document.querySelectorAll('.chip[data-filter]').forEach(function (btn) {
+                btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+            });
+
+            renderTasks();
+        }
+
+        function hasUnsavedDraftText() {
+            const taskInput = document.getElementById('taskInput').value.trim();
+            return taskInput !== '';
+        }
+
+        function addTaskToCalendar() {
+            const taskInput = document.getElementById('taskInput');
+            const scheduleInput = document.getElementById('scheduleInput');
+            const deadlineInput = document.getElementById('deadlineInput');
+
+            const text = taskInput.value.trim();
+            if (!text) {
+                alert(t().invalidTask);
+                taskInput.focus();
                 return;
             }
 
+            const tempTask = {
+                id: uid(),
+                text,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                scheduledAt: toIsoOrNull(scheduleInput.value),
+                deadlineAt: toIsoOrNull(deadlineInput.value),
+                reminderOffsetMinutes: null,
+                reminderSentAt: null,
+                completedAt: null,
+                subtasks: []
+            };
+
+            openDeviceCalendarForTask(tempTask);
+        }
+
+        document.getElementById('addBtn').addEventListener('click', addTask);
+        document.getElementById('addToCalendarBtn').addEventListener('click', addTaskToCalendar);
+        document.getElementById('taskInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') addTask();
+        });
+        document.getElementById('languageSelect').addEventListener('change', function (event) {
+            const next = event.target.value;
+            if (!TRANSLATIONS[next]) return;
+            currentLang = next;
+            applyLanguage();
+            saveState();
+        });
+        document.getElementById('themeToggleBtn').addEventListener('click', function () {
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+        document.getElementById('notifyBtn').addEventListener('click', requestNotificationPermission);
+        document.getElementById('toggleAdvancedComposerBtn').addEventListener('click', function () {
+            showAdvancedComposer = !showAdvancedComposer;
+            updateComposerVisibility();
+        });
+        document.getElementById('toggleExtraFiltersBtn').addEventListener('click', function () {
+            showExtraFilters = !showExtraFilters;
+            updateFilterVisibility();
+            renderTasks();
+        });
+        document.getElementById('searchInput').addEventListener('input', renderTasks);
+        document.querySelector('.controls').addEventListener('click', handleFilterChange);
+        document.getElementById('clearCompletedBtn').addEventListener('click', clearCompletedTasks);
+
+        window.addEventListener('beforeunload', function (event) {
+            if (!hasUnsavedDraftText()) return;
             event.preventDefault();
             event.returnValue = t().leaveWarning;
         });
 
         loadState();
         applyLanguage();
+        updateDashboard();
         renderTasks();
-        
-        updateTaskCount();
+        checkReminders();
+        setInterval(checkReminders, 30000);
     </script>
 </body>
 </html>

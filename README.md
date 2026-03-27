@@ -33,10 +33,102 @@ A redesigned shopping experience focused on clarity, better product pages, and s
 
 ---
 
-4. **Task Tracker (complete)**
+4. **Task Tracker 2.0 (complete)**
 OUT NOW on my website.
 
-A productivity-focused task management app built to help users organize work clearly and efficiently.
+A full ground-up rebuild of the Task Tracker into a scheduling-first productivity app with reminders, calendar export, dark mode, 8-language support, and a mobile-friendly progressive disclosure UI.
+
+#### Task Tracker 2.0 — Full Changelog
+
+**Core Rebuild**
+- Rebuilt the entire Task Tracker UI from scratch into a modern scheduling-first workspace.
+- New task schema: per-task `createdAt`, `scheduledAt`, `deadlineAt`, `completedAt`, `reminderOffsetMinutes`, `reminderSentAt`, and `subtasks` array.
+- Auto-migration from legacy v1.x localStorage format to v2.0 schema on first load.
+- All state persists to `taskTrackerDataV200` in localStorage — survives page refreshes, browser restarts, and tab closures.
+
+**Scheduling & Deadlines**
+- Added datetime-local inputs for scheduling a task start time and setting a hard deadline.
+- Added overdue detection: tasks past their deadline show a red "Overdue" indicator.
+- Added due-soon detection: tasks within 24 hours of deadline show an amber "Due soon" pill.
+
+**Reminders & Notifications**
+- Added browser notification support (Notifications API) with permission gating.
+- Added configurable reminder lead times per task: 5 min, 15 min, 30 min, 1 hour, 1 day before deadline.
+- Reminder checks run every 30 seconds while the app tab is open.
+- Added a reminder banner in the UI showing how many reminders are approaching.
+
+**Calendar Integration**
+- Added Google Calendar export: opens pre-filled event in Google Calendar (web-first).
+- Added Device Calendar export: generates RFC 5545 `.ics` file for any task with a date.
+  - On iOS/Android: triggers native share sheet to add directly to Apple Calendar, Google Calendar, Samsung Calendar, etc.
+  - Fallback: downloads `.ics` file if Web Share API is unavailable.
+- Added a visible "🗓️ Calendar" button in the composer row for one-click calendar export of the current task input.
+
+**Dark Mode**
+- Added dark mode with full CSS custom property theming (`--bg-1`, `--surface`, `--text`, `--primary`, etc.).
+- Added system theme auto-detection via `prefers-color-scheme` on first load.
+- Added persistent theme preference saved to localStorage.
+- Added `color-scheme: light/dark` on datetime pickers so native calendar dropdowns match the active theme.
+
+**Multilingual Support (8 Languages)**
+- Added full UI translations for: English, Spanish, French, Arabic, Hindi, Portuguese, Chinese (Simplified), Romanian.
+- Added device language auto-detection via `navigator.language` on first load, with manual override via dropdown.
+- All 60+ UI strings translated per language including buttons, labels, placeholders, alerts, and banners.
+- Language preference saved to localStorage and restored on reload.
+
+**Progressive Disclosure UI**
+- Simplified initial screen to just: task input + Advanced button + 🗓️ Calendar button + Add button.
+- Advanced section (hidden by default): schedule input, deadline input, reminder selector.
+- More Filters toggle (hidden by default): Scheduled and Overdue filter chips.
+- Task actions: Complete + More always visible; Edit, Calendar, Device Calendar, Subtask, Delete expand on "More" click.
+- All toggles reset on page load for a clean starting state.
+
+**Mobile Friendliness**
+- Added proper `viewport` meta tag for mobile scaling.
+- Responsive CSS grid with breakpoints at 980px (tablet) and 720px (phone).
+- `writing-mode: horizontal-tb` and `text-orientation: mixed` enforced globally to prevent rotated text bugs.
+- Device Calendar uses `navigator.share()` for native iOS/Android share sheet integration.
+- Touch-friendly button sizing and spacing throughout.
+
+**Dashboard**
+- Stats bar: Total, Active, Completed, Due Soon counters update live.
+- Progress bar fills as tasks are completed with smooth CSS transition.
+
+**Subtasks**
+- Nested subtask support with individual complete, edit, and delete actions.
+- Parent task auto-completes when all subtasks are done.
+- Subtask progress summary shown on each task card.
+
+**Celebration UX**
+- Confetti animation fires on task or subtask completion via `js-confetti` CDN library.
+
+**Page Title**
+- Updated app title to "Task Tracker 2.0" across all 8 languages.
+
+#### Reminder Behavior Notes
+
+- Browser notifications require explicit user permission grant.
+- Reminder checks run on a 30-second interval while the tab is open (static-hosting compatible).
+- Calendar exports create durable reminders in external calendar apps independent of the web app running.
+
+#### Task Tracker 1.2.0 Patch Notes
+
+- Added a progress dashboard with total, active, and completed task stats.
+- Added a visual completion bar so users can see overall momentum at a glance.
+- Added task search across both task names and subtask text.
+- Added task filters for All, Active, and Completed states.
+- Added a bulk Clear Completed action for faster cleanup after finishing a work session.
+- Added subtask progress summaries on each task card so users can see child progress without opening edit controls.
+- Added contextual empty states for both brand-new lists and filtered search results.
+- Improved mobile responsiveness for the expanded control layout and dashboard blocks.
+
+#### Why These Changes (More Feedback)
+
+- Users needed faster list triage once the tracker had more items, so search and status filters were added.
+- Users wanted better visibility into real progress, so a dashboard and completion bar were added above the list.
+- Users asked for a quicker reset after finishing work, so completed tasks can now be cleared in one action.
+- Users needed subtask progress to be visible without extra clicks, so each task now shows a completed-subtasks summary.
+- Users can get confused by blank filtered results, so the empty state now explains whether the list is empty or just filtered down to nothing.
 
 #### Task Tracker 1.1.1 Hotfix Patch Notes
 
