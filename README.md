@@ -113,8 +113,8 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 
 #### Task Tracker 2.0.2 Hotfix Patch Notes
 
-- Fixed iOS Device Calendar flow so it no longer prioritizes file/email sharing.
-- Updated iPhone/iPad calendar export path to open a direct calendar import flow first.
+- Fixed iOS Device Calendar flow that could trigger an `unknown.ics` forced download.
+- Updated iPhone/iPad export logic to use named file sharing first, then web calendar fallback instead of forced download.
 - Added compatibility improvements to generated ICS events for better Apple Calendar handling.
 
 #### Reminder Behavior Notes

@@ -1855,18 +1855,17 @@
             const filenameSafeTitle = task.text.replace(/[^a-z0-9_-]+/gi, '-').slice(0, 40) || 'task';
             const fileName = `${filenameSafeTitle}.ics`;
 
-            if (isAppleMobileDevice()) {
-                const iosCalendarUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-                window.location.href = iosCalendarUrl;
-                return;
-            }
-
-            if (navigator.share && navigator.canShare) {
+            if (navigator.share && typeof File !== 'undefined') {
                 const file = new File([blob], fileName, { type: 'text/calendar' });
-                if (navigator.canShare({ files: [file] })) {
+                if (!navigator.canShare || navigator.canShare({ files: [file] })) {
                     navigator.share({ files: [file], title: title }).catch(function () {});
                     return;
                 }
+            }
+
+            if (isAppleMobileDevice()) {
+                openCalendarForTask(task);
+                return;
             }
 
             const url = URL.createObjectURL(blob);
