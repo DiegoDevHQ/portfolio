@@ -153,6 +153,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Reduced the chance of Safari or Chrome on iPhone returning users to a blank white screen after the Calendar permission prompt.
 - Kept the calendar import flow on the existing page so the app stays visually stable during the iOS handoff.
 
+#### Task Tracker 2.0.9 Hotfix Patch Notes
+
+- Added an iPhone/iPad calendar chooser so users can pick Apple Calendar or Google Calendar before export.
+- Keeps Apple Calendar available while providing a more reliable Google Calendar fallback when iOS browser handoff behavior is disruptive.
+- Avoids forcing every iOS user through the same native Calendar import path.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.

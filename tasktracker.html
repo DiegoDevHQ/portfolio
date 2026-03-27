@@ -322,6 +322,49 @@
             display: none;
         }
 
+        .ios-calendar-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+        }
+
+        .ios-calendar-dialog {
+            width: min(100%, 420px);
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .ios-calendar-dialog h3 {
+            font-size: 18px;
+            line-height: 1.2;
+        }
+
+        .ios-calendar-dialog p {
+            color: var(--text-soft);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .ios-calendar-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .ios-calendar-modal[hidden] {
+            display: none;
+        }
+
         .task-list {
             list-style: none;
             display: grid;
@@ -654,6 +697,18 @@
                 <div id="reminderBanner" class="reminder-banner"></div>
             </section>
 
+            <div id="iosCalendarChoiceModal" class="ios-calendar-modal" hidden aria-hidden="true">
+                <div class="ios-calendar-dialog" role="dialog" aria-modal="true" aria-labelledby="iosCalendarChoiceTitle">
+                    <h3 id="iosCalendarChoiceTitle">Choose calendar option</h3>
+                    <p id="iosCalendarChoiceText">Apple Calendar may briefly leave Safari on a blank screen after approval. Choose how you want to add this event.</p>
+                    <div class="ios-calendar-actions">
+                        <button id="iosCalendarAppleBtn" class="btn btn-primary" type="button">Apple Calendar</button>
+                        <button id="iosCalendarGoogleBtn" class="btn btn-ghost" type="button">Google Calendar</button>
+                        <button id="iosCalendarCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <ul id="taskList" class="task-list"></ul>
         </main>
     </div>
@@ -662,6 +717,7 @@
         const STORAGE_KEY = 'taskTrackerDataV200';
         const LEGACY_STORAGE_KEY = 'taskTrackerDataV101';
         const confetti = new JSConfetti();
+        let pendingIosCalendarTask = null;
 
         const TRANSLATIONS = {
             en: {
@@ -1901,6 +1957,35 @@
             }, 40);
         }
 
+        function showIosCalendarChoice(task) {
+            pendingIosCalendarTask = task;
+            const modal = document.getElementById('iosCalendarChoiceModal');
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideIosCalendarChoice() {
+            pendingIosCalendarTask = null;
+            const modal = document.getElementById('iosCalendarChoiceModal');
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function openAppleCalendarImport(task) {
+            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
+            const startDate = new Date(start);
+            if (Number.isNaN(startDate.getTime())) return;
+
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const title = formatText(t().taskCalendarTitle, { task: task.text });
+            const details = [
+                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
+                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
+            ].filter(Boolean).join(' | ');
+
+            openCalendarInHiddenFrame(buildCalendarEventUrl(task, startDate, endDate, title, details));
+        }
+
         function openDeviceCalendarForTask(task) {
             const start = task.scheduledAt || task.deadlineAt || task.createdAt;
             const startDate = new Date(start);
@@ -1914,7 +1999,7 @@
             ].filter(Boolean).join(' | ');
 
             if (isAppleMobileDevice()) {
-                openCalendarInHiddenFrame(buildCalendarEventUrl(task, startDate, endDate, title, details));
+                showIosCalendarChoice(task);
                 return;
             }
 
@@ -2084,6 +2169,17 @@
             updateFilterVisibility();
             renderTasks();
         });
+        document.getElementById('iosCalendarAppleBtn').addEventListener('click', function () {
+            const task = pendingIosCalendarTask;
+            hideIosCalendarChoice();
+            if (task) openAppleCalendarImport(task);
+        });
+        document.getElementById('iosCalendarGoogleBtn').addEventListener('click', function () {
+            const task = pendingIosCalendarTask;
+            hideIosCalendarChoice();
+            if (task) openCalendarForTask(task);
+        });
+        document.getElementById('iosCalendarCancelBtn').addEventListener('click', hideIosCalendarChoice);
         document.getElementById('searchInput').addEventListener('input', renderTasks);
         document.querySelector('.controls').addEventListener('click', handleFilterChange);
         document.getElementById('clearCompletedBtn').addEventListener('click', clearCompletedTasks);
