@@ -1813,6 +1813,13 @@
             return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
         }
 
+        function isAppleMobileDevice() {
+            const ua = navigator.userAgent || '';
+            const isIOS = /iPad|iPhone|iPod/.test(ua);
+            const isTouchMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+            return isIOS || isTouchMac;
+        }
+
         function openDeviceCalendarForTask(task) {
             const start = task.scheduledAt || task.deadlineAt || task.createdAt;
             const startDate = new Date(start);
@@ -1832,6 +1839,7 @@
                 'VERSION:2.0',
                 'PRODID:-//Task Planner 2.0//EN',
                 'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH',
                 'BEGIN:VEVENT',
                 `UID:${escapeICSValue(uidValue)}`,
                 `DTSTAMP:${toIcsDate(now)}`,
@@ -1846,6 +1854,12 @@
             const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
             const filenameSafeTitle = task.text.replace(/[^a-z0-9_-]+/gi, '-').slice(0, 40) || 'task';
             const fileName = `${filenameSafeTitle}.ics`;
+
+            if (isAppleMobileDevice()) {
+                const iosCalendarUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+                window.location.href = iosCalendarUrl;
+                return;
+            }
 
             if (navigator.share && navigator.canShare) {
                 const file = new File([blob], fileName, { type: 'text/calendar' });

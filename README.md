@@ -111,6 +111,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Updated small-screen action button sizing and text wrapping so labels stay horizontal.
 - Improved expanded task action readability on phones without changing desktop layout.
 
+#### Task Tracker 2.0.2 Hotfix Patch Notes
+
+- Fixed iOS Device Calendar flow so it no longer prioritizes file/email sharing.
+- Updated iPhone/iPad calendar export path to open a direct calendar import flow first.
+- Added compatibility improvements to generated ICS events for better Apple Calendar handling.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.
