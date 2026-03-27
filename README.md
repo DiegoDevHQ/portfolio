@@ -141,6 +141,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Updated iPhone/iPad calendar export to open through a temporary tab and attempt to close it after the handoff starts.
 - Changed calendar event responses to download as attachments instead of remaining inline in the browser view.
 
+#### Task Tracker 2.0.7 Hotfix Patch Notes
+
+- Reworked the iOS calendar launcher tab so it stays on a controlled helper page instead of falling back to Safari's blank white file viewer.
+- Calendar import now starts from a hidden frame inside the temporary tab, then attempts to close or return automatically.
+- Improved post-import recovery on iPhone/iPad after the Calendar permission prompt and handoff flow.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.
