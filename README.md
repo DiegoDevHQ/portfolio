@@ -147,6 +147,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Calendar import now starts from a hidden frame inside the temporary tab, then attempts to close or return automatically.
 - Improved post-import recovery on iPhone/iPad after the Calendar permission prompt and handoff flow.
 
+#### Task Tracker 2.0.8 Hotfix Patch Notes
+
+- Replaced the iOS temporary-tab calendar handoff with a hidden iframe on the current Task Tracker page.
+- Reduced the chance of Safari or Chrome on iPhone returning users to a blank white screen after the Calendar permission prompt.
+- Kept the calendar import flow on the existing page so the app stays visually stable during the iOS handoff.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.

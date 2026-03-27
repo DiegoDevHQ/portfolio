@@ -1881,80 +1881,24 @@
             return isIOS || isTouchMac;
         }
 
-        function openTemporaryCalendarWindow(url) {
-            const popup = window.open('about:blank', '_blank');
-            if (!popup) {
-                window.location.href = url;
-                return;
+        function openCalendarInHiddenFrame(url) {
+            let frame = document.getElementById('calendarExportFrame');
+            if (!frame) {
+                frame = document.createElement('iframe');
+                frame.id = 'calendarExportFrame';
+                frame.setAttribute('aria-hidden', 'true');
+                frame.tabIndex = -1;
+                frame.style.display = 'none';
+                frame.style.width = '0';
+                frame.style.height = '0';
+                frame.style.border = '0';
+                document.body.appendChild(frame);
             }
 
-            const escapedUrl = JSON.stringify(url);
-            const fallbackUrl = JSON.stringify('/tasktracker.html');
-
-            popup.document.open();
-            popup.document.write(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Opening Calendar...</title>
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            padding: 24px;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #f8fafc;
-            color: #0f172a;
-            text-align: center;
-        }
-
-        .card {
-            max-width: 320px;
-            padding: 20px;
-            border: 1px solid #dbe4f0;
-            border-radius: 18px;
-            background: #ffffff;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-        }
-
-        h1 {
-            margin: 0 0 8px;
-            font-size: 20px;
-        }
-
-        p {
-            margin: 0;
-            color: #475569;
-            line-height: 1.45;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1>Opening Calendar...</h1>
-        <p>If iOS asks for permission, approve it. This page will close or return automatically.</p>
-    </div>
-    <iframe id="calendarLoader" style="display:none; width:0; height:0; border:0;" title="Calendar loader"></iframe>
-    <script>
-        var calendarUrl = ${escapedUrl};
-        var returnUrl = ${fallbackUrl};
-        var frame = document.getElementById('calendarLoader');
-        frame.src = calendarUrl;
-        setTimeout(function () {
-            try {
-                window.close();
-            } catch (error) {
-            }
-            window.location.replace(returnUrl);
-        }, 1800);
-    <\/script>
-</body>
-</html>`);
-            popup.document.close();
+            frame.src = 'about:blank';
+            setTimeout(function () {
+                frame.src = url;
+            }, 40);
         }
 
         function openDeviceCalendarForTask(task) {
@@ -1970,7 +1914,7 @@
             ].filter(Boolean).join(' | ');
 
             if (isAppleMobileDevice()) {
-                openTemporaryCalendarWindow(buildCalendarEventUrl(task, startDate, endDate, title, details));
+                openCalendarInHiddenFrame(buildCalendarEventUrl(task, startDate, endDate, title, details));
                 return;
             }
 
