@@ -171,6 +171,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - iPhone/iPad users now get the same Apple vs Google calendar choice modal in both Safari and Chrome.
 - Restored user control so Chrome on iOS no longer bypasses the calendar option prompt.
 
+#### Task Tracker 2.0.12 Hotfix Patch Notes
+
+- Added a desktop/laptop calendar chooser for Device Calendar actions.
+- Desktop users can now choose Google Calendar, Microsoft Calendar (Outlook), or direct `.ics` download.
+- Updated calendar flow to avoid forcing desktop users into a single export path.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.

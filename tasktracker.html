@@ -365,6 +365,49 @@
             display: none;
         }
 
+        .desktop-calendar-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+        }
+
+        .desktop-calendar-dialog {
+            width: min(100%, 440px);
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .desktop-calendar-dialog h3 {
+            font-size: 18px;
+            line-height: 1.2;
+        }
+
+        .desktop-calendar-dialog p {
+            color: var(--text-soft);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .desktop-calendar-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .desktop-calendar-modal[hidden] {
+            display: none;
+        }
+
         .task-list {
             list-style: none;
             display: grid;
@@ -709,6 +752,19 @@
                 </div>
             </div>
 
+            <div id="desktopCalendarChoiceModal" class="desktop-calendar-modal" hidden aria-hidden="true">
+                <div class="desktop-calendar-dialog" role="dialog" aria-modal="true" aria-labelledby="desktopCalendarChoiceTitle">
+                    <h3 id="desktopCalendarChoiceTitle">Choose calendar option</h3>
+                    <p id="desktopCalendarChoiceText">Select where you want to add this task event.</p>
+                    <div class="desktop-calendar-actions">
+                        <button id="desktopCalendarGoogleBtn" class="btn btn-primary" type="button">Google Calendar</button>
+                        <button id="desktopCalendarMicrosoftBtn" class="btn btn-ghost" type="button">Microsoft Calendar</button>
+                        <button id="desktopCalendarDownloadBtn" class="btn btn-ghost" type="button">Download .ics file</button>
+                        <button id="desktopCalendarCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <ul id="taskList" class="task-list"></ul>
         </main>
     </div>
@@ -718,6 +774,7 @@
         const LEGACY_STORAGE_KEY = 'taskTrackerDataV101';
         const confetti = new JSConfetti();
         let pendingIosCalendarTask = null;
+        let pendingDesktopCalendarTask = null;
 
         const TRANSLATIONS = {
             en: {
@@ -1906,6 +1963,30 @@
             window.open(url, '_blank', 'noopener');
         }
 
+        function openMicrosoftCalendarForTask(task) {
+            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
+            const startDate = new Date(start);
+            if (Number.isNaN(startDate.getTime())) return;
+
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const title = formatText(t().taskCalendarTitle, { task: task.text });
+            const details = [
+                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
+                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
+            ].filter(Boolean).join(' | ');
+
+            const params = new URLSearchParams({
+                path: '/calendar/action/compose',
+                rru: 'addevent',
+                subject: title,
+                body: details,
+                startdt: startDate.toISOString(),
+                enddt: endDate.toISOString()
+            });
+
+            window.open(`https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`, '_blank', 'noopener');
+        }
+
         function escapeICSValue(text) {
             return String(text || '')
                 .replace(/\\/g, '\\\\')
@@ -1971,22 +2052,21 @@
             modal.setAttribute('aria-hidden', 'true');
         }
 
-        function openAppleCalendarImport(task) {
-            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
-            const startDate = new Date(start);
-            if (Number.isNaN(startDate.getTime())) return;
-
-            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-            const title = formatText(t().taskCalendarTitle, { task: task.text });
-            const details = [
-                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
-                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
-            ].filter(Boolean).join(' | ');
-
-            openCalendarInHiddenFrame(buildCalendarEventUrl(task, startDate, endDate, title, details));
+        function showDesktopCalendarChoice(task) {
+            pendingDesktopCalendarTask = task;
+            const modal = document.getElementById('desktopCalendarChoiceModal');
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
         }
 
-        function openDeviceCalendarForTask(task) {
+        function hideDesktopCalendarChoice() {
+            pendingDesktopCalendarTask = null;
+            const modal = document.getElementById('desktopCalendarChoiceModal');
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function downloadIcsForTask(task) {
             const start = task.scheduledAt || task.deadlineAt || task.createdAt;
             const startDate = new Date(start);
             if (Number.isNaN(startDate.getTime())) return;
@@ -1997,11 +2077,6 @@
                 `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
                 task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
             ].filter(Boolean).join(' | ');
-
-            if (isAppleMobileDevice()) {
-                showIosCalendarChoice(task);
-                return;
-            }
 
             const uidValue = `${task.id || uid()}@task-planner-2`;
             const now = new Date();
@@ -2043,6 +2118,41 @@
             link.remove();
             setTimeout(function () { URL.revokeObjectURL(url); }, 0);
             alert(t().calendarDownloadFallback);
+        }
+
+        function openAppleCalendarImport(task) {
+            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
+            const startDate = new Date(start);
+            if (Number.isNaN(startDate.getTime())) return;
+
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const title = formatText(t().taskCalendarTitle, { task: task.text });
+            const details = [
+                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
+                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
+            ].filter(Boolean).join(' | ');
+
+            openCalendarInHiddenFrame(buildCalendarEventUrl(task, startDate, endDate, title, details));
+        }
+
+        function openDeviceCalendarForTask(task) {
+            const start = task.scheduledAt || task.deadlineAt || task.createdAt;
+            const startDate = new Date(start);
+            if (Number.isNaN(startDate.getTime())) return;
+
+            const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+            const title = formatText(t().taskCalendarTitle, { task: task.text });
+            const details = [
+                `${t().createdAt}: ${formatLocalDate(task.createdAt) || ''}`,
+                task.deadlineAt ? `${t().deadlineAt}: ${formatLocalDate(task.deadlineAt) || ''}` : ''
+            ].filter(Boolean).join(' | ');
+
+            if (isAppleMobileDevice()) {
+                showIosCalendarChoice(task);
+                return;
+            }
+
+            showDesktopCalendarChoice(task);
         }
 
         function sendNotificationForTask(task) {
@@ -2180,6 +2290,22 @@
             if (task) openCalendarForTask(task);
         });
         document.getElementById('iosCalendarCancelBtn').addEventListener('click', hideIosCalendarChoice);
+        document.getElementById('desktopCalendarGoogleBtn').addEventListener('click', function () {
+            const task = pendingDesktopCalendarTask;
+            hideDesktopCalendarChoice();
+            if (task) openCalendarForTask(task);
+        });
+        document.getElementById('desktopCalendarMicrosoftBtn').addEventListener('click', function () {
+            const task = pendingDesktopCalendarTask;
+            hideDesktopCalendarChoice();
+            if (task) openMicrosoftCalendarForTask(task);
+        });
+        document.getElementById('desktopCalendarDownloadBtn').addEventListener('click', function () {
+            const task = pendingDesktopCalendarTask;
+            hideDesktopCalendarChoice();
+            if (task) downloadIcsForTask(task);
+        });
+        document.getElementById('desktopCalendarCancelBtn').addEventListener('click', hideDesktopCalendarChoice);
         document.getElementById('searchInput').addEventListener('input', renderTasks);
         document.querySelector('.controls').addEventListener('click', handleFilterChange);
         document.getElementById('clearCompletedBtn').addEventListener('click', clearCompletedTasks);
