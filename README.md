@@ -159,6 +159,12 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 - Keeps Apple Calendar available while providing a more reliable Google Calendar fallback when iOS browser handoff behavior is disruptive.
 - Avoids forcing every iOS user through the same native Calendar import path.
 
+#### Task Tracker 2.0.10 Hotfix Patch Notes
+
+- Added a Chrome on iPhone fallback that skips the native Apple Calendar import flow entirely.
+- Chrome on iOS now opens Google Calendar directly because the Apple import handoff kept returning users to a blank white browser screen.
+- Keeps the Apple-vs-Google chooser for Safari on iPhone while using a more reliable browser-specific default on `CriOS`.
+
 #### Reminder Behavior Notes
 
 - Browser notifications require explicit user permission grant.
