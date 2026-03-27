@@ -232,16 +232,33 @@
             gap: 10px;
         }
 
+        .advanced-field {
+            min-width: 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        .advanced-label {
+            color: var(--text-soft);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.25;
+            padding-left: 2px;
+        }
+
         .composer-advanced.hidden {
             display: none;
         }
 
         .field,
         .datetime,
-        .search {
+        .search,
+        .select {
             padding: 12px;
             width: 100%;
             font-weight: 500;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .datetime {
@@ -522,6 +539,10 @@
                 width: 100%;
             }
 
+            .advanced-field {
+                width: 100%;
+            }
+
             .field,
             .datetime,
             .search,
@@ -594,16 +615,25 @@
                 </div>
 
                 <div id="advancedComposerFields" class="composer-advanced hidden">
-                    <input type="datetime-local" id="scheduleInput" class="datetime" aria-label="Schedule date and time">
-                    <input type="datetime-local" id="deadlineInput" class="datetime" aria-label="Deadline date and time">
-                    <select id="reminderSelect" class="select" aria-label="Reminder lead time">
-                        <option value="">No reminder</option>
-                        <option value="5">5 min before</option>
-                        <option value="15">15 min before</option>
-                        <option value="30">30 min before</option>
-                        <option value="60">1 hour before</option>
-                        <option value="1440">1 day before</option>
-                    </select>
+                    <div class="advanced-field">
+                        <label id="scheduleInputLabel" class="advanced-label" for="scheduleInput">Scheduled - Click to add date</label>
+                        <input type="datetime-local" id="scheduleInput" class="datetime" aria-label="Schedule date and time">
+                    </div>
+                    <div class="advanced-field">
+                        <label id="deadlineInputLabel" class="advanced-label" for="deadlineInput">Deadline - Click to add date</label>
+                        <input type="datetime-local" id="deadlineInput" class="datetime" aria-label="Deadline date and time">
+                    </div>
+                    <div class="advanced-field">
+                        <label id="reminderSelectLabel" class="advanced-label" for="reminderSelect">Reminder</label>
+                        <select id="reminderSelect" class="select" aria-label="Reminder lead time">
+                            <option value="">No reminder</option>
+                            <option value="5">5 min before</option>
+                            <option value="15">15 min before</option>
+                            <option value="30">30 min before</option>
+                            <option value="60">1 hour before</option>
+                            <option value="1440">1 day before</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="controls">
@@ -651,12 +681,14 @@
                 progressLabel: '{completed} of {total} tasks completed',
                 placeholderTask: 'Add a task title...',
                 placeholderSearch: 'Search tasks, dates, subtasks...',
+                clickToAddDate: 'Click to add date',
                 noReminder: 'No reminder',
                 remind5: '5 min before',
                 remind15: '15 min before',
                 remind30: '30 min before',
                 remind60: '1 hour before',
                 remind1440: '1 day before',
+                reminderLabel: 'Reminder',
                 advancedOptions: 'Advanced',
                 hideAdvancedOptions: 'Hide Advanced',
                 moreFilters: 'More Filters',
@@ -711,12 +743,14 @@
                 progressLabel: '{completed} de {total} tareas completadas',
                 placeholderTask: 'Agrega un titulo de tarea...',
                 placeholderSearch: 'Busca tareas, fechas y subtareas...',
+                clickToAddDate: 'Haz clic para agregar fecha',
                 noReminder: 'Sin recordatorio',
                 remind5: '5 min antes',
                 remind15: '15 min antes',
                 remind30: '30 min antes',
                 remind60: '1 hora antes',
                 remind1440: '1 dia antes',
+                reminderLabel: 'Recordatorio',
                 advancedOptions: 'Avanzado',
                 hideAdvancedOptions: 'Ocultar Avanzado',
                 moreFilters: 'Mas Filtros',
@@ -771,12 +805,14 @@
                 progressLabel: '已完成 {completed}/{total} 个任务',
                 placeholderTask: '输入任务标题...',
                 placeholderSearch: '搜索任务、日期或子任务...',
+                clickToAddDate: '点击添加日期',
                 noReminder: '不提醒',
                 remind5: '提前5分钟',
                 remind15: '提前15分钟',
                 remind30: '提前30分钟',
                 remind60: '提前1小时',
                 remind1440: '提前1天',
+                reminderLabel: '提醒',
                 advancedOptions: '高级选项',
                 hideAdvancedOptions: '收起高级选项',
                 moreFilters: '更多筛选',
@@ -831,12 +867,14 @@
                 progressLabel: '{completed} sur {total} tâches complétées',
                 placeholderTask: 'Ajouter un titre de tâche...',
                 placeholderSearch: 'Rechercher des tâches, dates, sous-tâches...',
+                clickToAddDate: 'Cliquez pour ajouter une date',
                 noReminder: 'Pas de rappel',
                 remind5: '5 min avant',
                 remind15: '15 min avant',
                 remind30: '30 min avant',
                 remind60: '1 heure avant',
                 remind1440: '1 jour avant',
+                reminderLabel: 'Rappel',
                 advancedOptions: 'Avancé',
                 hideAdvancedOptions: 'Masquer Avancé',
                 moreFilters: 'Plus de Filtres',
@@ -891,12 +929,14 @@
                 progressLabel: '{completed} من {total} مهام مكتملة',
                 placeholderTask: 'أضف عنوان المهمة...',
                 placeholderSearch: 'ابحث عن المهام والتواريخ والمهام الفرعية...',
+                clickToAddDate: 'انقر لإضافة تاريخ',
                 noReminder: 'لا تذكير',
                 remind5: '5 دقائق قبل',
                 remind15: '15 دقيقة قبل',
                 remind30: '30 دقيقة قبل',
                 remind60: 'ساعة واحدة قبل',
                 remind1440: 'يوم واحد قبل',
+                reminderLabel: 'تذكير',
                 advancedOptions: 'خيارات متقدمة',
                 hideAdvancedOptions: 'إخفاء المتقدمة',
                 moreFilters: 'المزيد من المرشحات',
@@ -951,12 +991,14 @@
                 progressLabel: '{total} में से {completed} कार्य पूर्ण',
                 placeholderTask: 'कार्य शीर्षक जोड़ें...',
                 placeholderSearch: 'कार्य, तारीखें, उप-कार्य खोजें...',
+                clickToAddDate: 'तारीख जोड़ने के लिए क्लिक करें',
                 noReminder: 'कोई अनुस्मारक नहीं',
                 remind5: '5 मिनट पहले',
                 remind15: '15 मिनट पहले',
                 remind30: '30 मिनट पहले',
                 remind60: '1 घंटा पहले',
                 remind1440: '1 दिन पहले',
+                reminderLabel: 'रिमाइंडर',
                 advancedOptions: 'उन्नत विकल्प',
                 hideAdvancedOptions: 'उन्नत छुपाएं',
                 moreFilters: 'अधिक फिल्टर',
@@ -1011,12 +1053,14 @@
                 progressLabel: '{completed} de {total} tarefas concluídas',
                 placeholderTask: 'Adicionar título da tarefa...',
                 placeholderSearch: 'Pesquisar tarefas, datas, subtarefas...',
+                clickToAddDate: 'Clique para adicionar data',
                 noReminder: 'Sem lembrete',
                 remind5: '5 minutos antes',
                 remind15: '15 minutos antes',
                 remind30: '30 minutos antes',
                 remind60: '1 hora antes',
                 remind1440: '1 dia antes',
+                reminderLabel: 'Lembrete',
                 advancedOptions: 'Avançado',
                 hideAdvancedOptions: 'Ocultar Avançado',
                 moreFilters: 'Mais Filtros',
@@ -1071,12 +1115,14 @@
                 progressLabel: '{completed} din {total} sarcini finalizate',
                 placeholderTask: 'Adaugă titlu sarcină...',
                 placeholderSearch: 'Cauta sarcini, date, subsarcini...',
+                clickToAddDate: 'Click pentru a adăuga data',
                 noReminder: 'Fără minder',
                 remind5: '5 min inainte',
                 remind15: '15 min inainte',
                 remind30: '30 min inainte',
                 remind60: '1 ora inainte',
                 remind1440: '1 zi inainte',
+                reminderLabel: 'Memento',
                 advancedOptions: 'Avansat',
                 hideAdvancedOptions: 'Ascunde Avansat',
                 moreFilters: 'Mai Multe Filtre',
@@ -1313,6 +1359,9 @@
             document.getElementById('toggleExtraFiltersBtn').textContent = showExtraFilters ? t().fewerFilters : t().moreFilters;
             document.getElementById('taskInput').placeholder = t().placeholderTask;
             document.getElementById('searchInput').placeholder = t().placeholderSearch;
+            document.getElementById('scheduleInputLabel').textContent = `${t().scheduledAt} - ${t().clickToAddDate}`;
+            document.getElementById('deadlineInputLabel').textContent = `${t().deadlineAt} - ${t().clickToAddDate}`;
+            document.getElementById('reminderSelectLabel').textContent = t().reminderLabel;
 
             document.getElementById('statTotalLabel').textContent = t().total;
             document.getElementById('statActiveLabel').textContent = t().active;

@@ -113,9 +113,15 @@ A full ground-up rebuild of the Task Tracker into a scheduling-first productivit
 
 #### Task Tracker 2.0.2 Hotfix Patch Notes
 
-- Fixed iOS Device Calendar flow that could trigger an `unknown.ics` forced download.
-- Updated iPhone/iPad export logic to use named file sharing first, then web calendar fallback instead of forced download.
-- Added compatibility improvements to generated ICS events for better Apple Calendar handling.
+- Fixed iOS Device Calendar flow that could trigger an `unknown.ics` forced download/share prompt.
+- Updated iPhone/iPad calendar behavior to open the native Calendar app directly using `calshow:`.
+- iOS now skips ICS file generation entirely in the device-calendar flow to prevent download interruptions.
+
+#### Task Tracker 2.0.3 Hotfix Patch Notes
+
+- Fixed Advanced composer fields so the date controls no longer overflow outside the composer border across mobile, desktop, and laptop layouts.
+- Added visible schedule and deadline helper labels so all users see `Click to add date` instead of blank date fields.
+- Improved advanced composer sizing across devices to keep date and reminder controls inside the card layout.
 
 #### Reminder Behavior Notes
 
