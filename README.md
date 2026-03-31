@@ -6,10 +6,16 @@ This repository contains a personal portfolio site and local-first AI/web app pr
 
 ### AI Study Buddy (local AI)
 
-- Runs fully on the user's device using WebLLM + WebGPU (no OpenAI API, no backend inference cost).
-- Built for students first: subject learning + quiz-style study flow.
-- Includes a separate spoken-language mode for language learning practice.
-- Hardware compatibility scan recommends the best local model per user device.
+- One of my proudest builds so far: a fully local AI study experience that runs directly on the user's device with WebLLM + WebGPU.
+- No OpenAI API dependency and no backend inference cost, which means the product can stay truly accessible and low-friction.
+- Designed student-first with quiz-style learning for subjects plus a dedicated spoken-language practice mode.
+- Includes a hardware compatibility scan that recommends the best model per device so more users can run it smoothly.
+
+### Task Tracker 2.0
+
+- Status: Active, live, and continuously improving on my website.
+- I am genuinely proud of how much positive feedback Task Tracker 2.0 has received, especially for its scheduling-first workflow, reminders, calendar export, and mobile usability.
+- The product is what it is today because I listened closely to previous feedback, fixed real pain points, and kept iterating until the experience felt right.
 
 ### Customer Churn Predictor
 
