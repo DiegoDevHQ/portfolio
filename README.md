@@ -15,6 +15,8 @@ This repository contains a personal portfolio site and local-first AI/web app pr
 
 - Status: Archived.
 - Churn predictor files were moved to `archive/churn_predictor/` to keep the live site focused on current projects.
+- Archive reason: while building it, I leaned heavily on references from similar projects and never fully understood the implementation end-to-end.
+- I also could not get strong real-world feedback because I do not currently know people who could properly evaluate and use a churn predictor workflow.
 
 ## About
 Diego Dev HQ's Portfolio
