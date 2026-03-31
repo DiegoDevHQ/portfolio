@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Study Buddy — Local Language Tutor</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --border: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --muted-2: rgba(255,255,255,.48);
+      --accent: #7c5cff;
+      --accent-2: #2bd4c3;
+      --ring: rgba(124,92,255,.40);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow: 0 18px 50px rgba(0,0,0,.40);
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --verified:    #22c55e; --verified-bg:    rgba(34,197,94,.13);  --verified-border:    rgba(34,197,94,.40);
+      --playable:    #60a5fa; --playable-bg:    rgba(96,165,250,.13); --playable-border:    rgba(96,165,250,.40);
+      --minimum:     #f59e0b; --minimum-bg:     rgba(245,158,11,.13); --minimum-border:     rgba(245,158,11,.40);
+      --unsupported: #ef4444; --unsupported-bg: rgba(239,68,68,.13);  --unsupported-border: rgba(239,68,68,.40);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      position: relative;
+      isolation: isolate;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background:
+        radial-gradient(1200px 720px at 12% 8%,  rgba(124,92,255,.20), transparent 72%),
+        radial-gradient(1100px 640px at 88% 18%, rgba(43,212,195,.14), transparent 72%),
+        var(--bg);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      opacity: .04;
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.5) .7px, transparent 0);
+      background-size: 3px 3px;
+    }
+    a { color: inherit; }
+
+    /* ── Screen system ── */
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; min-height: 100dvh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 22px; gap: 12px; flex-wrap: wrap; flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11,18,32,.88);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: rgba(255,255,255,.04);
+      color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 600;
+      transition: background .2s, color .2s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,.08); color: var(--text); }
+    .topbar-title { font-size: 1.05rem; font-weight: 800; }
+    .topbar-title span { color: var(--accent-2); }
+    .topbar-badge { font-size: .8rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+
+    /* ════════════════════════════════════════
+       SCAN SCREEN
+    ════════════════════════════════════════ */
+    #screenScan .scan-body {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+    .scan-card {
+      width: min(640px, 100%);
+      display: flex; flex-direction: column; gap: 26px; text-align: center;
+    }
+    .scan-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .scan-icon-wrap {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(124,92,255,.25), rgba(43,212,195,.15));
+      border: 1px solid rgba(124,92,255,.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; box-shadow: 0 0 30px rgba(124,92,255,.25);
+    }
+    .scan-hero h1 { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 800; }
+    .scan-hero p  { color: var(--muted); max-width: 44ch; }
+
+    .scanning-label {
+      color: var(--accent-2); font-weight: 700; font-size: .9rem;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .scan-dots span {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-2); animation: sdot .8s infinite ease-in-out;
+    }
+    .scan-dots span:nth-child(2) { animation-delay: .13s; }
+    .scan-dots span:nth-child(3) { animation-delay: .26s; }
+    @keyframes sdot {
+      0%,80%,100% { transform: scale(.5); opacity: .4; }
+      40%          { transform: scale(1);  opacity: 1;  }
+    }
+
+    /* Hardware card */
+    .hw-result {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: rgba(255,255,255,.04); backdrop-filter: blur(10px);
+      overflow: hidden; text-align: left;
+    }
+
+    /* Compat banner */
+    .compat-banner {
+      padding: 18px 22px; display: flex; align-items: center; gap: 16px;
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid transparent;
+    }
+    .compat-icon { font-size: 2.2rem; line-height: 1; }
+    .compat-info { flex: 1; }
+    .compat-tier { font-size: 1.05rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .compat-sub  { font-size: .85rem; color: var(--muted); }
+    .compat-pill { padding: 6px 14px; border-radius: 999px; font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+
+    /* Tier class helpers */
+    .tier-verified   { color: var(--verified);    background: var(--verified-bg);    border: 1px solid var(--verified-border);    }
+    .tier-playable   { color: var(--playable);    background: var(--playable-bg);    border: 1px solid var(--playable-border);    }
+    .tier-minimum    { color: var(--minimum);     background: var(--minimum-bg);     border: 1px solid var(--minimum-border);     }
+    .tier-none       { color: var(--unsupported); background: var(--unsupported-bg); border: 1px solid var(--unsupported-border); }
+
+    /* Spec rows */
+    .spec-list { display: grid; }
+    .spec-row {
+      display: grid; grid-template-columns: 36px 1fr auto;
+      align-items: center; gap: 12px;
+      padding: 13px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-emoji { font-size: 1.1rem; text-align: center; }
+    .spec-label { font-size: .78rem; font-weight: 700; color: var(--muted-2); text-transform: uppercase; letter-spacing: .05em; }
+    .spec-value { font-size: .92rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .spec-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green  { background: var(--verified);    box-shadow: 0 0 6px var(--verified);    }
+    .dot-blue   { background: var(--playable);    box-shadow: 0 0 6px var(--playable);    }
+    .dot-yellow { background: var(--minimum);     box-shadow: 0 0 6px var(--minimum);     }
+    .dot-red    { background: var(--unsupported); box-shadow: 0 0 6px var(--unsupported); }
+    .dot-grey   { background: rgba(255,255,255,.25); }
+
+    /* Recommended model row */
+    .rec-model-row {
+      padding: 14px 22px;
+      background: rgba(124,92,255,.07);
+      border-top: 1px solid rgba(124,92,255,.18);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .rec-label { font-size: .78rem; font-weight: 700; color: var(--muted-2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+    .rec-name  { font-size: .95rem; font-weight: 800; color: var(--accent-2); }
+    .rec-meta  { font-size: .8rem; color: var(--muted); }
+    .rec-size-pill {
+      padding: 5px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700;
+      border: 1px solid rgba(43,212,195,.35); background: rgba(43,212,195,.10); color: var(--accent-2);
+    }
+
+    /* No WebGPU */
+    .no-webgpu-card {
+      padding: 24px; border-radius: var(--radius); text-align: center;
+      border: 1px solid var(--unsupported-border); background: var(--unsupported-bg);
+      display: flex; flex-direction: column; gap: 12px; align-items: center;
+    }
+    .no-webgpu-card h2 { font-size: 1.1rem; }
+    .no-webgpu-card p  { color: var(--muted); font-size: .9rem; max-width: 40ch; }
+    .browser-list { list-style: none; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .browser-list li {
+      padding: 6px 14px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06);
+      font-size: .85rem; font-weight: 700;
+    }
+
+    /* Continue btn */
+    .continue-btn {
+      display: block; width: 100%; padding: 14px;
+      border-radius: var(--radius-sm); border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; font: inherit; font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: filter .2s, transform .15s;
+    }
+    .continue-btn:hover   { filter: brightness(1.08); }
+    .continue-btn:active  { transform: scale(.98); }
+    .continue-btn:disabled { opacity: .4; pointer-events: none; }
+
+    /* ════════════════════════════════════════
+       CHAT SCREEN
+    ════════════════════════════════════════ */
+    #screenChat { height: 100dvh; overflow: hidden; }
+    .chat-layout {
+      flex: 1; display: flex; overflow: hidden;
+      height: calc(100dvh - 57px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 268px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: rgba(255,255,255,.025);
+      overflow-y: auto; padding: 18px 14px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 2px; }
+    .sb-label { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-2); margin-bottom: 8px; }
+
+    /* Mini HW badge */
+    .mini-hw-badge {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: rgba(255,255,255,.03); cursor: pointer; text-decoration: none;
+      transition: background .2s;
+    }
+    .mini-hw-badge:hover { background: rgba(255,255,255,.06); }
+    .hw-dot   { width: 8px; height: 8px; border-radius: 50%; }
+    .hw-label { font-size: .82rem; font-weight: 700; flex: 1; }
+    .hw-gpu   { font-size: .75rem; color: var(--muted-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+
+    /* Model select */
+    .model-select {
+      width: 100%; padding: 9px 30px 9px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: rgba(0,0,0,.20);
+      color: var(--text); font: inherit; font-size: .88rem; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,.5)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+    }
+    .model-select:focus { outline: 2px solid var(--ring); border-color: rgba(124,92,255,.45); }
+    .model-loaded-indicator {
+      margin-top: 6px; font-size: .78rem; font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .loaded-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--verified); box-shadow: 0 0 5px var(--verified); }
+
+    /* Language grid */
+    .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .mode-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .18s;
+    }
+    .mode-btn:hover {
+      background: rgba(124,92,255,.14);
+      border-color: rgba(124,92,255,.40);
+      color: var(--text);
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(124,92,255,.28), rgba(43,212,195,.14));
+      border-color: rgba(124,92,255,.65);
+      color: var(--text);
+    }
+    .lang-btn {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 10px 6px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: rgba(255,255,255,.04); color: var(--muted);
+      font: inherit; font-size: .78rem; font-weight: 700;
+      cursor: pointer; text-align: center; line-height: 1.3; transition: all .18s;
+    }
+    .lang-btn .flag { font-size: 1.4rem; line-height: 1; }
+    .lang-btn:hover  { background: rgba(124,92,255,.14); border-color: rgba(124,92,255,.40); color: var(--text); }
+    .lang-btn.active { background: linear-gradient(135deg, rgba(124,92,255,.28), rgba(43,212,195,.14)); border-color: rgba(124,92,255,.65); color: var(--text); }
+
+    .new-chat-btn {
+      width: 100%; padding: 9px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: rgba(255,255,255,.03);
+      color: var(--muted); font: inherit; font-size: .88rem; font-weight: 700;
+      cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+    }
+    .new-chat-btn:hover { background: rgba(255,80,80,.10); border-color: rgba(255,100,100,.35); color: #ff9090; }
+
+    /* Chat main */
+    .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Load panel */
+    .load-panel {
+      flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px;
+    }
+    .load-card {
+      max-width: 420px; width: 100%;
+      display: flex; flex-direction: column; gap: 18px; text-align: center;
+    }
+    .load-card h2 { font-size: 1.2rem; font-weight: 800; }
+    .load-card p  { color: var(--muted); font-size: .9rem; }
+    .progress-bar-wrap { background: rgba(255,255,255,.08); border-radius: 999px; height: 8px; overflow: hidden; }
+    .progress-bar-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width .3s ease; width: 0%;
+    }
+    .progress-text { font-size: .82rem; color: var(--muted-2); margin-top: 6px; }
+    .load-note {
+      font-size: .78rem; color: var(--muted-2); padding: 10px 14px;
+      border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+    }
+
+    /* Welcome panel */
+    .welcome-panel {
+      flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px;
+    }
+    .welcome-inner {
+      text-align: center; max-width: 380px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .welcome-inner .w-icon { font-size: 2.6rem; }
+    .welcome-inner h2 { font-size: 1.3rem; font-weight: 800; }
+    .welcome-inner p  { color: var(--muted); font-size: .9rem; }
+
+    /* Messages */
+    .messages {
+      flex: 1; overflow-y: auto; padding: 22px 20px;
+      display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth;
+    }
+    .messages::-webkit-scrollbar { width: 5px; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 3px; }
+
+    .msg { display: flex; flex-direction: column; max-width: 78%; gap: 4px; animation: msgIn .2s ease; }
+    @keyframes msgIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.ai   { align-self: flex-start; align-items: flex-start; }
+    .msg-label  { font-size: .73rem; font-weight: 700; color: var(--muted-2); padding: 0 4px; }
+    .msg-bubble { padding: 11px 15px; border-radius: 16px; line-height: 1.65; font-size: .93rem; white-space: pre-wrap; word-break: break-word; }
+    .msg.user .msg-bubble {
+      background: linear-gradient(135deg, rgba(124,92,255,.75), rgba(43,212,195,.35));
+      border-radius: 16px 16px 4px 16px; color: #fff;
+    }
+    .msg.ai .msg-bubble {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px 16px 16px 4px;
+    }
+    .msg.ai .msg-bubble code {
+      background: rgba(0,0,0,.35); padding: 2px 5px; border-radius: 5px; font-size: .87rem;
+      font-family: "Cascadia Code","Fira Code","JetBrains Mono",monospace;
+    }
+    .msg.ai .msg-bubble pre {
+      background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.10);
+      border-radius: 10px; padding: 12px 14px; overflow-x: auto; margin: 8px 0; font-size: .85rem;
+      font-family: "Cascadia Code","Fira Code","JetBrains Mono",monospace;
+    }
+    .msg.ai .msg-bubble pre code { background: none; padding: 0; border-radius: 0; }
+
+    /* Thinking dots */
+    .thinking .msg-bubble { display: flex; gap: 5px; align-items: center; padding: 14px 18px; }
+    .tdot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); animation: tbounce .9s infinite ease-in-out; }
+    .tdot:nth-child(2) { animation-delay: .15s; }
+    .tdot:nth-child(3) { animation-delay: .30s; }
+    @keyframes tbounce {
+      0%,80%,100% { transform: scale(.65); opacity: .45; }
+      40%          { transform: scale(1);   opacity: 1;   }
+    }
+
+    /* Input bar */
+    .input-bar {
+      padding: 13px 18px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(11,18,32,.92); backdrop-filter: blur(8px);
+    }
+    .input-row { display: flex; gap: 9px; align-items: flex-end; }
+    .chat-input {
+      flex: 1; padding: 10px 14px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06);
+      color: var(--text); font: inherit; font-size: .93rem;
+      resize: none; max-height: 150px; overflow-y: auto; line-height: 1.5;
+      min-height: 44px; field-sizing: content; transition: border-color .2s;
+    }
+    .chat-input::placeholder { color: var(--muted-2); }
+    .chat-input:focus { outline: 2px solid var(--ring); border-color: rgba(124,92,255,.45); }
+    .send-btn {
+      flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: filter .2s, transform .15s;
+    }
+    .send-btn:hover   { filter: brightness(1.1); transform: scale(1.05); }
+    .send-btn:active  { transform: scale(.96); }
+    .send-btn:disabled { opacity: .38; pointer-events: none; }
+    .input-hint { margin-top: 6px; font-size: .75rem; color: var(--muted-2); text-align: center; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      .sidebar { display: none; }
+      .msg { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ SCREEN 1: Hardware Scan ════════════ -->
+<div id="screenScan" class="screen active">
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="back-btn" href="index.html">← Back</a>
+      <span class="topbar-title">AI <span>Study Buddy</span></span>
+    </div>
+    <span style="font-size:.82rem; color:var(--muted-2); font-weight:600;">Runs 100% on your device · Free forever</span>
+  </header>
+
+  <div class="scan-body">
+    <div class="scan-card">
+
+      <div class="scan-hero">
+        <div class="scan-icon-wrap">🔬</div>
+        <h1>Hardware Compatibility Check</h1>
+        <p>The AI model runs entirely in your browser — no servers, no API keys, no subscriptions ever.</p>
+      </div>
+
+      <div id="scanningAnim" class="scanning-label">
+        Scanning your hardware
+        <span class="scan-dots"><span></span><span></span><span></span></span>
+      </div>
+
+      <!-- Results (revealed after scan) -->
+      <div class="hw-result hidden" id="hwResult">
+
+        <div class="compat-banner" id="compatBanner">
+          <div class="compat-icon"  id="compatIcon"></div>
+          <div class="compat-info">
+            <div class="compat-tier" id="compatTier"></div>
+            <div class="compat-sub"  id="compatSub"></div>
+          </div>
+          <div class="compat-pill" id="compatPill"></div>
+        </div>
+
+        <div class="spec-list">
+          <div class="spec-row">
+            <div class="spec-emoji">⚡</div>
+            <div class="spec-info"><div class="spec-label">WebGPU</div><div class="spec-value" id="specWebGPU">—</div></div>
+            <div class="spec-dot" id="dotWebGPU"></div>
+          </div>
+          <div class="spec-row">
+            <div class="spec-emoji">🖥</div>
+            <div class="spec-info"><div class="spec-label">GPU</div><div class="spec-value" id="specGPU">—</div></div>
+            <div class="spec-dot" id="dotGPU"></div>
+          </div>
+          <div class="spec-row">
+            <div class="spec-emoji">💾</div>
+            <div class="spec-info"><div class="spec-label">System RAM</div><div class="spec-value" id="specRAM">—</div></div>
+            <div class="spec-dot" id="dotRAM"></div>
+          </div>
+          <div class="spec-row">
+            <div class="spec-emoji">🧠</div>
+            <div class="spec-info"><div class="spec-label">CPU Threads</div><div class="spec-value" id="specCPU">—</div></div>
+            <div class="spec-dot" id="dotCPU"></div>
+          </div>
+        </div>
+
+        <div class="rec-model-row">
+          <div>
+            <div class="rec-label">Recommended Model</div>
+            <div class="rec-name" id="recModelName"></div>
+            <div class="rec-meta" id="recModelDesc"></div>
+          </div>
+          <div class="rec-size-pill" id="recModelSize"></div>
+        </div>
+      </div>
+
+      <!-- No WebGPU -->
+      <div class="no-webgpu-card hidden" id="noWebGPUCard">
+        <div style="font-size:2rem">🚫</div>
+        <h2>WebGPU Not Supported</h2>
+        <p>Your browser doesn't support WebGPU, which is required to run AI models locally. Try one of these:</p>
+        <ul class="browser-list">
+          <li>Chrome 113+</li><li>Edge 113+</li><li>Chrome on Android</li>
+        </ul>
+        <p style="font-size:.8rem; color:var(--muted-2)">Firefox support is in progress.</p>
+      </div>
+
+      <button class="continue-btn hidden" id="continueBtn">Start Learning →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ SCREEN 2: Chat ════════════ -->
+<div id="screenChat" class="screen">
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="back-btn" href="index.html">← Back</a>
+      <span class="topbar-title">AI <span>Study Buddy</span></span>
+    </div>
+    <div class="topbar-left" style="gap:8px;">
+      <span class="topbar-badge" id="topbarTierBadge"></span>
+      <span style="font-size:.8rem; color:var(--muted-2);" id="topbarModelName"></span>
+    </div>
+  </header>
+
+  <div class="chat-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <div>
+        <p class="sb-label">Your Hardware</p>
+        <div class="mini-hw-badge" id="miniHwBadge" title="Re-check hardware">
+          <div class="hw-dot" id="miniHwDot"></div>
+          <div style="flex:1; min-width:0;">
+            <div class="hw-label" id="miniHwLabel"></div>
+            <div class="hw-gpu"   id="miniHwGpu"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="sb-label">AI Model</p>
+        <select class="model-select" id="modelSelect"></select>
+        <div class="model-loaded-indicator hidden" id="modelLoadedIndicator">
+          <div class="loaded-dot"></div>
+          <span id="loadedModelLabel" style="font-size:.78rem; color:var(--muted); font-weight:700;"></span>
+        </div>
+      </div>
+
+      <div style="flex:1;">
+        <p class="sb-label" id="topicLabel">Subjects</p>
+        <div class="mode-switch">
+          <button class="mode-btn" id="subjectsModeBtn">Subjects</button>
+          <button class="mode-btn" id="languagesModeBtn">Languages</button>
+        </div>
+        <div class="lang-grid" id="topicGrid"></div>
+      </div>
+
+      <button class="new-chat-btn" id="newChatBtn">🗑 New Chat</button>
+    </aside>
+
+    <!-- Chat Main -->
+    <section class="chat-main" id="chatMain">
+
+      <!-- Loading model -->
+      <div class="load-panel hidden" id="loadPanel">
+        <div class="load-card">
+          <div style="font-size:2rem;">⬇️</div>
+          <h2>Loading <span id="loadModelLabel" style="color:var(--accent-2);"></span></h2>
+          <p>Downloading and compiling the model to run on your GPU. Only happens once — cached after.</p>
+          <div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">Initializing…</div>
+          </div>
+          <div class="load-note">📦 Model size: <strong id="loadModelSize"></strong> — saved in your browser cache after first download.</div>
+        </div>
+      </div>
+
+      <!-- Welcome -->
+      <div class="welcome-panel" id="welcomePanel">
+        <div class="welcome-inner">
+          <div class="w-icon">📚</div>
+          <h2>Pick a subject or language</h2>
+          <p>Use Subjects for quiz-driven study sessions, or switch to Languages for spoken language practice.</p>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages hidden" id="messages" role="log" aria-live="polite"></div>
+
+      <!-- Input -->
+      <div class="input-bar hidden" id="inputBar">
+        <div class="input-row">
+          <textarea id="chatInput" class="chat-input" placeholder="Ask your tutor anything…" rows="1" maxlength="2000" aria-label="Message"></textarea>
+          <button class="send-btn" id="sendBtn" aria-label="Send">➤</button>
+        </div>
+        <p class="input-hint">Enter to send · Shift+Enter for new line</p>
+      </div>
+
+    </section>
+  </div>
+</div>
+
+
+<script type="module">
+// ── WebLLM import ─────────────────────────────────────────────────────────
+let webllm;
+try {
+  webllm = await import("https://esm.run/@mlc-ai/web-llm");
+} catch (e) {
+  console.error("WebLLM failed to import:", e);
+}
+
+// ── Model catalogue ───────────────────────────────────────────────────────
+const MODELS = [
+  { id:"SmolLM2-1.7B-Instruct-q4f16_1-MLC",      name:"SmolLM2 1.7B",   size:"~1.1 GB", quality:"Basic",     minTier:1, desc:"Fastest. Runs on nearly any WebGPU device." },
+  { id:"gemma-2-2b-it-q4f16_1-MLC",               name:"Gemma 2 2B",     size:"~1.5 GB", quality:"Good",      minTier:1, desc:"Google's efficient model. Good for practice." },
+  { id:"Phi-3.5-mini-instruct-q4f16_1-MLC",       name:"Phi-3.5 Mini",   size:"~2.2 GB", quality:"Very Good", minTier:2, desc:"Microsoft's powerful mini — best all-rounder." },
+  { id:"Llama-3.2-3B-Instruct-q4f32_1-MLC",       name:"Llama 3.2 3B",   size:"~2.0 GB", quality:"Very Good", minTier:2, desc:"Meta's fast 3B — strong conversation quality." },
+  { id:"Llama-3.1-8B-Instruct-q4f32_1-MLC",       name:"Llama 3.1 8B",   size:"~5.0 GB", quality:"Excellent", minTier:3, desc:"Best quality. Needs a powerful GPU." },
+];
+
+// ── Language catalogue ────────────────────────────────────────────────────
+const LANGUAGES = [
+  { id:"spanish",    flag:"🇪🇸", name:"Spanish",    native:"Español",    tutor:"Sofía",
+    sys:`You are Sofía, a warm Spanish tutor. Teach vocabulary, grammar, pronunciation, and real conversation. Always write Spanish text with the English translation in parentheses. Gently correct mistakes with a brief rule explanation. Greet the student and ask their level and goals.` },
+  { id:"french",     flag:"🇫🇷", name:"French",     native:"Français",   tutor:"Élodie",
+    sys:`You are Élodie, an enthusiastic French tutor. Teach vocabulary, pronunciation, grammar, and conversational French. Always show French with English in parentheses. Correct errors kindly, explaining the rule. Ask the student's level first.` },
+  { id:"japanese",   flag:"🇯🇵", name:"Japanese",   native:"日本語",     tutor:"Yuki",
+    sys:`You are Yuki, a patient Japanese tutor. Teach hiragana, katakana, basic kanji, grammar, and daily phrases. Always show Japanese text alongside its romaji reading and English translation. Ask if the student knows any hiragana and what their goals are.` },
+  { id:"korean",     flag:"🇰🇷", name:"Korean",     native:"한국어",     tutor:"Ji-ho",
+    sys:`You are Ji-ho, a friendly Korean tutor. Teach Hangul, pronunciation, grammar patterns, vocabulary, and everyday phrases. Always show Korean text with romanization and English. Ask the student's level first.` },
+  { id:"mandarin",   flag:"🇨🇳", name:"Mandarin",   native:"普通话",     tutor:"Mei",
+    sys:`You are Mei, a clear Mandarin Chinese tutor. Teach pinyin (always mark tones), simplified characters, grammar, and daily conversation. Show Chinese text with pinyin and English. Tones are critical — never skip them. Ask the student's level first.` },
+  { id:"german",     flag:"🇩🇪", name:"German",     native:"Deutsch",    tutor:"Klaus",
+    sys:`You are Klaus, a thorough German tutor. Teach vocabulary, grammar (cases, articles, verb conjugation), pronunciation, and conversation. Show German with English. Explain rules clearly. Ask the student's level first.` },
+  { id:"italian",    flag:"🇮🇹", name:"Italian",    native:"Italiano",   tutor:"Marco",
+    sys:`You are Marco, a lively Italian tutor. Teach vocabulary, pronunciation, grammar, and conversational Italian with cultural context. Show Italian with English. Ask the student's level and interests first.` },
+  { id:"portuguese", flag:"🇧🇷", name:"Portuguese", native:"Português",  tutor:"Ana",
+    sys:`You are Ana, a Brazilian Portuguese tutor. Teach vocabulary, pronunciation, grammar, and everyday conversation. Show Portuguese with English. Ask if the student wants Brazilian or European Portuguese and their level.` },
+  { id:"russian",    flag:"🇷🇺", name:"Russian",    native:"Русский",    tutor:"Natasha",
+    sys:`You are Natasha, a patient Russian tutor. Teach the Cyrillic alphabet, pronunciation, grammar, vocabulary, and conversation. Always show Russian text with transliteration and English. Ask the student's level first.` },
+  { id:"arabic",     flag:"🇸🇦", name:"Arabic",     native:"العربية",    tutor:"Omar",
+    sys:`You are Omar, a patient Arabic tutor focused on Modern Standard Arabic. Teach the alphabet, pronunciation, grammar, and useful phrases. Show Arabic script with romanization and English. Be encouraging — Arabic is challenging. Ask the student's level first.` },
+  { id:"hindi",      flag:"🇮🇳", name:"Hindi",      native:"हिन्दी",     tutor:"Priya",
+    sys:`You are Priya, a friendly Hindi tutor. Teach the Devanagari script, pronunciation, grammar, vocabulary, and conversational Hindi. Show Hindi text with romanization and English. Ask the student's level first.` },
+  { id:"vietnamese", flag:"🇻🇳", name:"Vietnamese", native:"Tiếng Việt", tutor:"Linh",
+    sys:`You are Linh, a Vietnamese tutor. Teach pronunciation, tones (critical!), grammar, vocabulary, and conversation. Mark all six tones clearly. Show Vietnamese with English. Ask the student's level first.` },
+];
+
+const SUBJECTS = [
+  { id:"math", flag:"📐", name:"Math", tutor:"Alex",
+    sys:`You are Alex, a student-focused math study coach. Teach step-by-step, check understanding, and adapt to the student's level. After every concept explanation, include a short 3-question quiz with answers hidden until the student responds. If the student requests homework help, explain the method first, then show the answer.` },
+  { id:"biology", flag:"🧬", name:"Biology", tutor:"Riley",
+    sys:`You are Riley, a biology study coach. Explain concepts clearly (cells, genetics, ecology, physiology) with simple analogies. Then give a quick quiz section with 3 mixed questions (multiple choice + short answer). Grade the student's responses and explain mistakes.` },
+  { id:"chemistry", flag:"⚗️", name:"Chemistry", tutor:"Jordan",
+    sys:`You are Jordan, a chemistry tutor. Teach concepts with structure: concept, example, common mistake, mini-quiz. Include balancing equations, molarity, acids/bases, and periodic trends when relevant. Keep explanations concise and student-friendly.` },
+  { id:"physics", flag:"🧲", name:"Physics", tutor:"Sam",
+    sys:`You are Sam, a physics coach. Explain formulas with intuition first, then math. Use symbols clearly and show step-by-step problem solving. End each lesson with a mini quiz and one challenge problem.` },
+  { id:"history", flag:"🏛️", name:"History", tutor:"Casey",
+    sys:`You are Casey, a history tutor. Teach timelines, causes/effects, and key people/events. Use short summaries plus memory hooks. Follow each topic with a retrieval quiz to test recall and critical thinking.` },
+  { id:"english", flag:"📝", name:"English", tutor:"Taylor",
+    sys:`You are Taylor, an English study coach. Help with grammar, reading comprehension, essay structure, and vocabulary. Provide quick practice prompts and quiz questions. Give constructive feedback and suggest stronger wording.` },
+  { id:"cs", flag:"💻", name:"Computer Science", tutor:"Morgan",
+    sys:`You are Morgan, a computer science tutor. Teach core topics (algorithms, data structures, recursion, OOP, databases) with simple examples and mini coding quizzes. Prefer short chunks and check for understanding often.` },
+  { id:"economics", flag:"📈", name:"Economics", tutor:"Jamie",
+    sys:`You are Jamie, an economics tutor. Explain micro and macro concepts with real-world examples. Include quick quiz checkpoints and ask the student to justify answers briefly.` },
+  { id:"psychology", flag:"🧠", name:"Psychology", tutor:"Avery",
+    sys:`You are Avery, a psychology tutor. Teach major theories, experiments, and terms in digestible pieces. End with short self-test quizzes and explain why each answer is correct.` },
+  { id:"study_skills", flag:"🎯", name:"Study Skills", tutor:"Coach",
+    sys:`You are a study-skills coach. Help students build a plan: goals, time blocks, active recall, spaced repetition, and exam prep. Give actionable weekly plans and quiz strategies based on their subjects.` },
+];
+
+// ── Tier definitions ──────────────────────────────────────────────────────
+const TIERS = {
+  3: { label:"VERIFIED",      icon:"✅", sub:"Runs the best available models smoothly.",  cls:"tier-verified",  dotCls:"dot-green",  accentVar:"verified"    },
+  2: { label:"PLAYABLE",      icon:"🎮", sub:"Runs good models with solid performance.",  cls:"tier-playable",  dotCls:"dot-blue",   accentVar:"playable"    },
+  1: { label:"MINIMUM",       icon:"⚠️", sub:"Lighter models only. May be slower.",       cls:"tier-minimum",   dotCls:"dot-yellow", accentVar:"minimum"     },
+  0: { label:"NOT SUPPORTED", icon:"🚫", sub:"WebGPU is required to run local AI models.",cls:"tier-none",      dotCls:"dot-red",    accentVar:"unsupported" },
+};
+
+// ── App state ─────────────────────────────────────────────────────────────
+let hwInfo        = null;
+let engine        = null;
+let loadedModelId = null;
+let currentTopic  = null;
+let currentMode   = "subjects";
+let history       = [];
+let isGenerating  = false;
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const el = {
+  screenScan:           $("screenScan"),
+  screenChat:           $("screenChat"),
+  scanningAnim:         $("scanningAnim"),
+  hwResult:             $("hwResult"),
+  noWebGPUCard:         $("noWebGPUCard"),
+  continueBtn:          $("continueBtn"),
+  compatBanner:         $("compatBanner"),
+  compatIcon:           $("compatIcon"),
+  compatTier:           $("compatTier"),
+  compatSub:            $("compatSub"),
+  compatPill:           $("compatPill"),
+  specWebGPU:           $("specWebGPU"),
+  specGPU:              $("specGPU"),
+  specRAM:              $("specRAM"),
+  specCPU:              $("specCPU"),
+  dotWebGPU:            $("dotWebGPU"),
+  dotGPU:               $("dotGPU"),
+  dotRAM:               $("dotRAM"),
+  dotCPU:               $("dotCPU"),
+  recModelName:         $("recModelName"),
+  recModelDesc:         $("recModelDesc"),
+  recModelSize:         $("recModelSize"),
+  topbarTierBadge:      $("topbarTierBadge"),
+  topbarModelName:      $("topbarModelName"),
+  miniHwDot:            $("miniHwDot"),
+  miniHwLabel:          $("miniHwLabel"),
+  miniHwGpu:            $("miniHwGpu"),
+  modelSelect:          $("modelSelect"),
+  modelLoadedIndicator: $("modelLoadedIndicator"),
+  loadedModelLabel:     $("loadedModelLabel"),
+  topicLabel:           $("topicLabel"),
+  subjectsModeBtn:      $("subjectsModeBtn"),
+  languagesModeBtn:     $("languagesModeBtn"),
+  topicGrid:            $("topicGrid"),
+  newChatBtn:           $("newChatBtn"),
+  loadPanel:            $("loadPanel"),
+  loadModelLabel:       $("loadModelLabel"),
+  loadModelSize:        $("loadModelSize"),
+  progressFill:         $("progressFill"),
+  progressText:         $("progressText"),
+  welcomePanel:         $("welcomePanel"),
+  messagesEl:           $("messages"),
+  inputBar:             $("inputBar"),
+  chatInput:            $("chatInput"),
+  sendBtn:              $("sendBtn"),
+};
+
+// ── Hardware detection ────────────────────────────────────────────────────
+async function detectHardware() {
+  const hw = {
+    webgpu:  false,
+    gpuName: "Unknown",
+    gpuVendor: "",
+    ram:     navigator.deviceMemory      || null,
+    cores:   navigator.hardwareConcurrency || null,
+    tier:    0,
+  };
+
+  if (!navigator.gpu) return hw;
+
+  try {
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference:"high-performance" });
+    if (!adapter) return hw;
+
+    hw.webgpu = true;
+
+    try {
+      const info  = await adapter.requestAdapterInfo();
+      hw.gpuVendor = info.vendor || "";
+      hw.gpuName   = info.description || info.device || info.architecture || "";
+      if (!hw.gpuName || hw.gpuName === "0x0000") hw.gpuName = info.vendor || "WebGPU GPU";
+      if (!hw.gpuName) hw.gpuName = "WebGPU GPU";
+    } catch {
+      hw.gpuName = "WebGPU Compatible GPU";
+    }
+
+    const ram    = hw.ram || 4;
+    const vendor = hw.gpuVendor.toLowerCase();
+    const name   = hw.gpuName.toLowerCase();
+    const discrete = vendor.includes("nvidia") || vendor.includes("amd") ||
+                     name.includes("rtx") || name.includes("gtx") || name.includes("geforce") ||
+                     name.includes("radeon") || name.includes("apple m") || vendor.includes("apple");
+
+    if (discrete && ram >= 16) hw.tier = 3;
+    else if (discrete && ram >= 8)  hw.tier = 3;
+    else if (discrete || ram >= 8)  hw.tier = 2;
+    else                            hw.tier = 1;
+  } catch {
+    hw.webgpu = true;
+    hw.tier   = 1;
+    hw.gpuName = "WebGPU GPU";
+  }
+
+  return hw;
+}
+
+function getBestModel(tier) {
+  if (tier >= 3) return MODELS.find(m => m.id.includes("Llama-3.1-8B"))  || MODELS[MODELS.length-1];
+  if (tier >= 2) return MODELS.find(m => m.id.includes("Phi-3.5"))       || MODELS[2];
+  return               MODELS.find(m => m.id.includes("SmolLM2"))        || MODELS[0];
+}
+
+// ── Run scan ──────────────────────────────────────────────────────────────
+async function runScan() {
+  hwInfo = await detectHardware();
+  el.scanningAnim.classList.add("hidden");
+
+  const tier = hwInfo.tier;
+  const t    = TIERS[tier];
+
+  if (!hwInfo.webgpu) {
+    el.noWebGPUCard.classList.remove("hidden");
+    return;
+  }
+
+  // Spec rows
+  el.specWebGPU.textContent = "Supported ✓";
+  el.specGPU.textContent    = hwInfo.gpuName;
+  el.specRAM.textContent    = hwInfo.ram   ? `≈ ${hwInfo.ram} GB` : "Not reported by browser";
+  el.specCPU.textContent    = hwInfo.cores ? `${hwInfo.cores} threads` : "Not reported by browser";
+
+  el.dotWebGPU.className = `spec-dot ${t.dotCls}`;
+  el.dotGPU.className    = `spec-dot ${t.dotCls}`;
+  el.dotRAM.className    = `spec-dot ${hwInfo.ram >= 8 ? "dot-green" : hwInfo.ram >= 4 ? "dot-blue" : "dot-yellow"}`;
+  el.dotCPU.className    = `spec-dot ${hwInfo.cores >= 8 ? "dot-green" : "dot-blue"}`;
+
+  // Compat banner
+  el.compatIcon.textContent = t.icon;
+  el.compatTier.textContent = t.label;
+  el.compatTier.style.color = `var(--${t.accentVar})`;
+  el.compatSub.textContent  = t.sub;
+  el.compatPill.textContent = t.label;
+  el.compatPill.className   = `compat-pill ${t.cls}`;
+  el.compatBanner.style.borderLeftWidth = "3px";
+  el.compatBanner.style.borderLeftStyle = "solid";
+  el.compatBanner.style.borderLeftColor = `var(--${t.accentVar})`;
+
+  // Recommended model
+  const rec = getBestModel(tier);
+  el.recModelName.textContent = rec.name;
+  el.recModelDesc.textContent = rec.desc;
+  el.recModelSize.textContent = rec.size;
+
+  el.hwResult.classList.remove("hidden");
+  el.continueBtn.classList.remove("hidden");
+}
+
+// ── Build & show chat screen ──────────────────────────────────────────────
+function goToChat() {
+  el.screenScan.classList.remove("active");
+  el.screenChat.classList.add("active");
+
+  const tier = hwInfo.tier;
+  const t    = TIERS[tier];
+  const rec  = getBestModel(tier);
+
+  // Topbar
+  el.topbarTierBadge.textContent = t.label;
+  el.topbarTierBadge.className   = `topbar-badge ${t.cls}`;
+  el.topbarModelName.textContent = rec.name;
+
+  // Mini HW badge
+  el.miniHwDot.className    = `hw-dot ${t.dotCls}`;
+  el.miniHwLabel.textContent = `${t.icon} ${t.label}`;
+  el.miniHwGpu.textContent   = hwInfo.gpuName;
+
+  // Model selector
+  el.modelSelect.innerHTML = "";
+  MODELS.forEach(m => {
+    const opt        = document.createElement("option");
+    opt.value        = m.id;
+    opt.textContent  = `${m.name} (${m.size}) — ${m.quality}`;
+    opt.disabled     = m.minTier > tier;
+    opt.selected     = m.id === rec.id;
+    el.modelSelect.appendChild(opt);
+  });
+
+  el.subjectsModeBtn.classList.toggle("active", currentMode === "subjects");
+  el.languagesModeBtn.classList.toggle("active", currentMode === "languages");
+  renderTopicGrid();
+}
+
+function getActiveTopics() {
+  return currentMode === "languages" ? LANGUAGES : SUBJECTS;
+}
+
+function renderTopicGrid() {
+  const topics = getActiveTopics();
+  el.topicLabel.textContent = currentMode === "languages" ? "Spoken Languages" : "Subjects";
+  el.topicGrid.innerHTML = "";
+  topics.forEach(topic => {
+    const btn = document.createElement("button");
+    btn.className = "lang-btn";
+    btn.dataset.id = topic.id;
+    btn.innerHTML = `<span class="flag">${topic.flag}</span><span>${topic.name}</span>`;
+    btn.addEventListener("click", () => pickTopic(topic));
+    el.topicGrid.appendChild(btn);
+  });
+
+  if (currentTopic && !topics.some(t => t.id === currentTopic.id)) {
+    currentTopic = null;
+    history = [];
+    el.messagesEl.innerHTML = "";
+    el.messagesEl.classList.add("hidden");
+    el.inputBar.classList.add("hidden");
+    el.welcomePanel.classList.remove("hidden");
+  }
+}
+
+function switchMode(mode) {
+  if (mode === currentMode) return;
+  currentMode = mode;
+  el.subjectsModeBtn.classList.toggle("active", mode === "subjects");
+  el.languagesModeBtn.classList.toggle("active", mode === "languages");
+  renderTopicGrid();
+}
+
+// ── Pick topic ────────────────────────────────────────────────────────────
+async function pickTopic(topic) {
+  if (isGenerating) return;
+  document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.id === topic.id));
+  currentTopic = topic;
+  history     = [];
+
+  const modelId = el.modelSelect.value;
+  if (!engine || loadedModelId !== modelId) {
+    await loadModel(modelId);
+    if (!engine) return; // load failed
+  }
+
+  // Show chat
+  el.loadPanel.classList.add("hidden");
+  el.welcomePanel.classList.add("hidden");
+  el.messagesEl.classList.remove("hidden");
+  el.inputBar.classList.remove("hidden");
+  el.messagesEl.innerHTML = "";
+
+  // Auto-opening message tuned by mode
+  if (currentMode === "languages") {
+    await sendMessage(`Hi! I want to learn ${topic.name}. Can you start from scratch and ask me my level?`, true);
+  } else {
+    await sendMessage(`I need help studying ${topic.name}. Start with a short explanation, then quiz me with 3 questions.`, true);
+  }
+  el.chatInput.focus();
+}
+
+// ── Load model ────────────────────────────────────────────────────────────
+async function loadModel(modelId) {
+  if (!webllm) { alert("WebLLM failed to load. Check browser console."); return; }
+
+  const model = MODELS.find(m => m.id === modelId) || MODELS[0];
+
+  el.welcomePanel.classList.add("hidden");
+  el.messagesEl.classList.add("hidden");
+  el.inputBar.classList.add("hidden");
+  el.loadPanel.classList.remove("hidden");
+  el.loadModelLabel.textContent = model.name;
+  el.loadModelSize.textContent  = model.size;
+  el.progressFill.style.width   = "0%";
+  el.progressText.textContent   = "Starting…";
+
+  try {
+    engine = await webllm.CreateMLCEngine(modelId, {
+      initProgressCallback: (report) => {
+        const pct = Math.round((report.progress || 0) * 100);
+        el.progressFill.style.width = pct + "%";
+        el.progressText.textContent = report.text || `${pct}%`;
+      },
+    });
+    loadedModelId = modelId;
+    el.modelLoadedIndicator.classList.remove("hidden");
+    el.loadedModelLabel.textContent = `${model.name} — ready`;
+    el.topbarModelName.textContent  = model.name;
+    el.loadPanel.classList.add("hidden");
+  } catch (err) {
+    engine = null;
+    el.loadPanel.classList.add("hidden");
+    el.welcomePanel.classList.remove("hidden");
+    el.messagesEl.innerHTML = "";
+    el.messagesEl.classList.remove("hidden");
+    appendBubble("ai", `⚠️ Failed to load model: ${sanitize(String(err))}\n\nTry selecting a smaller model from the sidebar.`);
+    console.error("Model load error:", err);
+  }
+}
+
+// ── Send message ──────────────────────────────────────────────────────────
+async function sendMessage(text, isAuto = false) {
+  if (isGenerating || !text.trim() || !engine || !currentTopic) return;
+  isGenerating     = true;
+  el.sendBtn.disabled = true;
+
+  const userText = text.trim();
+  if (history.length === 0) history.push({ role:"system", content: currentTopic.sys });
+  history.push({ role:"user", content: userText });
+
+  appendBubble("user", userText);
+  if (!isAuto) el.chatInput.value = "";
+
+  const thinkEl = appendThinking();
+
+  try {
+    const stream = await engine.chat.completions.create({
+      messages:    history,
+      stream:      true,
+      temperature: 0.75,
+      max_tokens:  1024,
+    });
+
+    thinkEl.remove();
+    let reply    = "";
+    const msgEl  = appendBubble("ai", "");
+    const bubble = msgEl.querySelector(".msg-bubble");
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content || "";
+      reply  += delta;
+      bubble.innerHTML = formatMsg(reply);
+      scrollBottom();
+    }
+
+    history.push({ role:"assistant", content: reply });
+  } catch (err) {
+    thinkEl.remove();
+    appendBubble("ai", `⚠️ Error: ${sanitize(String(err))}`);
+    console.error("Generation error:", err);
+  } finally {
+    isGenerating     = false;
+    el.sendBtn.disabled = false;
+    el.chatInput.focus();
+  }
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────
+function appendBubble(role, text) {
+  const wrap   = document.createElement("div");
+  wrap.className = `msg ${role}`;
+  const label  = document.createElement("div");
+  label.className = "msg-label";
+  label.textContent = role === "user" ? "You"
+    : (currentTopic ? `${currentTopic.flag} ${currentTopic.tutor}` : "Tutor");
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.innerHTML  = formatMsg(text);
+  wrap.appendChild(label);
+  wrap.appendChild(bubble);
+  el.messagesEl.appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function appendThinking() {
+  const wrap   = document.createElement("div");
+  wrap.className = "msg ai thinking";
+  const label  = document.createElement("div");
+  label.className = "msg-label";
+  label.textContent = currentTopic ? `${currentTopic.flag} ${currentTopic.tutor}` : "Tutor";
+  const bubble = document.createElement("div");
+  bubble.className = "msg-bubble";
+  bubble.innerHTML  = `<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>`;
+  wrap.appendChild(label);
+  wrap.appendChild(bubble);
+  el.messagesEl.appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function formatMsg(text) {
+  let s = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  s = s.replace(/```[\w]*\n?([\s\S]*?)```/g, (_,c) => `<pre><code>${c.trim()}</code></pre>`);
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/\*(.+?)\*/g,  "<em>$1</em>");
+  s = s.replace(/\n/g, "<br>");
+  return s;
+}
+
+function scrollBottom() {
+  requestAnimationFrame(() => { el.messagesEl.scrollTop = el.messagesEl.scrollHeight; });
+}
+
+function sanitize(msg) {
+  return String(msg).replace(/sk-[A-Za-z0-9\-_]{8,}/g,"[hidden]").slice(0,200);
+}
+
+// ── Events ────────────────────────────────────────────────────────────────
+el.continueBtn.addEventListener("click", goToChat);
+
+$("miniHwBadge").addEventListener("click", () => {
+  el.screenChat.classList.remove("active");
+  el.screenScan.classList.add("active");
+});
+
+el.modelSelect.addEventListener("change", () => {
+  engine = null; loadedModelId = null;
+  el.modelLoadedIndicator.classList.add("hidden");
+  el.topbarModelName.textContent = MODELS.find(m => m.id === el.modelSelect.value)?.name || "";
+  if (currentTopic) pickTopic(currentTopic);
+});
+
+el.newChatBtn.addEventListener("click", () => {
+  history = [];
+  el.messagesEl.innerHTML = "";
+  if (currentTopic) {
+    el.messagesEl.classList.remove("hidden");
+    el.inputBar.classList.remove("hidden");
+  }
+});
+
+el.subjectsModeBtn.addEventListener("click", () => switchMode("subjects"));
+el.languagesModeBtn.addEventListener("click", () => switchMode("languages"));
+
+el.sendBtn.addEventListener("click", () => sendMessage(el.chatInput.value));
+el.chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(el.chatInput.value); }
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+runScan();
+</script>
+</body>
+</html>

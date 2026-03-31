@@ -1,6 +1,20 @@
 # Diego Dev HQ Portfolio
 
-This repository contains a personal portfolio site and a machine learning demo for customer churn prediction.
+This repository contains a personal portfolio site and local-first AI/web app projects.
+
+## Current Project Status (March 2026)
+
+### AI Study Buddy (local AI)
+
+- Runs fully on the user's device using WebLLM + WebGPU (no OpenAI API, no backend inference cost).
+- Built for students first: subject learning + quiz-style study flow.
+- Includes a separate spoken-language mode for language learning practice.
+- Hardware compatibility scan recommends the best local model per user device.
+
+### Customer Churn Predictor
+
+- Status: Archived.
+- Churn predictor files were moved to `archive/churn_predictor/` to keep the live site focused on current projects.
 
 ## About
 Diego Dev HQ's Portfolio
