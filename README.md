@@ -2,6 +2,27 @@
 
 This repository contains a personal portfolio site and local-first AI/web app projects.
 
+## Public Update Log (April 2026)
+
+### What was updated in index.html
+
+- Added a prominent homepage CTA link for SteemStore: `Open SteemStore`.
+- Kept the project-card link in the Projects section and improved the label to `Open SteemStore Prototype`.
+- Confirmed SteemStore points to: `projects/steemstore/steam.html`.
+
+### What was updated for SteemStore href placement
+
+- Added the SteemStore href in the top call-to-action row so visitors can reach it immediately from the hero area.
+- Left the Projects-section SteemStore link in place for consistency and discoverability.
+
+## Workspace Organization
+
+- Keep root `index.html` and root `README.md` at top level for quick GitHub upload and visibility.
+- Place standalone app prototypes inside `projects/` with each project isolated in its own folder.
+- Current Steam-style prototype lives in `projects/steemstore/`.
+- Main entry for the Steam-style prototype: `projects/steemstore/steam.html`.
+- Project roadmap and scope file: `projects/steemstore/PROJECT_PLAN.md`.
+
 ## Current Project Status (March 2026)
 
 ### AI Study Buddy (local AI)
@@ -31,7 +52,7 @@ This is a personal developer portfolio focused on rebuilding and improving large
 ---
 
 ### Live Site
-OUT NOW https://diegodevhq.space/
+OUT NOW https://diegodevhq.vercel.app/
 
 ---
 
