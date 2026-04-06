@@ -1,0 +1,344 @@
+:root {
+  --bg-0: #171a21;
+  --bg-1: #1b2838;
+  --bg-2: #2a475e;
+  --line: #3d5b73;
+  --text-main: #d2e4f2;
+  --text-soft: #93b3ca;
+  --green: #75b022;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Source Sans 3", sans-serif;
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 84% -14%, rgba(84, 162, 207, 0.24), transparent 32%),
+    linear-gradient(180deg, #1b2838, #111821);
+}
+
+.shell {
+  width: min(980px, 100% - 2rem);
+  margin-inline: auto;
+}
+
+.utility-bar {
+  border-bottom: 1px solid #24394c;
+  background: #171a21;
+}
+
+.utility-inner {
+  min-height: 3.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.global-cart {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #34556e;
+  background: rgba(21, 35, 49, 0.8);
+  padding: 0.22rem 0.45rem;
+  font-size: 0.82rem;
+}
+
+.global-cart a {
+  color: #8fc7e9;
+  text-decoration: none;
+}
+
+.global-cart span:nth-child(2) {
+  color: #d9ebf7;
+  font-weight: 700;
+}
+
+.global-cart span:nth-child(3) {
+  color: #b8de86;
+}
+
+.store-header {
+  border-bottom: 1px solid #27475f;
+  background: linear-gradient(180deg, #1e3144, #1a2b3b);
+}
+
+.store-header-inner {
+  min-height: 2.7rem;
+  display: flex;
+  align-items: center;
+}
+
+.store-header-inner .global-cart {
+  margin-left: auto;
+}
+
+.store-nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.store-nav a {
+  color: #d8ecfa;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.store-nav a:hover {
+  color: #66c0f4;
+}
+
+.back {
+  color: #8fc7e9;
+  text-decoration: none;
+}
+
+.brand {
+  margin: 0;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.07em;
+}
+
+.page {
+  margin-top: 1.1rem;
+  padding-bottom: 2rem;
+}
+
+.crumbs {
+  margin: 0;
+  color: #89a8be;
+  font-size: 0.88rem;
+}
+
+.crumbs a {
+  color: #8fc7e9;
+  text-decoration: none;
+}
+
+.page-title {
+  margin: 0.4rem 0 0.75rem;
+  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+}
+
+.hero-grid {
+  border: 1px solid var(--line);
+  background: rgba(17, 30, 43, 0.85);
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0;
+}
+
+.hero-art {
+  min-height: 20rem;
+  background:
+    radial-gradient(circle at 22% 24%, rgba(120, 203, 249, 0.46), transparent 40%),
+    radial-gradient(circle at 76% 58%, rgba(43, 114, 168, 0.45), transparent 44%),
+    linear-gradient(130deg, #274863, #1b3145 55%, #112234);
+}
+
+.thumb-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+}
+
+.thumb-strip span {
+  aspect-ratio: 16 / 9;
+  border: 1px solid #3a5b72;
+  background:
+    linear-gradient(135deg, rgba(109, 195, 240, 0.24), rgba(25, 44, 64, 0.75)),
+    repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.04) 10px, rgba(255, 255, 255, 0.04) 20px);
+}
+
+.purchase-panel {
+  padding: 1rem;
+  border-left: 1px solid #35536c;
+  background: linear-gradient(180deg, #243a4d, #1a2c3b);
+}
+
+.meta-line {
+  margin: 0.35rem 0;
+  color: var(--text-soft);
+}
+
+.desc {
+  margin: 0;
+  color: #c7deee;
+}
+
+.review-box {
+  border: 1px solid #466b84;
+  background: rgba(19, 33, 47, 0.66);
+  padding: 0.42rem 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.small-label {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.74rem;
+  color: #90b4ca;
+}
+
+.review-value {
+  margin: 0.25rem 0 0;
+  color: #78d079;
+  font-weight: 700;
+}
+
+.small-muted {
+  margin: 0.15rem 0 0;
+  color: #8fb0c7;
+  font-size: 0.82rem;
+}
+
+.stars {
+  margin: 0.18rem 0 0;
+  color: #ffd36d;
+  font-size: 1.05rem;
+}
+
+.meta-grid {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 0.35rem 0.55rem;
+  font-size: 0.88rem;
+}
+
+.meta-grid span:nth-child(odd) {
+  color: #87adc7;
+}
+
+.price {
+  color: #b7e47e;
+  font-size: 1rem;
+}
+
+.purchase-row {
+  margin-top: 0.8rem;
+  background: #0f1a24;
+  border: 1px solid #3f627b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.5rem;
+}
+
+.purchase-row button {
+  border: 1px solid #73b02b;
+  background: linear-gradient(180deg, #73b02b, #547f1f);
+  color: #efffd7;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+}
+
+.actions {
+  margin-top: 0.45rem;
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  border: 1px solid #4f7694;
+  background: #26455d;
+  color: #e7f3fd;
+  padding: 0.38rem 0.6rem;
+  cursor: pointer;
+}
+
+.actions .secondary-buy {
+  background: #1f384c;
+  border-color: #4b6f8a;
+  color: #d6e9f7;
+}
+
+.status {
+  min-height: 1.2rem;
+  color: #abd7f2;
+  margin: 0.4rem 0 0;
+}
+
+.panel {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(17, 30, 43, 0.85);
+  padding: 0.9rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  font-size: 1rem;
+}
+
+.panel p {
+  margin: 0.3rem 0;
+  color: #a3c0d5;
+}
+
+.review-panel .review-bars {
+  margin-top: 0.65rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.review-bars span {
+  height: 0.62rem;
+  border: 1px solid #3e6078;
+  background: linear-gradient(90deg, #6ebf49, #4b7d2f 72%, #1c2e3e 72%);
+}
+
+.review-bars span:nth-child(2) {
+  background: linear-gradient(90deg, #6ebf49, #4b7d2f 61%, #1c2e3e 61%);
+}
+
+.review-bars span:nth-child(3) {
+  background: linear-gradient(90deg, #6ebf49, #4b7d2f 84%, #1c2e3e 84%);
+}
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.spec-grid article {
+  border: 1px solid #35566f;
+  background: rgba(15, 28, 40, 0.75);
+  padding: 0.6rem;
+}
+
+.spec-grid h3 {
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-art {
+    min-height: 13rem;
+  }
+
+  .purchase-panel {
+    border-left: 0;
+    border-top: 1px solid #35536c;
+  }
+
+  .spec-grid {
+    grid-template-columns: 1fr;
+  }
+}

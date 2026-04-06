@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="SteemStore game detail page." />
+    <title>SteemStore Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./game-page.css" />
+    <script src="./game-page.js" defer></script>
+  </head>
+  <body>
+    <header class="utility-bar">
+      <div class="shell utility-inner">
+        <a class="back" href="./steam.html">← Store</a>
+        <p class="brand">STEEMSTORE</p>
+      </div>
+    </header>
+
+    <header class="store-header">
+      <div class="shell store-header-inner">
+        <nav class="store-nav" aria-label="Store links">
+          <a href="./steam.html">Your Store</a>
+          <a href="./steam.html#newReleases">New &amp; Noteworthy</a>
+          <a href="./steam.html#topSellers">Categories</a>
+          <a href="./steam.html#springSale">Buy Now / Add to Cart</a>
+        </nav>
+        <div class="global-cart" aria-label="Cart summary">
+          <a href="./steam.html#cartPanel">🛒 Cart</a>
+          <span id="globalCartCount">0</span>
+          <span id="globalCartTotal">$0.00</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell page">
+      <p class="crumbs"><a href="./steam.html">All Games</a> &gt; <span id="crumbGame">Game Title</span></p>
+      <h1 id="gameTitle" class="page-title">Game Title</h1>
+
+      <section class="hero-grid">
+        <section>
+          <div class="hero-art" id="gameArt" aria-hidden="true"></div>
+          <div class="thumb-strip" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </section>
+
+        <aside class="purchase-panel">
+          <p id="shortDescription" class="desc">Game summary</p>
+          <p id="gameMeta" class="meta-line">Genre • Tags</p>
+
+          <div class="review-box">
+            <p class="small-label">Recent Reviews:</p>
+            <p id="reviewLabel" class="review-value">Mostly Positive</p>
+            <p id="reviewStars" class="stars">★★★★☆</p>
+          </div>
+
+          <div class="review-box">
+            <p class="small-label">All Reviews:</p>
+            <p id="allReviewLabel" class="review-value">Mostly Positive</p>
+            <p id="allReviewCount" class="small-muted">(0)</p>
+          </div>
+
+          <div class="meta-grid">
+            <span>Release Date:</span>
+            <span id="releaseDate">TBD</span>
+            <span>Developer:</span>
+            <span id="developerName">SteemStore Studio</span>
+            <span>Publisher:</span>
+            <span id="publisherName">SteemStore Publishing</span>
+          </div>
+
+          <div class="purchase-row">
+            <span id="gamePrice" class="price">$0.00</span>
+            <button id="cartBtn" type="button">Add to Cart</button>
+          </div>
+
+          <div class="actions">
+            <button id="wishlistBtn" type="button">Add to Wishlist</button>
+            <button id="buyBtn" class="secondary-buy" type="button">Buy Now</button>
+          </div>
+
+          <p id="statusText" class="status"></p>
+        </aside>
+      </section>
+
+      <section class="panel">
+        <h2>About This Game</h2>
+        <p id="aboutText">Game description.</p>
+      </section>
+
+      <section class="panel review-panel">
+        <h2>Community Reviews</h2>
+        <p id="reviewSummary">Recent Reviews: Mostly Positive</p>
+        <div class="review-bars" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>System Requirements</h2>
+        <div class="spec-grid">
+          <article>
+            <h3>Minimum</h3>
+            <p>OS: Windows 10</p>
+            <p>Processor: Quad-core</p>
+            <p>Memory: 8 GB RAM</p>
+            <p>Graphics: GTX 1060 class</p>
+            <p>Storage: 40 GB available space</p>
+          </article>
+          <article>
+            <h3>Recommended</h3>
+            <p>OS: Windows 11</p>
+            <p>Processor: 6-core CPU</p>
+            <p>Memory: 16 GB RAM</p>
+            <p>Graphics: RTX 3060 class</p>
+            <p>Storage: SSD with 40 GB available space</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

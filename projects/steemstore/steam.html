@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="SteemStore, a Steam-inspired storefront with dynamic categories, sale rows, and local login." />
+    <title>SteemStore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./steam.css" />
+    <script src="./steam.js" defer></script>
+  </head>
+  <body>
+    <header class="utility-bar" aria-label="Top utility">
+      <div class="shell utility-inner">
+        <p class="utility-copy">SteemStore Client</p>
+        <div class="utility-actions" id="authLinks">
+          <button class="install-btn" type="button">Install SteemStore</button>
+          <button class="link-like" id="loginTrigger" type="button">login</button>
+          <a href="#">language</a>
+        </div>
+        <div class="utility-actions hidden" id="welcomeState">
+          <span>Welcome, <strong id="welcomeUser"></strong></span>
+          <button class="link-like" id="logoutTrigger" type="button">logout</button>
+        </div>
+      </div>
+    </header>
+
+    <header class="main-header" aria-label="Primary navigation">
+      <div class="shell main-header-inner">
+        <div class="logo-wrap" aria-label="SteemStore">
+          <span class="logo-mark">S</span>
+          <span class="logo-text">STEEMSTORE</span>
+        </div>
+        <nav class="main-nav" aria-label="Main sections">
+          <a class="active" href="#store">store</a>
+          <a href="#discover">discover</a>
+          <a href="#community">community</a>
+          <a href="#about">about</a>
+          <a href="#support">support</a>
+        </nav>
+        <div class="global-cart" aria-label="Cart summary">
+          <a href="#cartPanel">🛒 Cart</a>
+          <span id="globalCartCount">0</span>
+          <span id="globalCartTotal">$0.00</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="store" class="shell page-grid">
+      <aside class="left-rail" aria-label="Browse sections">
+        <section class="rail-block">
+          <h2>Gift Cards</h2>
+          <a href="#springSale">Now Available</a>
+        </section>
+
+        <section class="rail-block">
+          <h2>Recommended</h2>
+          <button class="category-link" data-filter="co-op" type="button">By Friends</button>
+          <button class="category-link" data-filter="indie" type="button">By Curators</button>
+          <button class="category-link" data-filter="story" type="button">By Tags</button>
+        </section>
+
+        <section class="rail-block">
+          <h2>Browse Categories</h2>
+          <button class="category-link" data-filter="all" type="button">All Games</button>
+          <button class="category-link" data-filter="topSeller" type="button">Top Sellers</button>
+          <button class="category-link" data-filter="newRelease" type="button">New Releases</button>
+          <button class="category-link" data-filter="springSale" type="button">Specials</button>
+          <button class="category-link" data-filter="vr" type="button">VR Titles</button>
+          <button class="category-link" data-filter="controller" type="button">Controller Friendly</button>
+        </section>
+
+        <section class="rail-block">
+          <h2>Browse by Genre</h2>
+          <button class="category-link" data-filter="action" type="button">Action</button>
+          <button class="category-link" data-filter="adventure" type="button">Adventure</button>
+          <button class="category-link" data-filter="rpg" type="button">RPG</button>
+          <button class="category-link" data-filter="simulation" type="button">Simulation</button>
+          <button class="category-link" data-filter="strategy" type="button">Strategy</button>
+          <button class="category-link" data-filter="sports" type="button">Sports</button>
+        </section>
+      </aside>
+
+      <section class="content-area" id="discover">
+        <div class="store-tabs" role="tablist" aria-label="Store tabs">
+          <a href="#discover" role="tab" aria-selected="true">Your Store</a>
+          <a href="#newReleases" role="tab">New and Noteworthy</a>
+          <a href="#topSellers" role="tab">Categories</a>
+          <a href="#springSale" role="tab">Buy Now / Add to Cart</a>
+          <a href="#community" role="tab">News</a>
+          <a href="#support" role="tab">Labs</a>
+          <div class="search-box" aria-label="Search">
+            <input id="globalSearch" type="search" placeholder="search" aria-label="Search store" />
+          </div>
+        </div>
+
+        <section class="commerce-hud" aria-label="Account shopping summary">
+          <article>
+            <h3>Wishlist</h3>
+            <p id="wishlistCount">0</p>
+          </article>
+          <article>
+            <h3>Cart</h3>
+            <p id="cartCount">0</p>
+          </article>
+          <article>
+            <h3>Library</h3>
+            <p id="libraryCount">0</p>
+          </article>
+          <article>
+            <h3>Cart Total</h3>
+            <p id="cartTotal">$0.00</p>
+          </article>
+        </section>
+
+        <section class="featured-block" aria-label="Featured and recommended">
+          <h1>Featured &amp; Recommended</h1>
+          <div class="featured-frame">
+            <article class="hero-card">
+              <button id="featuredPrev" class="carousel-arrow" aria-label="Previous featured">&lt;</button>
+              <div id="featuredImage" class="hero-image" aria-hidden="true"></div>
+              <div class="hero-side">
+                <h2 id="featuredTitle">Placeholder Featured Game</h2>
+                <p id="featuredMeta" class="hero-meta">Action • Multiplayer</p>
+                <div class="mini-grid" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <p id="featuredCaption" class="hero-caption">Now available in placeholder mode</p>
+                <div class="price-bar hero-price-bar">
+                  <span id="featuredDiscount" class="discount">-00%</span>
+                  <span id="featuredPrice" class="price">$00.00</span>
+                </div>
+              </div>
+              <button id="featuredNext" class="carousel-arrow" aria-label="Next featured">&gt;</button>
+            </article>
+          </div>
+          <div class="carousel-dots" id="featuredDots" aria-hidden="true">
+          </div>
+        </section>
+
+        <section class="sale-banner" id="springSale" aria-label="Spring sale">
+          <div>
+            <p class="sale-eyebrow">Limited-Time Event</p>
+            <h2>Spring Sale</h2>
+            <p>Fresh seasonal deals are live now. Grab discounts before the timer runs out.</p>
+          </div>
+          <div class="sale-countdown">
+            <p>Sale Ends In</p>
+            <strong id="saleCountdown">03d : 11h : 42m</strong>
+          </div>
+        </section>
+
+        <section class="row-block" aria-label="Special offers">
+          <h2>Special Offers</h2>
+          <div id="specialOffersRow" class="capsule-row">
+          </div>
+        </section>
+
+        <section class="row-block" aria-label="Trending games">
+          <h2>Trending among SteemStore users</h2>
+          <div id="trendingRow" class="capsule-row four-up">
+          </div>
+        </section>
+
+        <section class="row-block" id="newReleases" aria-label="New releases">
+          <h2>New Releases</h2>
+          <div id="newReleasesRow" class="capsule-row four-up">
+          </div>
+        </section>
+
+        <section class="row-block" id="topSellers" aria-label="Top sellers list">
+          <h2>Top Sellers</h2>
+          <div id="topSellerList" class="top-seller-list">
+          </div>
+        </section>
+
+        <section class="row-block" id="wishlistPanel" aria-label="Wishlist">
+          <div class="row-head-actions">
+            <h2>Wishlist</h2>
+            <button id="clearWishlist" class="minor-btn" type="button">Clear Wishlist</button>
+          </div>
+          <div id="wishlistList" class="owned-list"></div>
+        </section>
+
+        <section class="row-block" id="cartPanel" aria-label="Cart">
+          <div class="row-head-actions">
+            <h2>Cart</h2>
+            <div class="cart-actions">
+              <button id="clearCart" class="minor-btn" type="button">Clear Cart</button>
+              <button id="openCheckout" class="minor-btn buy" type="button">Checkout</button>
+            </div>
+          </div>
+          <div id="cartList" class="owned-list"></div>
+        </section>
+
+        <section class="row-block" id="libraryPanel" aria-label="Library">
+          <h2>Library</h2>
+          <p id="libraryLockNotice" class="empty-row hidden">Sign in to access your library.</p>
+          <div id="libraryList" class="owned-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <section id="about" class="shell info-panel">
+      <h2>About SteemStore</h2>
+      <p>
+        This is a Steam-inspired front-end prototype built for portfolio and learning use. It includes dynamic category
+        filtering, sale modules, and client-side account state with mock checkout.
+      </p>
+    </section>
+
+    <section id="support" class="shell info-panel">
+      <h2>Support</h2>
+      <p>Need help? Use the login button, browse categories, and test search using game names or tags.</p>
+    </section>
+
+    <footer id="community" class="site-foot">
+      <div class="shell">
+        <p>SteemStore is a Steam-inspired learning prototype with original branding and a curated top-40 game dataset.</p>
+      </div>
+    </footer>
+
+    <div id="loginModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <h2 id="loginTitle">Sign In</h2>
+        <p>Username only. Email formats are intentionally blocked.</p>
+        <form id="loginForm" class="login-form">
+          <label for="usernameInput">Username</label>
+          <input id="usernameInput" type="text" autocomplete="username" required />
+
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" autocomplete="current-password" required />
+
+          <p id="loginError" class="error-text hidden"></p>
+
+          <div class="modal-actions">
+            <button type="submit">Sign In</button>
+            <button type="button" id="cancelLogin">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="checkoutModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+        <h2 id="checkoutTitle">Checkout</h2>
+        <p>Payment number is auto-filled and locked by payment method.</p>
+        <form id="checkoutForm" class="login-form">
+          <label for="paymentMethod">Payment Method</label>
+          <select id="paymentMethod">
+            <option value="visa">Visa</option>
+            <option value="mastercard">Mastercard</option>
+            <option value="amex">American Express</option>
+            <option value="steamgift">Steam Gift Card</option>
+          </select>
+
+          <label for="paymentNumber">Payment Number</label>
+          <input id="paymentNumber" type="text" readonly />
+
+          <label for="billingName">Billing Name</label>
+          <input id="billingName" type="text" placeholder="Any name" required />
+
+          <p id="checkoutTotalText" class="checkout-total">Total: $0.00</p>
+          <p id="checkoutError" class="error-text hidden"></p>
+
+          <div class="modal-actions">
+            <button type="submit">Complete Purchase</button>
+            <button type="button" id="cancelCheckout">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="gameDetailModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card game-detail-card" role="dialog" aria-modal="true" aria-labelledby="gameDetailTitle">
+        <h2 id="gameDetailTitle">Game Title</h2>
+        <p id="gameDetailMeta">Genre • Tags</p>
+        <p id="gameDetailReviewStars" class="review-stars">★★★★☆</p>
+        <p id="gameDetailReviewLabel" class="review-label">Mostly Positive</p>
+        <p id="gameDetailPrice" class="checkout-total">Price: $0.00</p>
+        <div class="modal-actions">
+          <button type="button" id="detailAddWishlist">Add to Wishlist</button>
+          <button type="button" id="detailAddCart">Add to Cart</button>
+          <button type="button" id="closeGameDetail">Close</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
