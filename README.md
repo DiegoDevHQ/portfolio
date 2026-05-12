@@ -2,6 +2,15 @@
 
 This repository contains a personal portfolio site and local-first AI/web app projects.
 
+## Portfolio Expansion (April 2026)
+
+New completed showcase builds were added under `projects/`:
+
+- `projects/UTube/` — UTube video-platform demo with subscriptions, shorts, and richer watch states
+- `projects/Amazyn/` — Amazyn storefront demo with deal rails, quick views, and saved-item flow
+- `projects/PixelRaiders/` — HTML5 canvas arcade game with combo scoring, shards, and upgrades
+- `projects/NeuroForge/` — AI workstation with structured outputs, Python backend, and optional C++ scoring
+
 ## Public Update Log (April 2026)
 
 ### What was updated in index.html
@@ -64,19 +73,42 @@ A UX-focused reimagining of a digital game storefront inspired by Steam.
 
 ---
 
-2. **Video Platform (YouTube-inspired) (in progress)**
+2. **UTube (YouTube-inspired)**
 
-A simplified video platform focused on improving watch experience and content discovery.
+A denser video-platform demo focused on subscriptions, watch flow, related-content depth, and responsive interaction design.
 
----
-
-3. **E-commerce Platform (Amazon-inspired) (in progress)**
-
-A redesigned shopping experience focused on clarity, better product pages, and smoother checkout flow.
+Path: `projects/UTube/index.html`
 
 ---
 
-4. **Task Tracker 2.0 (complete)**
+3. **Amazyn (Amazon-inspired)**
+
+A more complete storefront demo focused on discovery, promo merchandising, quick-view details, saved items, and cart interactions.
+
+Path: `projects/Amazyn/index.html`
+
+---
+
+4. **Pixel Raiders (complete)**
+
+An HTML5 canvas arcade survival game with combo scoring, shard upgrades, wave progression, boss rounds, and persistent high scores.
+
+Path: `projects/PixelRaiders/index.html`
+
+---
+
+5. **NeuroForge (complete)**
+
+An HTML-first AI workstation with structured strategy output, local Python API endpoints, session memory, and an optional C++ creativity scoring module.
+
+Paths:
+- `projects/NeuroForge/index.html`
+- `projects/NeuroForge/backend/server.py`
+- `projects/NeuroForge/cpp/braincore.cpp`
+
+---
+
+6. **Task Tracker 2.0 (complete)**
 OUT NOW on my website.
 
 A full ground-up rebuild of the Task Tracker into a scheduling-first productivity app with reminders, calendar export, dark mode, 8-language support, and a mobile-friendly progressive disclosure UI.

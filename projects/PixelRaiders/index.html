@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Raiders | Neon Survival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+
+  <main class="wrapper">
+    <section class="layout">
+      <aside class="panel mission-panel">
+        <p class="eyebrow">Arcade district breach</p>
+        <h1>PIXEL RAIDERS</h1>
+        <p class="lead">Descend into a broken neon city, farm shards from corrupted drones, and upgrade your suit between waves before the sector titan wakes up.</p>
+
+        <article class="story-card">
+          <h2>Mission Feed</h2>
+          <p id="storyText">Signal traces show the first swarm entering sector 01. Secure enough points to stabilize the breach.</p>
+        </article>
+
+        <div class="stat-grid">
+          <div class="stat">Score <span id="score">0</span></div>
+          <div class="stat">Wave <span id="wave">1</span></div>
+          <div class="stat">Lives <span id="lives">3</span></div>
+          <div class="stat">Best <span id="best">0</span></div>
+          <div class="stat">Shards <span id="shards">0</span></div>
+          <div class="stat">Combo <span id="combo">x1.0</span></div>
+        </div>
+
+        <div class="buttons">
+          <button id="startBtn">Start Run</button>
+          <button id="pauseBtn">Pause</button>
+        </div>
+
+        <p class="control-note">Move: WASD / Arrow Keys | Shoot: Auto | Dash: Shift</p>
+        <p id="message" class="message">Survive the neon swarm, build score multipliers, and spend shards on field upgrades.</p>
+      </aside>
+
+      <section class="panel arena-shell">
+        <div class="arena-top">
+          <div>
+            <p class="eyebrow">Arena objective</p>
+            <h2 id="objectiveText">Stabilize Sector 01</h2>
+          </div>
+
+          <div class="meter-box">
+            <span id="meterLabel">Wave pressure</span>
+            <div class="meter"><span id="bossMeter"></span></div>
+          </div>
+        </div>
+
+        <canvas id="game" width="960" height="540"></canvas>
+
+        <div class="legend">
+          <span>Auto-fire locks onto the nearest threat.</span>
+          <span>Dash through danger, then spend shards to harden your build.</span>
+        </div>
+      </section>
+
+      <aside class="panel upgrade-panel">
+        <div>
+          <p class="eyebrow">Field Lab</p>
+          <h2>Upgrade Your Suit</h2>
+          <p class="lead">Shards are permanent for the current run. Spend them whenever you need more speed, damage, shields, or salvage output.</p>
+        </div>
+
+        <div id="upgradeList" class="upgrade-list"></div>
+
+        <article class="log-card">
+          <h3>Transmission Log</h3>
+          <div id="runLog" class="run-log"></div>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

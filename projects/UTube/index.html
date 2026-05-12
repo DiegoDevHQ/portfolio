@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UTube | Watch Better</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-wrap">
+      <button class="icon-btn" id="menuBtn" aria-label="Toggle sidebar">☰</button>
+      <div class="logo-wrap" aria-label="UTube home">
+        <div class="logo-mark"><span class="logo-triangle"></span></div>
+        <span class="logo-text">UTube</span>
+      </div>
+    </div>
+
+    <div class="search-cluster">
+      <div class="search-wrap">
+        <input id="searchInput" type="text" placeholder="Search" />
+        <button id="searchBtn">Search</button>
+      </div>
+      <button id="voiceBtn" class="icon-circle" aria-label="Voice search">Mic</button>
+    </div>
+
+    <div class="actions">
+      <button class="pill">Create</button>
+      <button class="icon-circle">Bell</button>
+      <div class="avatar">J</div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside id="sidebar" class="sidebar">
+      <nav class="nav-group">
+        <button class="nav-link active">Home</button>
+        <button class="nav-link">Shorts</button>
+        <button class="nav-link">Subscriptions</button>
+        <button class="nav-link">You</button>
+        <button class="nav-link">History</button>
+      </nav>
+
+      <div class="divider"></div>
+
+      <section class="sidebar-section">
+        <h2>Subscriptions</h2>
+        <div id="subList" class="sub-list"></div>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div id="chips" class="chips"></div>
+
+      <section class="shelf">
+        <div class="section-head">
+          <div>
+            <h2>Shorts</h2>
+            <p>Rapid-fire creator clips and idea drops.</p>
+          </div>
+        </div>
+        <div id="shortsRail" class="shorts-rail"></div>
+      </section>
+
+      <section class="feed-section">
+        <div class="section-head">
+          <div>
+            <h2 id="feedTitle">Recommended</h2>
+            <p id="feedMeta">Personalized picks with a cleaner watch flow.</p>
+          </div>
+        </div>
+        <div id="videoGrid" class="video-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="playerModal" class="player-modal">
+    <button id="closeModal" class="close">×</button>
+    <div class="watch-layout">
+      <section class="watch-main">
+        <div class="player-frame" id="playerFrame"></div>
+        <h2 id="playerTitle"></h2>
+        <p id="playerStats" class="player-stats"></p>
+
+        <div class="watch-row">
+          <div id="playerChannel" class="channel-box"></div>
+          <div id="playerActions" class="action-row"></div>
+        </div>
+
+        <section class="description-box">
+          <p id="playerMeta" class="description-meta"></p>
+          <p id="playerDescription" class="description-copy"></p>
+        </section>
+
+        <section class="comments-box">
+          <div class="comments-head">
+            <h3>Comments</h3>
+            <span id="commentCount"></span>
+          </div>
+          <div id="commentsList" class="comments-list"></div>
+        </section>
+      </section>
+
+      <aside class="watch-side">
+        <h3>Up Next</h3>
+        <div id="relatedList" class="related-list"></div>
+      </aside>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroForge | AI Idea Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=20260410f" />
+  <style>
+    .hero {
+      display: block !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .workspace {
+      display: block !important;
+    }
+
+    .primary-layout {
+      display: block !important;
+    }
+
+    .primary-layout > * {
+      min-width: 0 !important;
+    }
+
+    .composer-panel {
+      width: 100% !important;
+      max-width: none !important;
+      margin-bottom: 1rem !important;
+      align-self: start !important;
+    }
+
+    .output-panel {
+      width: 100% !important;
+      min-width: 0 !important;
+      align-self: start !important;
+    }
+
+    .side-panel {
+      width: 100% !important;
+      margin-top: 1rem !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 1rem !important;
+    }
+
+    @media (max-width: 980px) {
+      .side-panel {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="grid-sheen"></div>
+
+  <main class="container">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">HTML + Python + C++ + WebLLM + WebGPU</p>
+        <h1>NeuroForge Signal Workstation</h1>
+        <p>Build concept strategies, execution maps, risk readouts, and launch actions through a browser-first interface backed by a local Python service or a Study Buddy-style on-device WebLLM runtime.</p>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <div class="primary-layout">
+        <aside class="panel composer-panel">
+        <div class="field">
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt" rows="7" placeholder="Example: Design a futuristic budgeting app for teens with game mechanics and a streak-based savings loop."></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="mode">Mode</label>
+            <select id="mode">
+              <option value="invent">Invent</option>
+              <option value="improve">Improve</option>
+              <option value="pitch">Pitch</option>
+              <option value="code">Code Plan</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tone">Tone</label>
+            <select id="tone">
+              <option value="bold">Bold</option>
+              <option value="professional">Professional</option>
+              <option value="playful">Playful</option>
+              <option value="technical">Technical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="audience">Audience</label>
+            <select id="audience">
+              <option value="consumer">Consumer</option>
+              <option value="startup">Startup Team</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="creator">Creator Economy</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="depth">Depth</label>
+            <select id="depth">
+              <option value="fast">Fast</option>
+              <option value="detailed">Detailed</option>
+              <option value="strategic">Strategic</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="runSource">Run Source</label>
+            <select id="runSource">
+              <option value="backend">Backend API</option>
+              <option value="local">Local WebLLM</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="localModel">Local Model</label>
+            <select id="localModel"></select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="runBtn">Generate Strategy</button>
+          <button id="sampleBtn" class="secondary">Random Prompt</button>
+          <button id="clearBtn" class="ghost">Clear</button>
+        </div>
+
+        <article class="runtime-card">
+          <div class="runtime-card-head">
+            <div>
+              <h2>Local Model Runtime</h2>
+              <p id="modelHint">Load a recommended model to run NeuroForge fully on-device, similar to the Study Buddy flow.</p>
+            </div>
+            <button id="loadModelBtn" class="secondary" type="button">Load Local Model</button>
+          </div>
+          <div class="progress-shell">
+            <span id="modelProgressFill"></span>
+          </div>
+          <p id="modelProgressText" class="runtime-progress-text">Local runtime idle. Backend mode is available immediately.</p>
+        </article>
+
+        <div class="sample-bank">
+          <div class="sample-head">
+            <h2>Sample Sparks</h2>
+            <p>Load one-click prompts to test the pipeline.</p>
+          </div>
+          <div id="sampleList" class="chip-grid"></div>
+        </div>
+        </aside>
+
+        <section class="panel output-panel">
+        <div class="output-top">
+          <div>
+            <p class="eyebrow">Structured Output</p>
+            <h2 id="title">Ready for a fresh brief</h2>
+            <p id="summary">Run the generator to get a concept frame, execution layers, launch plan, risk readout, and follow-up prompts.</p>
+          </div>
+
+          <div class="score-stack">
+            <article class="metric-card">
+              <span>Creativity</span>
+              <strong id="score">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>Feasibility</span>
+              <strong id="feasibility">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>Launch Energy</span>
+              <strong id="launchEnergy">--</strong>
+            </article>
+            <article class="metric-card">
+              <span>Runtime</span>
+              <strong id="runtimeModeMetric">--</strong>
+            </article>
+          </div>
+        </div>
+
+        <div id="insightChips" class="insight-chips"></div>
+
+        <article class="result-card full-width">
+          <div class="card-head">
+            <h3>Runtime Diagnostics</h3>
+            <span id="runtimeDiagMeta">Awaiting scan</span>
+          </div>
+          <div id="runtimeInsightList" class="bullet-list"></div>
+        </article>
+
+        <div class="section-grid">
+          <article class="result-card">
+            <h3>Concept Frame</h3>
+            <div id="conceptList" class="bullet-list"></div>
+          </article>
+
+          <article class="result-card">
+            <h3>Execution Layers</h3>
+            <div id="executionList" class="bullet-list"></div>
+          </article>
+
+          <article class="result-card">
+            <h3>Action Plan</h3>
+            <div id="actionList" class="bullet-list"></div>
+          </article>
+
+          <article class="result-card">
+            <h3>Risks + Mitigations</h3>
+            <div id="riskList" class="bullet-list"></div>
+          </article>
+        </div>
+
+        <article class="result-card full-width">
+          <div class="card-head">
+            <h3>Expanded Narrative</h3>
+            <span id="scoreDetail">Creativity score: --</span>
+          </div>
+          <pre id="resultNarrative">Your generated strategy will appear here.</pre>
+        </article>
+        </section>
+      </div>
+
+      <aside class="panel side-panel">
+        <div class="hero-status">
+          <article class="status-card panel-lite">
+            <p class="status-label">Backend Status</p>
+            <strong id="statusPill" class="status-pill waiting">Checking...</strong>
+            <p id="statusText">Waiting for the local generator service on port 8008.</p>
+          </article>
+
+          <article class="status-card panel-lite">
+            <p class="status-label">Local Runtime</p>
+            <strong id="localPill" class="status-pill waiting">Scanning...</strong>
+            <p id="localText">Scanning this device for WebGPU support and a recommended local model.</p>
+            <div class="runtime-facts">
+              <div class="runtime-fact">
+                <span>Compatibility</span>
+                <strong id="runtimeTier">--</strong>
+              </div>
+              <div class="runtime-fact">
+                <span>GPU</span>
+                <strong id="runtimeGpu">--</strong>
+              </div>
+              <div class="runtime-fact">
+                <span>Recommended</span>
+                <strong id="runtimeRecommended">--</strong>
+              </div>
+            </div>
+            <p id="localMeta" class="gpu-meta">NeuroForge can still use the Python backend if local WebLLM is not available on this device.</p>
+          </article>
+        </div>
+
+        <article class="side-card">
+          <h3>Session History</h3>
+          <div id="historyList" class="stack-list"></div>
+        </article>
+
+        <article class="side-card">
+          <h3>Next Prompt Moves</h3>
+          <div id="nextPrompts" class="stack-list"></div>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <script src="script.js?v=20260410f"></script>
+</body>
+</html>

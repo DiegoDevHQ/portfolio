@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazyn | Everything You Need, Faster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="top-row">
+      <div class="logo">amazyn</div>
+      <div class="delivery">
+        <span>Deliver to</span>
+        <strong>Portfolio Demo Address</strong>
+      </div>
+      <div class="search-wrap">
+        <select id="searchCategory">
+          <option value="all">All</option>
+          <option value="electronics">Electronics</option>
+          <option value="home">Home</option>
+          <option value="fitness">Fitness</option>
+          <option value="gaming">Gaming</option>
+          <option value="creator">Creator Gear</option>
+        </select>
+        <input id="searchInput" type="text" placeholder="Search Amazyn" />
+        <button id="searchBtn">🔎</button>
+      </div>
+      <div class="account">Hello, Creator<br /><strong>Account & Lists</strong></div>
+      <div class="returns">Returns<br /><strong>& Orders</strong></div>
+      <button id="openCart" class="cart-btn">Cart <span id="cartCount">0</span></button>
+    </div>
+    <nav class="nav-row">
+      <button class="nav-item">All</button>
+      <button class="nav-item">Today Deals</button>
+      <button class="nav-item">Prime</button>
+      <button class="nav-item">Creator Store</button>
+      <button class="nav-item">Customer Service</button>
+      <button class="nav-item">Gift Cards</button>
+      <button class="nav-item">Sell</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>Spring Showcase: storefront UX with more depth</h1>
+        <p>Fast product discovery, deal logic, rich detail views, saved items, and a stronger end-to-end shopping flow built in plain HTML, CSS, and JavaScript.</p>
+        <button id="shopDeals">Shop Deals</button>
+      </div>
+
+      <div class="hero-stack">
+        <article class="deal-timer">
+          <h3>Lightning Deal Ends In</h3>
+          <p id="timer">--:--:--</p>
+          <div class="progress-shell"><span id="dealProgress"></span></div>
+          <small id="dealProgressText">Deal demand loading...</small>
+        </article>
+
+        <article class="mini-panel">
+          <h3>Why This Clone Feels Stronger</h3>
+          <ul>
+            <li>Faster discovery with richer browsing surfaces</li>
+            <li>Quick-view details without losing the shopping context</li>
+            <li>Saved items and cart interactions that feel more complete</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="promoGrid" class="promo-grid"></section>
+
+    <section class="deal-section">
+      <div class="section-head">
+        <div>
+          <h2>Today's Deals</h2>
+          <p>High-intent cards with deal state, scarcity, and fast add-to-cart flow.</p>
+        </div>
+      </div>
+      <div id="dealStrip" class="deal-strip"></div>
+    </section>
+
+    <section class="category-strip" id="categoryStrip"></section>
+
+    <section class="controls">
+      <div id="tagFilters" class="tag-filters"></div>
+      <select id="sortSelect">
+        <option value="featured">Sort: Featured</option>
+        <option value="priceAsc">Price: Low to High</option>
+        <option value="priceDesc">Price: High to Low</option>
+        <option value="rating">Customer Rating</option>
+        <option value="deal">Best Deals</option>
+      </select>
+    </section>
+
+    <section class="catalog-layout">
+      <div>
+        <section id="productGrid" class="product-grid"></section>
+      </div>
+
+      <aside class="insight-panel">
+        <div class="panel-card">
+          <h2>Saved for Later</h2>
+          <div id="savedItems" class="saved-items"></div>
+        </div>
+
+        <div class="panel-card">
+          <h2>Storefront Notes</h2>
+          <p>This build adds detail density similar to large retail sites: promo boxes, deal rails, product quick views, and stronger cart state feedback.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <dialog id="productModal" class="product-modal">
+    <button id="closeProduct" class="close-product">✕</button>
+    <div class="product-modal-body">
+      <div id="modalVisual" class="modal-visual"></div>
+      <div class="modal-copy">
+        <p id="modalBadge" class="modal-badge"></p>
+        <h2 id="modalName"></h2>
+        <p id="modalMeta" class="modal-meta"></p>
+        <p id="modalPrice" class="modal-price"></p>
+        <ul id="modalFeatures" class="modal-features"></ul>
+        <div id="ratingBars" class="rating-bars"></div>
+        <div class="modal-actions">
+          <button id="modalAddBtn">Add to Cart</button>
+          <button id="modalSaveBtn" class="secondary-btn">Save for Later</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <aside id="cartDrawer" class="cart-drawer" aria-label="Shopping cart">
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <button id="closeCart">✕</button>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <p>Subtotal: <strong id="subtotal">$0.00</strong></p>
+      <p>Estimated total: <strong id="grandTotal">$0.00</strong></p>
+      <button id="checkoutBtn">Proceed to Checkout</button>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast">Added to cart</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
