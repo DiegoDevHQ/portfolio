@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Computer Science resume website focused on AI/ML and software engineering." />
-    <title>Diego Andres Ortega Jr — Computer Science / AI & Studio Arts</title>
+    <meta name="description" content="Software engineer with 10 years building production systems in healthcare IT. Python, JavaScript, automation, and local AI." />
+    <title>Diego A. Ortega — Software Engineer</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,10 +13,10 @@
     <header class="site-header" role="banner">
       <div class="container header-grid">
         <div class="identity">
-          <p class="eyebrow">Computer Science • AI • Studio Arts</p>
-          <h1 class="name">Diego Andres Ortega Jr</h1>
+          <p class="eyebrow">Software Engineer • Python • Automation • Local AI</p>
+          <h1 class="name">Diego A. Ortega</h1>
           <p class="headline">
-            Building reliable software and learning AI to create practical, human-centered products.
+            Ten years building and operating production software that people depend on every day.
           </p>
           <ul class="contact-list" aria-label="Contact">
             <li>
@@ -39,9 +39,7 @@
 
           <div class="cta-row">
             <a class="btn primary" href="#projects">View projects</a>
-            <a class="btn" href="projects/steemstore/steam.html">Open SteemStore</a>
-            <a class="btn" href="projects/UTube/index.html">Open UTube</a>
-            <a class="btn" href="projects/Amazyn/index.html">Open Amazyn</a>
+            <a class="btn" href="#experience">Experience</a>
             <a class="btn" href="#contact">Contact</a>
           </div>
         </div>
@@ -50,9 +48,9 @@
           <div class="card">
             <h2 class="card-title">Highlights</h2>
             <ul class="bullets">
-              <li>Actively learning <strong>machine learning</strong> and <strong>deep learning</strong>.</li>
-              <li>Strong foundation in <strong>data structures</strong>, <strong>algorithms</strong>, and <strong>Python</strong>.</li>
-              <li>Interested in <strong>AI-assisted apps</strong>, <strong>automation</strong>, and <strong>software engineering</strong>.</li>
+              <li>Sole developer and maintainer of a <strong>production remote desktop platform</strong> running on 20 machines.</li>
+              <li><strong>10 years</strong> shipping and supporting software in a live healthcare environment.</li>
+              <li><strong>Python</strong>, <strong>JavaScript</strong>, automation tooling, and <strong>local LLM deployment</strong>.</li>
             </ul>
 
             <div class="chips" aria-label="Top skills">
@@ -74,13 +72,11 @@
           <div>
             <h2>Summary</h2>
             <p>
-              I'm a Computer Science and Studio Arts student passionate about building clean, maintainable software,
-              crafting engaging video games, and honing practical AI and art skills. I thrive on turning ideas into working
-              products, learning from feedback, and striving to deliver exceptional user experiences that go beyond expectations.
-            </p>
-            <p class="muted">
-              Goal: Internship / entry-level role in Google Dev Team, Amazon Dev Team, Video Game Developer and / or Designer,
-              Steam / Valve Dev Team
+              I build and operate production software end to end. For the past ten years I have been the only technical
+              resource for a multi location dental practice, where I designed a custom remote desktop platform now running
+              on 20 machines, automated recurring clinical and billing workflows, and own the entire technical environment
+              from servers to endpoints. I work primarily in Python and JavaScript, with recent focus on local LLM
+              deployment and offline AI tooling.
             </p>
           </div>
 
@@ -110,17 +106,16 @@
                 <ul class="inline-list">
                   <li>Git/GitHub</li>
                   <li>VS Code</li>
-                  <li>Linux basics</li>
+                  <li>Linux</li>
                   <li>REST APIs</li>
                 </ul>
               </div>
               <div class="skill-group">
-                <h3>Foundations</h3>
+                <h3>Domain</h3>
                 <ul class="inline-list">
-                  <li>Data structures</li>
-                  <li>Algorithms</li>
-                  <li>OOP</li>
-                  <li>Databases</li>
+                  <li>Healthcare IT</li>
+                  <li>Insurance claims and EOB workflows</li>
+                  <li>HIPAA aware environments</li>
                 </ul>
               </div>
             </div>
@@ -128,14 +123,93 @@
         </div>
       </section>
 
-      <section id="projects" class="section section-alt">
+      <section id="experience" class="section section-alt">
+        <div class="container two-col">
+          <div>
+            <h2>Experience</h2>
+
+            <div class="timeline">
+              <article class="timeline-item">
+                <div class="timeline-top">
+                  <h3>Software Engineer — Sole Technical Lead</h3>
+                  <p class="meta">J. De La Osa DDS Inc. • Pomona, CA • 2016 — Present</p>
+                </div>
+                <ul class="bullets">
+                  <li>Architected and shipped GonzalezDesk, a custom remote desktop platform in Python deployed across 20 machines at multiple office locations, supporting LAN and cross location access over TCP/IP.</li>
+                  <li>Replaced all commercial remote access licensing by self hosting on organization owned infrastructure, retaining full data control and eliminating recurring per seat costs.</li>
+                  <li>Built a live remote update pipeline that pushes fixes and features to every deployed machine with no on site visits.</li>
+                  <li>Write and maintain Python automation for recurring clinical and administrative workflows.</li>
+                  <li>Work directly with dental insurance claims, EOB processing, and payer billing workflows.</li>
+                  <li>Sole engineer for the entire technical environment: servers, networking, endpoint management, backups, and vendor system integration.</li>
+                </ul>
+              </article>
+
+            </div>
+          </div>
+
+          <div>
+            <h2>Education</h2>
+            <article class="card">
+              <h3>A.S. Computer Science</h3>
+              <p class="meta">Mt. San Antonio College • In Progress</p>
+              <p class="muted">
+                Planned transfer to California State University, Fullerton for B.S. Computer Science.
+              </p>
+              <p class="muted">
+                Relevant coursework: Data Structures, Algorithms, Discrete Math, Databases, Operating Systems.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section">
         <div class="container">
           <div class="section-head">
             <h2>Projects</h2>
-            <p class="muted">A few focused builds that highlight AI learning and real software engineering.</p>
+            <p class="muted">Production systems and tools I have built and shipped.</p>
           </div>
 
           <div class="cards-grid">
+            <article class="card project">
+              <div class="card-top">
+                <h3>GonzalezDesk</h3>
+                <p class="meta">Python • TCP/IP Networking • Server Architecture • PyInstaller</p>
+              </div>
+              <p>
+                A fully custom remote desktop application built from scratch, self hosted on the organization's own
+                infrastructure. Deployed across 20 machines at multiple office locations with a live update pipeline that
+                ships fixes remotely.
+              </p>
+              <ul class="bullets">
+                <li>Custom TCP/IP client and server handling screen transport, input relay, and cross location access via port forwarding.</li>
+                <li>Remote update pipeline pushes new builds to all deployed machines with no on site visit required.</li>
+                <li>Replaced commercial per seat licensing entirely while keeping all data on organization controlled hardware.</li>
+              </ul>
+              <div class="links">
+                <span class="muted">Production</span>
+              </div>
+            </article>
+
+            <article class="card project">
+              <div class="card-top">
+                <h3>J.A.R.V.I.S v2</h3>
+                <p class="meta">Python • Whisper • Piper TTS • Ollama • PyQt • Three.js</p>
+              </div>
+              <p>
+                A fully offline AI assistant packaged as a standalone Windows executable. No cloud, no subscriptions, no
+                third party APIs.
+              </p>
+              <ul class="bullets">
+                <li>Real time voice pipeline using PyAudio and Whisper, with a custom Piper TTS audio chain featuring EQ, voice doubling, and reverb.</li>
+                <li>Local LLM running through Ollama with persistent memory and user preferences stored in JSON.</li>
+                <li>Holographic interface built in PyQt WebEngine and Three.js with animated bloom, particle systems, and layered rings.</li>
+              </ul>
+              <div class="links">
+                <span class="muted">Personal build</span>
+              </div>
+            </article>
+
             <article class="card project">
               <div class="card-top">
                 <h3>AI Study Buddy</h3>
@@ -157,6 +231,26 @@
 
             <article class="card project">
               <div class="card-top">
+                <h3>NeuroForge (HTML + Python + C++)</h3>
+                <p class="meta">AI UX • HTML Frontend • Python API • Optional C++ Engine</p>
+              </div>
+              <p>
+                A browser-first AI workstation that turns prompts into structured concept frames,
+                execution layers, launch plans, and risk reviews through a local Python backend.
+              </p>
+              <ul class="bullets">
+                <li>Built a multi-panel interface with session history, backend status, metrics, and structured output cards.</li>
+                <li>Implemented a local HTTP Python API that returns richer JSON payloads instead of one flat text response.</li>
+                <li>Added optional C++ scoring integration to show a hybrid HTML + Python + native workflow in one app.</li>
+              </ul>
+              <div class="links">
+                <a href="projects/NeuroForge/index.html" aria-label="NeuroForge frontend link">Open NeuroForge Frontend</a>
+                <a href="projects/NeuroForge/README.md" aria-label="NeuroForge readme link">NeuroForge Setup</a>
+              </div>
+            </article>
+
+            <article class="card project">
+              <div class="card-top">
                 <h3>Customer Churn Predictor 1.0 (Archived)</h3>
                 <p class="meta">Pandas • scikit-learn • Metrics • Flask</p>
               </div>
@@ -171,29 +265,17 @@
               </ul>
               <div class="links">
                 <span class="muted">Archived</span>
-              
+
               </div>
             </article>
+          </div>
 
-            <article class="card project">
-              <div class="card-top">
-                <h3>Task Tracker 2.0.12</h3>
-                <p class="meta">HTML • CSS • JavaScript • LocalStorage • i18n • Notifications API • ICS Calendar</p>
-              </div>
-              <p>
-                A full ground-up rebuild of the Task Tracker into a scheduling-first productivity app with reminders,
-                calendar integration, dark mode, 8-language support, and a mobile-friendly progressive disclosure UI.
-              </p>
-              <ul class="bullets">
-                <li>Added scheduling, deadlines, browser notifications, and configurable reminders per task.</li>
-                <li>Added dual calendar export: Google Calendar (web) and device calendar via ICS / native share sheet.</li>
-                <li>Added dark mode, 8-language support with auto-detection, and full mobile responsiveness.</li>
-              </ul>
-              <div class="links">
-                <a href="tasktracker.html" aria-label="Live demo link">Demo</a>
-              </div>
-            </article>
+          <div class="section-head mt">
+            <h2>Earlier frontend work</h2>
+            <p class="muted">Earlier UI and game prototypes, kept for reference.</p>
+          </div>
 
+          <div class="cards-grid">
             <article class="card project">
               <div class="card-top">
                 <h3>SteemStore</h3>
@@ -253,6 +335,25 @@
 
             <article class="card project">
               <div class="card-top">
+                <h3>Task Tracker 2.0.12</h3>
+                <p class="meta">HTML • CSS • JavaScript • LocalStorage • i18n • Notifications API • ICS Calendar</p>
+              </div>
+              <p>
+                A full ground-up rebuild of the Task Tracker into a scheduling-first productivity app with reminders,
+                calendar integration, dark mode, 8-language support, and a mobile-friendly progressive disclosure UI.
+              </p>
+              <ul class="bullets">
+                <li>Added scheduling, deadlines, browser notifications, and configurable reminders per task.</li>
+                <li>Added dual calendar export: Google Calendar (web) and device calendar via ICS / native share sheet.</li>
+                <li>Added dark mode, 8-language support with auto-detection, and full mobile responsiveness.</li>
+              </ul>
+              <div class="links">
+                <a href="tasktracker.html" aria-label="Live demo link">Demo</a>
+              </div>
+            </article>
+
+            <article class="card project">
+              <div class="card-top">
                 <h3>Pixel Raiders</h3>
                 <p class="meta">HTML5 Canvas • JavaScript • Game Loop • LocalStorage</p>
               </div>
@@ -268,70 +369,6 @@
               <div class="links">
                 <a href="projects/PixelRaiders/index.html" aria-label="Pixel Raiders demo link">Play Pixel Raiders</a>
               </div>
-            </article>
-
-            <article class="card project">
-              <div class="card-top">
-                <h3>NeuroForge (HTML + Python + C++)</h3>
-                <p class="meta">AI UX • HTML Frontend • Python API • Optional C++ Engine</p>
-              </div>
-              <p>
-                A browser-first AI workstation that turns prompts into structured concept frames,
-                execution layers, launch plans, and risk reviews through a local Python backend.
-              </p>
-              <ul class="bullets">
-                <li>Built a multi-panel interface with session history, backend status, metrics, and structured output cards.</li>
-                <li>Implemented a local HTTP Python API that returns richer JSON payloads instead of one flat text response.</li>
-                <li>Added optional C++ scoring integration to show a hybrid HTML + Python + native workflow in one app.</li>
-              </ul>
-              <div class="links">
-                <a href="projects/NeuroForge/index.html" aria-label="NeuroForge frontend link">Open NeuroForge Frontend</a>
-                <a href="projects/NeuroForge/README.md" aria-label="NeuroForge readme link">NeuroForge Setup</a>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="container two-col">
-          <div>
-            <h2>Experience</h2>
-
-            <div class="timeline">
-              <article class="timeline-item">
-                <div class="timeline-top">
-                  <h3>Software / IT  (Full-time)</h3>
-                  <p class="meta">J De La Osa DDS Inc. • 2016 — Present</p>
-                </div>
-                <ul class="bullets">
-                  <li>Supported troubleshooting, documentation, and small automation scripts.</li>
-                  <li>Improved day-to-day workflows by organizing requests and building lightweight tools.</li>
-                  <li>Computer Tech Role gave peace of mind to the owner and dental assistants when computer issues arose</li>
-                </ul>
-              </article>
-
-            </div>
-          </div>
-
-          <div>
-            <h2>Education</h2>
-            <article class="card">
-              <h3>B.S. Computer Science / Studio Arts</h3>
-              <p class="meta">Mt SAC / Cal State Fullerton • Expected 2030</p>
-              <p class="muted">
-                Relevant coursework: Data Structures, Algorithms, Discrete Math, Databases, Operating Systems, AI (if
-                applicable).
-              </p>
-            </article>
-
-            <h2 class="mt">Certifications / Learning</h2>
-            <article class="card">
-              <ul class="bullets">
-                <li>Machine Learning course (in progress)</li>
-                <li>Deep Learning basics (in progress)</li>
-                <li>LeetCode / interview prep routines</li>
-              </ul>
             </article>
           </div>
         </div>
@@ -374,7 +411,6 @@
     <footer class="site-footer" role="contentinfo">
       <div class="container footer-row">
         <p class="muted">© <span id="year">2026</span> Diego A Ortega. All rights reserved.</p>
-        <p class="muted">Built with HTML + CSS.</p>
       </div>
       <script>
         // Tiny progressive enhancement (optional)
@@ -383,4 +419,3 @@
     </footer>
   </body>
 </html>
-
