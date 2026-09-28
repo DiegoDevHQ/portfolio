@@ -197,6 +197,35 @@ a:hover{ text-decoration-color: rgba(255,255,255,.75); }
   color: rgba(255,255,255,.86);
 }
 
+/* Live demo links in the Highlights card: the fastest path to real work. */
+.live-demos{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.live-demos span{
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  margin-right: 2px;
+}
+.live-demos a{
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: .9rem;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid rgba(43,212,195,.45);
+  background: rgba(43,212,195,.10);
+}
+.live-demos a:hover{ background: rgba(43,212,195,.2); }
+.live-demos a:focus-visible{ outline: 3px solid var(--ring); outline-offset: 2px; }
+
 .site-main{ padding: 10px 0 30px; }
 .section{ padding: 34px 0; }
 .section-alt{
