@@ -1,0 +1,1638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>JARVIS Lite — Diego A. Ortega</title>
+<meta name="description" content="A lite, in-browser version of JARVIS, Diego's offline AI assistant: a tool-calling agent with an autonomy policy, voice in and out, and per-chat memory.">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --ink: #e6f6ff;
+    --ink-dim: rgba(230, 246, 255, 0.58);
+    --ink-faint: rgba(230, 246, 255, 0.32);
+    --accent: #35c6ff;
+    --cyan: #00d4ff;
+    --soft: #9ddcff;
+    --green: #3ce888;
+    --amber: #ffb454;
+    --red: #ff6b6b;
+    --glass-bg: rgba(6, 16, 28, 0.58);
+    --glass-brd: rgba(120, 200, 255, 0.15);
+    --accent-soft: rgba(53, 198, 255, 0.12);
+    --ease: cubic-bezier(.4, 0, .2, 1);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    --sb: 288px;
+    color-scheme: dark;
+  }
+  body.sb-collapsed { --sb: 0px; }
+  @media (max-width: 860px) { :root { --sb: 0px; } }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden;
+    color: var(--ink); font-family: var(--font); font-size: 13px; -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(ellipse at 50% 78%, rgba(0, 30, 80, 0.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 42%, rgba(0, 80, 120, 0.22) 0%, transparent 60%),
+      #000;
+  }
+  button, input { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-brd);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  #holo { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; pointer-events: none; }
+
+  /* ---- sidebar ---- */
+  #sidebar {
+    position: fixed; z-index: 20; left: 12px; top: 12px; bottom: 12px; width: 264px;
+    border-radius: 16px; padding: 14px 12px 12px; display: flex; flex-direction: column; gap: 12px;
+    transition: transform .28s var(--ease), opacity .28s var(--ease);
+  }
+  body.sb-collapsed #sidebar { transform: translateX(-120%); opacity: 0; pointer-events: none; }
+  .sb-top { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 0 6px; }
+  .brand { font-size: 12px; letter-spacing: .38em; color: #cfeeff; }
+  .icon-btn {
+    width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; cursor: pointer;
+    background: transparent; border: 1px solid var(--glass-brd); color: var(--soft);
+  }
+  .icon-btn:hover { color: var(--cyan); border-color: rgba(0, 212, 255, .45); }
+  .icon-btn svg { width: 15px; height: 15px; }
+  .new-chat {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(180deg, #123a66, #0c2748); border: 1px solid rgba(53, 198, 255, .35);
+    font-weight: 600; font-size: 13.5px; color: #fff;
+  }
+  .new-chat:hover { border-color: rgba(53, 198, 255, .6); }
+  .new-chat svg { width: 14px; height: 14px; }
+  .chats { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; scrollbar-width: thin; scrollbar-color: rgba(0, 212, 255, .3) transparent; }
+  .chats .empty { color: var(--ink-faint); text-align: center; padding: 16px 0; }
+  .chat-item {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px;
+    padding: 8px 8px 8px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; text-align: left; background: none; width: 100%;
+  }
+  .chat-item:hover { background: rgba(53, 198, 255, .06); }
+  .chat-item.active { background: var(--accent-soft); border-color: rgba(53, 198, 255, .22); }
+  .chat-item .ct { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-item .cm { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+  .chat-item.ping .ct { color: var(--amber); }
+  .del {
+    width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; cursor: pointer;
+    background: none; border: 1px solid transparent; color: var(--ink-faint); opacity: 0;
+  }
+  .chat-item:hover .del, .chat-item.active .del, .del:focus-visible, .del.armed { opacity: 1; }
+  .del:hover { color: var(--red); border-color: rgba(255, 107, 107, .35); }
+  .del.armed { color: #fff; background: rgba(255, 107, 107, .8); }
+  .del svg { width: 13px; height: 13px; }
+  .sb-foot { display: grid; gap: 8px; }
+  .model {
+    display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 10px;
+    border: 1px solid var(--glass-brd); background: rgba(0, 0, 0, .25); font-size: 12px;
+  }
+  .model .d { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .model .r { margin-left: auto; font-size: 10px; letter-spacing: .14em; color: var(--ink-dim); }
+  .sb-note { text-align: center; font-size: 10.5px; color: var(--ink-faint); }
+  #scrim { position: fixed; inset: 0; z-index: 15; background: rgba(0, 0, 0, .55); }
+
+  /* ---- main column ---- */
+  #main {
+    position: fixed; z-index: 5; left: var(--sb); right: 0; top: 0; bottom: 0;
+    display: flex; flex-direction: column; transition: left .28s var(--ease);
+  }
+  .topbar {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 8px; min-height: 60px;
+  }
+  .tb-left, .tb-right { display: flex; align-items: center; gap: 8px; }
+  .tb-left { grid-column: 1; }
+  .tb-right { grid-column: 3; justify-content: flex-end; }
+  #chat-header { grid-column: 2; }
+  #open-sb { display: none; }
+  body.sb-collapsed #open-sb { display: grid; }
+  @media (max-width: 860px) { #open-sb { display: grid; } }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 999px;
+    font-size: 12px; text-decoration: none; color: var(--soft); white-space: nowrap;
+  }
+  .pill:hover { color: var(--cyan); }
+  .tag { font-size: 10px; letter-spacing: .18em; color: var(--amber); border: 1px solid rgba(255, 180, 84, .4); padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+  #chat-header {
+    display: flex; align-items: center; gap: 11px; max-width: min(520px, 60vw); padding: 7px 18px 7px 9px; border-radius: 999px;
+    box-shadow: 0 6px 26px rgba(0, 0, 0, .4); min-width: 0;
+  }
+  .ch-av { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, rgba(53,198,255,.45), rgba(0,60,110,.35)); border: 1px solid rgba(53,198,255,.5); }
+  .ch-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px 2px rgba(53,198,255,.8); animation: chDot 2.6s var(--ease) infinite; }
+  @keyframes chDot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.82); } }
+  .ch-meta { min-width: 0; }
+  .ch-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ch-status { font-size: 10.5px; letter-spacing: .06em; color: var(--ink-dim); margin-top: 1px; white-space: nowrap; }
+
+  #stage { flex: 1 1 auto; min-height: 0; position: relative; display: flex; flex-direction: column; align-items: center; }
+  #welcome {
+    margin-top: auto; padding: 0 20px 22px; text-align: center; position: relative; max-width: 100%;
+    animation: rise .5s var(--ease) both;
+  }
+  #welcome::before {
+    content: ""; position: absolute; left: 50%; top: -28px; transform: translateX(-50%);
+    width: min(760px, 110%); height: calc(100% + 40px); z-index: -1; pointer-events: none;
+    background: radial-gradient(ellipse 60% 50% at 50% 45%, rgba(4,10,20,.82) 0%, rgba(4,10,20,.55) 45%, rgba(4,10,20,0) 78%);
+  }
+  .w-title {
+    font-size: 32px; font-weight: 600; letter-spacing: -0.01em; margin: 0;
+    background: linear-gradient(180deg, #fff, #9ddcff); -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-wrap: balance;
+  }
+  .w-sub { color: var(--ink-dim); font-size: 14.5px; margin: 6px 0 18px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 700px; margin: 0 auto; }
+  .chip {
+    padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 12.5px; color: var(--soft);
+    background: rgba(10, 24, 40, .6); border: 1px solid rgba(120, 200, 255, .18);
+    transition: border-color .15s var(--ease), color .15s var(--ease), transform .15s var(--ease);
+  }
+  .chip:hover { color: #fff; border-color: rgba(53, 198, 255, .55); transform: translateY(-1px); }
+  .chip.risk { color: #ffd29a; border-color: rgba(255, 180, 84, .3); }
+
+  #transcript {
+    flex: 1 1 auto; min-height: 0; width: min(760px, calc(100% - 28px)); overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px; padding: 90px 4px 14px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 90px);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 90px);
+    scrollbar-width: thin; scrollbar-color: rgba(0, 212, 255, .3) transparent;
+    -webkit-user-select: text; user-select: text;
+  }
+  #transcript > :first-child { margin-top: auto; }
+  .msg { display: flex; flex-direction: column; gap: 6px; animation: rise .34s var(--ease) both; }
+  .msg.user { align-items: flex-end; }
+  .msg.jarvis { align-items: flex-start; }
+  .bubble {
+    max-width: 84%; padding: 11px 15px; border-radius: 18px; line-height: 1.55; font-size: 14px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .3); white-space: pre-line; overflow-wrap: anywhere;
+  }
+  .msg.user .bubble { background: linear-gradient(135deg, #0a5fb4, #0a84ff); color: #fff; border-bottom-right-radius: 6px; }
+  .msg.jarvis .bubble { background: rgba(8, 22, 38, .78); border: 1px solid rgba(120, 200, 255, .16); border-bottom-left-radius: 6px; }
+  .bubble.sys { border-color: rgba(255, 180, 84, .35) !important; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; white-space: normal; }
+  .act {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 9px; cursor: pointer;
+    font-size: 12.5px; text-decoration: none; color: #fff; background: rgba(53, 198, 255, .16); border: 1px solid rgba(53, 198, 255, .4);
+  }
+  .act:hover { background: rgba(53, 198, 255, .28); }
+  .act.warn { background: rgba(255, 180, 84, .16); border-color: rgba(255, 180, 84, .5); }
+  .act.ghost { background: transparent; border-color: var(--glass-brd); color: var(--ink-dim); }
+  .confirm-code { display: block; margin-top: 8px; font-family: var(--mono); font-size: 12px; color: #ffd29a; white-space: pre-wrap; }
+  .resolved { font-size: 12px; color: var(--ink-dim); margin-top: 8px; }
+
+  .trace { max-width: 84%; font-size: 12px; color: var(--ink-dim); }
+  .trace summary {
+    list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; flex-wrap: wrap;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--glass-brd); background: rgba(0, 0, 0, .3);
+  }
+  .trace summary::-webkit-details-marker { display: none; }
+  .trace summary:hover { color: var(--ink); }
+  .trace summary .gear { width: 12px; height: 12px; color: var(--accent); }
+  .trace summary b { font-family: var(--mono); font-weight: 500; color: var(--soft); }
+  .trace summary .ok { color: var(--green); }
+  .trace summary .no { color: var(--amber); }
+  .trace ol { margin: 8px 0 0; padding: 10px 12px 10px 30px; border-radius: 10px; background: rgba(0, 0, 0, .45); border: 1px solid var(--glass-brd); display: grid; gap: 8px; }
+  .trace li { font-family: var(--mono); font-size: 11.5px; line-height: 1.5; }
+  .trace li::marker { color: var(--ink-faint); }
+  .trace .call { color: var(--soft); overflow-wrap: anywhere; }
+  .trace .res { color: var(--ink-faint); white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 2px; }
+  .trace .st { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-left: 6px; }
+  .st.ok { color: var(--green); } .st.blocked, .st.error { color: var(--red); } .st.declined { color: var(--amber); }
+
+  .thinking { display: inline-flex; gap: 5px; align-items: center; padding: 14px 16px; }
+  .thinking span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: dots 1.2s ease-in-out infinite; }
+  .thinking span:nth-child(2) { animation-delay: .16s; }
+  .thinking span:nth-child(3) { animation-delay: .32s; }
+  @keyframes dots { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-4px); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ---- dock row: SYSTEMS · input · CONFIG ---- */
+  .dockrow {
+    position: relative; display: grid; grid-template-columns: 1fr minmax(0, 720px) 1fr; align-items: start; gap: 18px;
+    padding: 8px 28px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .corner {
+    height: 58px; padding: 0 22px; border-radius: 14px; cursor: pointer;
+    font-size: 12px; letter-spacing: .22em; font-weight: 600; color: var(--soft);
+    transition: color .15s var(--ease), border-color .15s var(--ease), transform .15s var(--ease);
+  }
+  .corner:hover { color: var(--cyan); border-color: rgba(0, 212, 255, .55); }
+  .corner[aria-expanded="true"] { color: #fff; border-color: rgba(0, 212, 255, .7); box-shadow: 0 0 0 1px rgba(0, 212, 255, .4), 0 8px 32px rgba(0, 0, 0, .45); }
+  #sys-btn { justify-self: start; }
+  #cfg-btn { justify-self: end; }
+  #bar {
+    display: flex; align-items: center; gap: 8px; height: 58px; padding: 7px 8px 7px 10px; border-radius: 20px;
+    transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  #bar:focus-within { border-color: rgba(53, 198, 255, .6); box-shadow: 0 0 0 1px rgba(53,198,255,.35), 0 10px 40px rgba(0,0,0,.5), 0 0 34px rgba(53,198,255,.18); }
+  #input { flex: 1 1 auto; min-width: 0; background: transparent; border: 0; outline: none; font-size: 14.5px; color: var(--ink); }
+  #input::placeholder { color: var(--ink-faint); }
+  .bar-btn {
+    flex: 0 0 auto; width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; cursor: pointer;
+    background: rgba(53, 198, 255, .07); border: 1px solid rgba(53, 198, 255, .18); color: var(--soft);
+    transition: transform .15s var(--ease), background .15s var(--ease), color .15s var(--ease);
+  }
+  .bar-btn svg { width: 18px; height: 18px; }
+  .bar-btn:hover { color: #fff; }
+  .bar-btn:disabled { opacity: .35; cursor: default; }
+  #mic.live { background: rgba(60, 232, 136, .2); border-color: rgba(60, 232, 136, .6); color: var(--green); animation: micPulse 1.4s ease-in-out infinite; }
+  @keyframes micPulse { 50% { box-shadow: 0 0 0 6px rgba(60, 232, 136, .12); } }
+  #voice[aria-pressed="false"] { color: var(--ink-faint); }
+  #send { background: rgba(53, 198, 255, .14); color: rgba(53, 198, 255, .55); }
+  #bar.has-text #send { background: linear-gradient(135deg, #0a84ff, #35c6ff); color: #fff; box-shadow: 0 0 18px rgba(53, 198, 255, .5); }
+  .hint { text-align: center; font-size: 10.5px; letter-spacing: .03em; color: var(--ink-faint); margin-top: 7px; }
+
+  .panel {
+    position: absolute; bottom: calc(100% + 4px); z-index: 30; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 560px); overflow-y: auto;
+    padding: 16px; border-radius: 14px; animation: rise .2s var(--ease) both;
+    background: rgba(4, 12, 22, .9);
+    scrollbar-width: thin; scrollbar-color: rgba(0, 212, 255, .4) transparent;
+  }
+  #sys-panel { left: 28px; }
+  #cfg-panel { right: 28px; }
+  .p-head { font-size: 11px; letter-spacing: .28em; color: var(--cyan); text-transform: uppercase; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 212, 255, .18); }
+  .p-sec { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-dim); margin: 16px 0 8px; }
+  .p-sec:first-of-type { margin-top: 0; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 12.5px; }
+  .kv dt { color: var(--ink-dim); }
+  .kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  .tools { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tools code { font-family: var(--mono); font-size: 11px; padding: 3px 7px; border-radius: 6px; background: rgba(53, 198, 255, .08); border: 1px solid rgba(53, 198, 255, .16); color: var(--soft); }
+  .tools code.read { border-color: rgba(60, 232, 136, .3); }
+  .tools code.danger { border-color: rgba(255, 180, 84, .45); color: #ffd29a; }
+  .legend { display: flex; gap: 14px; margin-top: 8px; font-size: 11px; color: var(--ink-dim); flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .p-text { font-size: 12.5px; line-height: 1.6; color: var(--ink-dim); margin: 0; }
+  .p-text b { color: var(--ink); font-weight: 600; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 11px; background: rgba(0, 0, 0, .35); border: 1px solid var(--glass-brd); }
+  .seg button { padding: 8px 4px; border-radius: 8px; border: 0; background: none; cursor: pointer; font-size: 12px; color: var(--ink-dim); }
+  .seg button[aria-pressed="true"] { background: linear-gradient(180deg, #123a66, #0c2748); color: #fff; box-shadow: inset 0 0 0 1px rgba(53, 198, 255, .4); }
+  .mode-note { margin: 8px 0 0; font-size: 12px; line-height: 1.55; color: var(--ink-dim); min-height: 56px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12.5px; padding: 6px 0; }
+  .switch { position: relative; width: 38px; height: 22px; border-radius: 999px; border: 1px solid var(--glass-brd); background: rgba(0, 0, 0, .4); cursor: pointer; flex: 0 0 auto; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-dim); transition: transform .2s var(--ease), background .2s var(--ease); }
+  .switch[aria-checked="true"] { background: rgba(53, 198, 255, .3); border-color: rgba(53, 198, 255, .6); }
+  .switch[aria-checked="true"]::after { transform: translateX(16px); background: #fff; }
+  .danger-btn { width: 100%; margin-top: 8px; padding: 9px; border-radius: 9px; cursor: pointer; background: transparent; border: 1px solid rgba(255, 107, 107, .35); color: var(--red); font-size: 12.5px; }
+  .danger-btn.armed { background: rgba(255, 107, 107, .85); color: #fff; }
+
+  /* ---- smaller screens ---- */
+  @media (max-width: 1180px) {
+    .dockrow { grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; padding-left: 16px; padding-right: 16px; }
+    .corner { padding: 0 14px; letter-spacing: .16em; font-size: 11px; }
+    #sys-panel { left: 16px; } #cfg-panel { right: 16px; }
+  }
+  @media (max-width: 860px) {
+    #sidebar { left: 0; top: 0; bottom: 0; border-radius: 0 16px 16px 0; width: min(300px, 86vw); padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+    body:not(.sb-open) #sidebar { transform: translateX(-105%); opacity: 0; pointer-events: none; }
+    body.sb-open #sidebar { transform: none; opacity: 1; pointer-events: auto; }
+    #collapse { display: none; }
+  }
+  @media (max-width: 640px) {
+    .topbar { grid-template-columns: auto minmax(0, 1fr) auto; padding-left: 12px; padding-right: 12px; }
+    #chat-header { max-width: 100%; justify-self: center; }
+    .tag { display: none; }
+    .dockrow { grid-template-columns: 1fr 1fr; grid-template-areas: "sys cfg" "dock dock"; gap: 8px; padding: 6px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+    #sys-btn { grid-area: sys; } #cfg-btn { grid-area: cfg; } #dock { grid-area: dock; }
+    .corner { height: 34px; border-radius: 10px; font-size: 10.5px; }
+    #sys-panel, #cfg-panel { left: 12px; right: 12px; width: auto; }
+    .w-title { font-size: 26px; }
+    .w-sub { margin-bottom: 14px; }
+    .chip { font-size: 12px; padding: 7px 11px; }
+    .bubble, .trace { max-width: 92%; }
+    #transcript { padding-top: 60px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 60px); mask-image: linear-gradient(to bottom, transparent 0, #000 60px); }
+    .hint { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="holo" aria-hidden="true"></canvas>
+
+<aside id="sidebar" class="glass" aria-label="Chats">
+  <div class="sb-top">
+    <span class="brand">J.A.R.V.I.S</span>
+    <button class="icon-btn" id="collapse" type="button" aria-label="Hide chat list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+  </div>
+  <button class="new-chat" id="new-chat" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New chat</button>
+  <div class="chats" id="chats"></div>
+  <div class="sb-foot">
+    <div class="model"><span class="d"></span><span>demo planner · in browser</span><span class="r">READY</span></div>
+    <div class="sb-note">Chats are saved in this browser</div>
+  </div>
+</aside>
+<div id="scrim" hidden></div>
+
+<div id="main">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="icon-btn glass" id="open-sb" type="button" aria-label="Show chat list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+    <div id="chat-header" class="glass" hidden>
+      <div class="ch-av"><div class="ch-dot"></div></div>
+      <div class="ch-meta"><div class="ch-title" id="ch-title">New chat</div><div class="ch-status" id="ch-status">ready</div></div>
+    </div>
+    <div class="tb-right">
+      <span class="tag">LITE DEMO</span>
+      <a class="pill glass" href="../../index.html#projects">&larr; Portfolio</a>
+    </div>
+  </header>
+
+  <div id="stage">
+    <div id="welcome">
+      <h1 class="w-title" id="w-title">Good evening.</h1>
+      <p class="w-sub">How can I help you today?</p>
+      <div class="chips" id="chips">
+        <button class="chip" type="button">What's the weather in Tokyo?</button>
+        <button class="chip" type="button">Check system health</button>
+        <button class="chip" type="button">Remind me in 1 minute to stretch</button>
+        <button class="chip" type="button">What's 15% of 84, and what time is it in London?</button>
+        <button class="chip risk" type="button">Shut down my computer</button>
+        <button class="chip" type="button">What can you do?</button>
+      </div>
+    </div>
+    <div id="transcript" role="log" aria-live="polite" hidden></div>
+  </div>
+
+  <div class="dockrow">
+    <button class="corner glass" id="sys-btn" type="button" aria-expanded="false" aria-controls="sys-panel">SYSTEMS</button>
+    <div id="dock">
+      <form id="bar" class="glass" autocomplete="off">
+        <button class="bar-btn" id="mic" type="button" aria-label="Speak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
+        <input id="input" type="text" placeholder="Message JARVIS…" aria-label="Message JARVIS" enterkeyhint="send">
+        <button class="bar-btn" id="voice" type="button" aria-pressed="true" aria-label="Spoken replies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4z"/><path id="voice-waves" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+        <button class="bar-btn" id="send" type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10.1 15 12 3.4 13.9z"/></svg></button>
+      </form>
+      <div class="hint">Lite web demo. The real JARVIS runs fully offline on Windows with a local language model.</div>
+    </div>
+    <button class="corner glass" id="cfg-btn" type="button" aria-expanded="false" aria-controls="cfg-panel">CONFIG</button>
+
+    <section class="panel glass" id="sys-panel" hidden aria-label="Systems">
+      <div class="p-head">Systems</div>
+      <div class="p-sec">This demo</div>
+      <dl class="kv">
+        <dt>Planner</dt><dd>rule-based, in your browser</dd>
+        <dt>Tools</dt><dd id="sys-tools">0</dd>
+        <dt>Tool calls this visit</dt><dd id="sys-calls">0</dd>
+        <dt>Voice in / out</dt><dd id="sys-voice">browser speech</dd>
+        <dt>Hologram</dt><dd id="sys-fps">– fps</dd>
+      </dl>
+      <div class="p-sec">Tools</div>
+      <div class="tools" id="tool-list"></div>
+      <div class="legend"><span><i style="background:rgba(60,232,136,.5)"></i>reads only</span><span><i style="background:rgba(53,198,255,.45)"></i>changes something</span><span><i style="background:rgba(255,180,84,.6)"></i>risky</span></div>
+      <div class="p-sec">The real JARVIS</div>
+      <p class="p-text">Runs <b>qwen3:14b</b> through Ollama, fully offline, with <b>48 tools</b> in 6 packs (apps, files, shell, system, web, assistant). It works in a <b>plan → call → observe</b> loop and can chain tools, recover from its own mistakes, and ask before risky actions. Speech goes in through <b>Whisper</b> and comes out through a <b>Piper</b> voice with its own EQ and reverb. Turning the model's "thinking" mode off by default made replies <b>2.9× faster</b> with no loss in picking the right tool.</p>
+    </section>
+
+    <section class="panel glass" id="cfg-panel" hidden aria-label="Config">
+      <div class="p-head">Config</div>
+      <div class="p-sec">Autonomy</div>
+      <div class="seg" role="group" aria-label="Autonomy mode">
+        <button type="button" data-mode="autonomous">Autonomous</button>
+        <button type="button" data-mode="tiered">Tiered</button>
+        <button type="button" data-mode="strict">Strict</button>
+      </div>
+      <p class="mode-note" id="mode-note"></p>
+      <p class="p-text">Some things are blocked in <b>every</b> mode. These hard rails stop JARVIS from killing critical Windows processes, apps you've protected, or itself.</p>
+      <div class="p-sec">Voice</div>
+      <div class="row"><span>Speak replies out loud</span><button class="switch" id="cfg-voice" type="button" role="switch" aria-checked="true" aria-label="Speak replies out loud"></button></div>
+      <div class="p-sec">Demo data</div>
+      <p class="p-text">Chats, notes and your name are stored only in this browser.</p>
+      <button class="danger-btn" id="wipe" type="button">Clear all demo data</button>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function $(id) { return document.getElementById(id); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ==================================================================
+     STATE  (per-chat transcripts + shared memory, saved in this browser)
+  ================================================================== */
+  var KEY = 'jarvisLite.v1';
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function load() {
+    try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.chats)) return s; } catch (e) {}
+    return null;
+  }
+  var state = load() || { chats: [], active: null, notes: [], memory: {}, mode: 'tiered', voice: true };
+  if (!state.notes) state.notes = [];
+  if (!state.memory) state.memory = {};
+  if (['autonomous', 'tiered', 'strict'].indexOf(state.mode) < 0) state.mode = 'tiered';
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function activeChat() {
+    for (var i = 0; i < state.chats.length; i++) if (state.chats[i].id === state.active) return state.chats[i];
+    return null;
+  }
+  function ensureChat() {
+    var c = activeChat();
+    if (c) return c;
+    c = { id: uid(), title: 'New chat', updated: Date.now(), messages: [] };
+    state.chats.unshift(c);
+    state.active = c.id;
+    save();
+    return c;
+  }
+  var sessionCalls = 0;
+
+  /* ==================================================================
+     TOOLS — each one mirrors a tool in the real registry.
+     kind: read (only looks), write (changes something), danger (risky)
+  ================================================================== */
+  var HOME = 'Pomona, California';
+
+  function geocode(q) {
+    var parts = q.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    var url = 'https://geocoding-api.open-meteo.com/v1/search?count=10&language=en&format=json&name=' + encodeURIComponent(parts[0]);
+    return fetch(url).then(function (r) { if (!r.ok) throw new Error('geocoder returned ' + r.status); return r.json(); }).then(function (j) {
+      var list = j.results || [];
+      if (!list.length) throw new Error('I couldn\'t find a place called "' + q + '"');
+      var pick = list[0];
+      if (parts[1]) {
+        var want = parts[1].toLowerCase();
+        for (var i = 0; i < list.length; i++) {
+          var r = list[i];
+          if ([r.admin1, r.country, r.country_code].some(function (v) { return v && v.toLowerCase().indexOf(want) === 0; })) { pick = r; break; }
+        }
+      }
+      return { name: pick.name, region: pick.admin1 || '', country: pick.country || '', cc: pick.country_code || '', lat: pick.latitude, lon: pick.longitude, tz: pick.timezone };
+    });
+  }
+  function placeName(g) {
+    var tail = g.cc === 'US' ? g.region : g.country;
+    return tail && tail !== g.name ? g.name + ', ' + tail : g.name;
+  }
+  var WMO = [[0, 'clear skies'], [1, 'mostly clear skies'], [2, 'partly cloudy skies'], [3, 'overcast skies'], [48, 'fog'], [57, 'drizzle'], [67, 'rain'], [77, 'snow'], [82, 'rain showers'], [86, 'snow showers'], [99, 'thunderstorms']];
+  function wmo(code) { for (var i = 0; i < WMO.length; i++) if (code <= WMO[i][0]) return WMO[i][1]; return 'mixed weather'; }
+
+  var UNITS = {
+    length: { m: 1, km: 1000, cm: 0.01, mm: 0.001, mi: 1609.344, ft: 0.3048, in: 0.0254, yd: 0.9144 },
+    mass: { kg: 1, g: 0.001, lb: 0.45359237, oz: 0.028349523125 },
+    volume: { l: 1, ml: 0.001, gal: 3.785411784, cup: 0.2365882365 }
+  };
+  var ALIAS = {
+    m: 'm', meter: 'm', meters: 'm', metre: 'm', metres: 'm', km: 'km', kilometer: 'km', kilometers: 'km', kilometre: 'km', kilometres: 'km',
+    cm: 'cm', centimeter: 'cm', centimeters: 'cm', mm: 'mm', millimeter: 'mm', millimeters: 'mm',
+    mi: 'mi', mile: 'mi', miles: 'mi', ft: 'ft', foot: 'ft', feet: 'ft', 'in': 'in', inch: 'in', inches: 'in', yd: 'yd', yard: 'yd', yards: 'yd',
+    kg: 'kg', kilo: 'kg', kilos: 'kg', kilogram: 'kg', kilograms: 'kg', g: 'g', gram: 'g', grams: 'g',
+    lb: 'lb', lbs: 'lb', pound: 'lb', pounds: 'lb', oz: 'oz', ounce: 'oz', ounces: 'oz',
+    l: 'l', liter: 'l', liters: 'l', litre: 'l', litres: 'l', ml: 'ml', milliliter: 'ml', milliliters: 'ml',
+    gal: 'gal', gallon: 'gal', gallons: 'gal', cup: 'cup', cups: 'cup',
+    c: 'c', '°c': 'c', celsius: 'c', f: 'f', '°f': 'f', fahrenheit: 'f', k: 'k', kelvin: 'k'
+  };
+  function unitName(u, n) {
+    var names = { m: 'meter', km: 'kilometer', cm: 'centimeter', mm: 'millimeter', mi: 'mile', ft: 'foot', 'in': 'inch', yd: 'yard', kg: 'kilogram', g: 'gram', lb: 'pound', oz: 'ounce', l: 'liter', ml: 'milliliter', gal: 'gallon', cup: 'cup', c: '°C', f: '°F', k: 'K' };
+    var s = names[u] || u;
+    if (s[0] === '°' || s === 'K') return s;
+    if (n === 1) return s;
+    if (s === 'foot') return 'feet';
+    if (s === 'inch') return 'inches';
+    return s + 's';
+  }
+  function withUnit(v, u) {
+    var n = unitName(u, v);
+    return fmtNum(v) + (n[0] === '°' ? '' : ' ') + n;
+  }
+  function fmtNum(v) {
+    var a = Math.abs(v);
+    var d = a >= 100 ? 1 : a >= 1 ? 2 : 4;
+    return Number(v.toFixed(d)).toLocaleString(undefined, { maximumFractionDigits: d });
+  }
+
+  // Small safe math parser. No eval.
+  var FN = { sqrt: Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan, log: Math.log10, ln: Math.log, abs: Math.abs, round: Math.round, floor: Math.floor, ceil: Math.ceil };
+  function evaluate(src) {
+    var toks = src.match(/\d*\.?\d+(?:e[+-]?\d+)?|[a-z]+|[-+*/^%()]/gi) || [];
+    var i = 0;
+    function peek() { return toks[i]; }
+    function next() { return toks[i++]; }
+    function expr() { var v = term(); while (peek() === '+' || peek() === '-') { var o = next(), r = term(); v = o === '+' ? v + r : v - r; } return v; }
+    function term() { var v = power(); while (peek() === '*' || peek() === '/' || peek() === '%') { var o = next(), r = power(); v = o === '*' ? v * r : o === '/' ? v / r : v % r; } return v; }
+    function power() { var b = unary(); if (peek() === '^') { next(); return Math.pow(b, power()); } return b; }
+    function unary() { if (peek() === '-') { next(); return -unary(); } if (peek() === '+') { next(); return unary(); } return primary(); }
+    function primary() {
+      var t = next();
+      if (t === undefined) throw new Error('the expression ended early');
+      if (t === '(') { var v = expr(); if (next() !== ')') throw new Error('a bracket is missing'); return v; }
+      if (/^[\d.]/.test(t)) return parseFloat(t);
+      t = t.toLowerCase();
+      if (t === 'pi') return Math.PI;
+      if (t === 'e') return Math.E;
+      if (FN[t]) {
+        var a;
+        if (peek() === '(') { next(); a = expr(); if (next() !== ')') throw new Error('a bracket is missing'); } else a = unary();
+        return FN[t](a);
+      }
+      throw new Error('I don\'t know "' + t + '"');
+    }
+    var v = expr();
+    if (i < toks.length) throw new Error('I couldn\'t read all of that');
+    if (!isFinite(v)) throw new Error('the result isn\'t a finite number');
+    return v;
+  }
+  function toExpression(text) {
+    var s = ' ' + text.toLowerCase() + ' ';
+    s = s.replace(/(\d+(?:\.\d+)?)\s*(?:%|percent)\s+of\s+/g, '($1/100)*')
+      .replace(/square root of/g, 'sqrt ').replace(/\bsquared\b/g, '^2').replace(/\bcubed\b/g, '^3')
+      .replace(/to the power of|\bpower of\b/g, '^').replace(/\btimes\b|multiplied by|×/g, '*')
+      .replace(/divided by|\bover\b|÷/g, '/').replace(/\bplus\b/g, '+').replace(/\bminus\b/g, '-')
+      .replace(/(\d)\s*x\s*(?=[\d(])/g, '$1*').replace(/,(?=\d{3})/g, '');
+    var toks = s.match(/\d*\.?\d+(?:e[+-]?\d+)?|[a-z]+|[-+*/^%()]/g) || [];
+    toks = toks.filter(function (t) { return !/^[a-z]+$/.test(t) || FN[t] || t === 'pi'; });
+    return toks.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function prettyExpr(e) {
+    return e.replace(/\( (\d+(?:\.\d+)?) \/ 100 \) \* /g, '$1% of ')
+      .replace(/\( /g, '(').replace(/ \)/g, ')').replace(/ \^ /g, '^').replace(/([a-z]) \(/g, '$1(');
+  }
+
+  var JOKES = [
+    'There are 10 kinds of people: those who understand binary and those who don\'t.',
+    'I would tell you a UDP joke, but you might not get it.',
+    'A SQL query walks into a bar, walks up to two tables and asks, "Can I join you?"',
+    'Why do programmers prefer dark mode? Because light attracts bugs.',
+    'I\'d explain recursion, but first I\'d have to explain recursion.'
+  ];
+  var SITES = { youtube: 'https://www.youtube.com', github: 'https://github.com', google: 'https://www.google.com', gmail: 'https://mail.google.com', spotify: 'https://open.spotify.com', reddit: 'https://www.reddit.com', wikipedia: 'https://www.wikipedia.org', netflix: 'https://www.netflix.com', linkedin: 'https://www.linkedin.com', amazon: 'https://www.amazon.com', twitch: 'https://www.twitch.tv' };
+  var SITE_NAMES = { youtube: 'YouTube', github: 'GitHub', linkedin: 'LinkedIn' };
+  var CRITICAL = ['explorer', 'csrss', 'winlogon', 'lsass', 'svchost', 'smss', 'wininit', 'services', 'system', 'dwm', 'registry'];
+
+  var timers = [];
+
+  var TOOLS = {
+    get_time: {
+      pack: 'assistant', kind: 'read', desc: 'Current time, here or in a named city',
+      run: function (a) {
+        var now = new Date();
+        if (!a.location) return { time: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), weekday: now.toLocaleDateString([], { weekday: 'long' }), zone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+        return geocode(a.location).then(function (g) {
+          return { place: placeName(g), zone: g.tz, time: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZone: g.tz }), weekday: now.toLocaleDateString([], { weekday: 'long', timeZone: g.tz }) };
+        });
+      },
+      say: function (r) { return r.place ? 'It\'s ' + r.time + ' on ' + r.weekday + ' in ' + r.place + '.' : 'It\'s ' + r.time + '.'; }
+    },
+    get_date: {
+      pack: 'assistant', kind: 'read', desc: 'Today\'s date',
+      run: function () { var d = new Date(); return { date: d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }), iso: d.toISOString().slice(0, 10) }; },
+      say: function (r) { return 'Today is ' + r.date + '.'; }
+    },
+    get_weather: {
+      pack: 'web', kind: 'read', desc: 'Live weather for a city (Open-Meteo)',
+      run: function (a) {
+        return geocode(a.location || HOME).then(function (g) {
+          var f = g.cc === 'US' || g.cc === 'LR' || g.cc === 'MM';
+          var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon +
+            '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m' +
+            '&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto' +
+            (f ? '&temperature_unit=fahrenheit&wind_speed_unit=mph' : '&wind_speed_unit=kmh');
+          return fetch(url).then(function (r) { if (!r.ok) throw new Error('weather service returned ' + r.status); return r.json(); }).then(function (w) {
+            var c = w.current;
+            return {
+              place: placeName(g), unit: f ? 'F' : 'C', temp: Math.round(c.temperature_2m), feels: Math.round(c.apparent_temperature),
+              humidity: c.relative_humidity_2m, wind: Math.round(c.wind_speed_10m), wind_unit: f ? 'mph' : 'km/h',
+              sky: wmo(c.weather_code), high: Math.round(w.daily.temperature_2m_max[0]), low: Math.round(w.daily.temperature_2m_min[0]),
+              defaulted: !a.location
+            };
+          });
+        });
+      },
+      say: function (r) {
+        return (r.defaulted ? 'You didn\'t name a city, so I checked ' + r.place + ', where Diego is. ' : '') +
+          'It\'s ' + r.temp + '°' + r.unit + ' with ' + r.sky + ' in ' + r.place + '. Feels like ' + r.feels + '°, humidity ' + r.humidity + '%, wind ' + r.wind + ' ' + r.wind_unit + '. Today\'s high is ' + r.high + '° and the low is ' + r.low + '°.';
+      }
+    },
+    set_timer: {
+      pack: 'assistant', kind: 'write', desc: 'Timer or reminder that fires in this chat', ask: function () { return 'set that timer'; },
+      run: function (a, ctx) {
+        var id = uid(), at = Date.now() + a.seconds * 1000;
+        var t = { id: id, chat: ctx.chatId, label: a.label || '', at: at };
+        t.handle = setTimeout(function () { fireTimer(t); }, a.seconds * 1000);
+        timers.push(t);
+        return { timer_id: id, fires_at: new Date(at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }), seconds: a.seconds, label: a.label || null };
+      },
+      say: function (r) { return 'Timer set for ' + humanDuration(r.seconds) + (r.label ? ' to ' + r.label : '') + '. I\'ll post here' + (state.voice ? ' and say it out loud' : '') + ' at ' + r.fires_at + '. Keep this tab open.'; }
+    },
+    calculate: {
+      pack: 'assistant', kind: 'read', desc: 'Math, safely parsed (no eval)',
+      run: function (a) { return { expression: a.expression, result: evaluate(a.expression) }; },
+      say: function (r) { return prettyExpr(r.expression) + ' = ' + fmtNum(r.result) + '.'; }
+    },
+    convert_units: {
+      pack: 'assistant', kind: 'read', desc: 'Length, weight, volume and temperature',
+      run: function (a) {
+        var f = a.from, t = a.to, v = a.value, out;
+        var temp = ['c', 'f', 'k'];
+        if (temp.indexOf(f) >= 0 && temp.indexOf(t) >= 0) {
+          var c = f === 'c' ? v : f === 'f' ? (v - 32) * 5 / 9 : v - 273.15;
+          out = t === 'c' ? c : t === 'f' ? c * 9 / 5 + 32 : c + 273.15;
+        } else {
+          var dim = null;
+          for (var k in UNITS) if (UNITS[k][f] && UNITS[k][t]) dim = k;
+          if (!dim) throw new Error('I can\'t convert ' + unitName(f, 2) + ' to ' + unitName(t, 2));
+          out = v * UNITS[dim][f] / UNITS[dim][t];
+        }
+        return { value: v, from: f, to: t, result: out };
+      },
+      say: function (r) { return withUnit(r.value, r.from) + ' is ' + withUnit(r.result, r.to) + '.'; }
+    },
+    system_health: {
+      pack: 'system', kind: 'read', desc: 'What your browser reports about this device',
+      run: function () {
+        var n = navigator, r = {
+          logical_cores: n.hardwareConcurrency || null,
+          memory_gb: n.deviceMemory || null,
+          screen: screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x',
+          network: n.connection ? (n.connection.effectiveType || '').toUpperCase() + (n.connection.downlink ? ', ~' + n.connection.downlink + ' Mbps' : '') : null,
+          hologram_fps: Math.round(holo.fps),
+          js_heap_mb: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null,
+          online: n.onLine
+        };
+        if (n.getBattery) {
+          return n.getBattery().then(function (b) { r.battery = Math.round(b.level * 100) + '%' + (b.charging ? ', charging' : ''); return r; }, function () { return r; });
+        }
+        return r;
+      },
+      say: function (r) {
+        var bits = [];
+        if (r.logical_cores) bits.push(r.logical_cores + ' logical cores');
+        if (r.memory_gb) bits.push('at least ' + r.memory_gb + ' GB of memory');
+        var s = bits.length ? 'Your browser reports ' + bits.join(' and ') + '. ' : '';
+        if (r.battery) s += 'Battery is at ' + r.battery + '. ';
+        if (r.network) s += 'Connection looks like ' + r.network + '. ';
+        s += 'The hologram is rendering at ' + r.hologram_fps + ' fps' + (r.hologram_fps >= 50 ? ', so graphics are healthy.' : '.');
+        s += ' On the desktop I read real CPU, memory, disk and GPU telemetry instead.';
+        return s;
+      }
+    },
+    save_note: {
+      pack: 'assistant', kind: 'write', desc: 'Save a note (kept in this browser)', ask: function () { return 'save that note'; },
+      run: function (a) { state.notes.push({ text: a.text, at: Date.now() }); save(); return { saved: a.text, total_notes: state.notes.length }; },
+      say: function (r) { return 'Noted: "' + r.saved + '". You have ' + r.total_notes + ' note' + (r.total_notes === 1 ? '' : 's') + '.'; }
+    },
+    list_notes: {
+      pack: 'assistant', kind: 'read', desc: 'Read back your notes',
+      run: function () { return { notes: state.notes.map(function (n) { return n.text; }) }; },
+      say: function (r) { return r.notes.length ? 'Your notes:\n' + r.notes.map(function (n, i) { return (i + 1) + '. ' + n; }).join('\n') : 'You don\'t have any notes yet. Try "note that the demo works".'; }
+    },
+    clear_notes: {
+      pack: 'assistant', kind: 'danger', desc: 'Delete every note', ask: function () { return 'delete all of your notes'; },
+      run: function () { var n = state.notes.length; state.notes = []; save(); return { deleted: n }; },
+      say: function (r) { return 'Deleted ' + r.deleted + ' note' + (r.deleted === 1 ? '' : 's') + '.'; }
+    },
+    remember_name: {
+      pack: 'assistant', kind: 'write', desc: 'Remember what to call you', ask: function () { return 'remember your name'; },
+      run: function (a) { state.memory.name = a.name; save(); return { remembered: { name: a.name } }; },
+      say: function (r) { return 'Nice to meet you, ' + r.remembered.name + '. I\'ll remember that in every chat.'; }
+    },
+    recall_memory: {
+      pack: 'assistant', kind: 'read', desc: 'Look up something you told me',
+      run: function () { return { name: state.memory.name || null }; },
+      say: function (r) { return r.name ? 'You\'re ' + r.name + '.' : 'You haven\'t told me your name yet. Say "my name is …".'; }
+    },
+    web_search: {
+      pack: 'web', kind: 'read', desc: 'Build a web search link',
+      run: function (a) { return { query: a.query, url: 'https://duckduckgo.com/?q=' + encodeURIComponent(a.query) }; },
+      say: function (r) { return { text: 'Here\'s a search for "' + r.query + '".', actions: [{ label: 'Open search ↗', href: r.url }] }; }
+    },
+    open_website: {
+      pack: 'app', kind: 'write', desc: 'Open a site (as a link, in the browser)', ask: function (a) { return 'open ' + a.name; },
+      run: function (a) { return { name: a.name, url: a.url }; },
+      say: function (r) { return { text: 'Here\'s ' + r.name + '. A web page can\'t open tabs by itself, so tap the link. On the desktop I launch apps and sites directly.', actions: [{ label: 'Open ' + r.name + ' ↗', href: r.url }] }; }
+    },
+    flip_coin: {
+      pack: 'assistant', kind: 'read', desc: 'Flip a coin',
+      run: function () { var b = new Uint8Array(1); crypto.getRandomValues(b); return { result: b[0] & 1 ? 'heads' : 'tails' }; },
+      say: function (r) { return 'It\'s ' + r.result + '.'; }
+    },
+    roll_dice: {
+      pack: 'assistant', kind: 'read', desc: 'Roll a die with any number of sides',
+      run: function (a) { var b = new Uint32Array(1); crypto.getRandomValues(b); return { sides: a.sides, result: 1 + (b[0] % a.sides) }; },
+      say: function (r) { return 'You rolled a ' + r.result + ' on a d' + r.sides + '.'; }
+    },
+    tell_joke: {
+      pack: 'assistant', kind: 'read', desc: 'A programmer joke',
+      run: function () { return { joke: JOKES[Math.floor(Math.random() * JOKES.length)] }; },
+      say: function (r) { return r.joke; }
+    },
+    describe_screen: {
+      pack: 'system', kind: 'read', desc: 'What\'s on screen (limited in a browser)',
+      run: function () {
+        var c = activeChat();
+        return { can_capture_screen: false, visible: 'this JARVIS tab', viewport: innerWidth + '×' + innerHeight, messages_in_chat: c ? c.messages.length : 0 };
+      },
+      say: function () { return 'On the desktop I capture your screen and read it, including text in any window. A web page isn\'t allowed to see your screen, so from here all I can see is this tab.'; }
+    },
+    list_tools: {
+      pack: 'assistant', kind: 'read', desc: 'List what this demo can do',
+      run: function () { return { tools: Object.keys(TOOLS).length }; },
+      say: function (r) {
+        return 'In this demo I have ' + r.tools + ' tools. I can:\n' +
+          '• check live weather and the time anywhere\n• set timers and reminders\n• do math and convert units\n• take notes and remember your name\n' +
+          '• check this device\'s health\n• search the web and open sites\n• flip coins, roll dice, tell jokes\n\n' +
+          'Ask for two things at once and I\'ll run both tools. Try "shut down my computer" or "kill explorer.exe" to see the safety rules.';
+      }
+    },
+    power_action: {
+      pack: 'system', kind: 'danger', desc: 'Shut down, restart, sleep or lock the PC', ask: function (a) { return a.action + ' your computer'; },
+      run: function (a) { return { action: a.action, executed: false, reason: 'web demo cannot control your computer' }; },
+      say: function (r) { return 'Done, in demo mode, so your computer is fine. On the desktop, JARVIS would now ' + r.action + ' the PC.'; }
+    },
+    kill_process: {
+      pack: 'system', kind: 'danger', desc: 'End a running program', ask: function (a) { return 'close ' + a.name; },
+      run: function (a) { return { process: a.name + '.exe', executed: false, reason: 'web demo cannot see your processes' }; },
+      say: function (r) { return 'Done, in demo mode. On the desktop, JARVIS would now close ' + r.process + '.'; }
+    }
+  };
+  function toolCount() { return Object.keys(TOOLS).length; }
+
+  function humanDuration(s) {
+    if (s < 60) return s + ' second' + (s === 1 ? '' : 's');
+    if (s < 3600) { var m = Math.round(s / 6) / 10; return m + ' minute' + (m === 1 ? '' : 's'); }
+    var h = Math.round(s / 360) / 10; return h + ' hour' + (h === 1 ? '' : 's');
+  }
+
+  /* ==================================================================
+     HARD RAILS + AUTONOMY POLICY  (mirrors modules/agent/policy.py)
+  ================================================================== */
+  function hardRail(call) {
+    if (call.tool !== 'kill_process') return null;
+    var n = call.args.name.toLowerCase();
+    if (['jarvis', 'yourself', 'you', 'itself'].indexOf(n) >= 0) return 'JARVIS can\'t end its own process.';
+    if (CRITICAL.indexOf(n) >= 0) return n + '.exe is a critical Windows process, and closing it could crash the system.';
+    return null;
+  }
+  var MODES = {
+    autonomous: 'Runs every tool without asking. Hard rails still apply.',
+    tiered: 'Runs harmless tools right away and asks before anything risky, like shutting down or deleting notes. This is the default.',
+    strict: 'Asks before any tool that changes something, even saving a note. Only look-ups like weather and math run freely.'
+  };
+  function needsConfirm(tool) {
+    if (state.mode === 'autonomous') return false;
+    if (state.mode === 'tiered') return tool.kind === 'danger';
+    return tool.kind !== 'read';
+  }
+
+  /* ==================================================================
+     PLANNER — stands in for the local LLM. Splits a request into parts
+     and maps each part to a tool call.
+  ================================================================== */
+  var WORDNUM = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, ten: 10, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60 };
+  function place(seg, ctx) {
+    var m = seg.match(/\b(?:in|for|at)\s+([a-zà-ÿ][a-zà-ÿ .'\-]*(?:,\s*[a-zà-ÿ .'\-]+)?)/i);
+    if (!m) return /\bthere\b/i.test(seg) ? ctx.lastPlace : null;
+    var p = m[1].replace(/\b(right now|now|today|tonight|tomorrow|please|currently|at the moment)\b.*$/i, '').replace(/[?.!\s]+$/, '').trim();
+    if (!p || /^(the|a|my|me)$/i.test(p) || /^\d/.test(p)) return null;
+    return p;
+  }
+  var INTENTS = [
+    { tool: 'power_action', test: function (s) {
+      if (/\b(voice|sound|light|lights|music|volume|notification)/i.test(s)) return null;
+      var m = s.match(/\b(shut\s?down|power (?:off|down)|turn off|restart|reboot|sleep|hibernate|lock|log\s?off|sign out)\b/i);
+      if (!m) return null;
+      if (!/\b(pc|computer|laptop|machine|system|device|it)\b/i.test(s) && !/^\s*(shut\s?down|restart|reboot|lock|sleep)\s*[.!]?\s*$/i.test(s)) return null;
+      var a = m[1].toLowerCase().replace(/\s/g, '');
+      var map = { shutdown: 'shut down', poweroff: 'shut down', powerdown: 'shut down', turnoff: 'shut down', reboot: 'restart', logoff: 'log off', signout: 'log off' };
+      return { action: map[a] || a };
+    } },
+    { tool: 'kill_process', test: function (s) {
+      var m = s.match(/\b(?:kill|terminate|end|close|force quit|quit|stop)\s+(?:the\s+)?(?:process\s+|task\s+|app\s+)?([a-z][\w\-]*)(?:\.exe)?/i);
+      if (!m) return null;
+      var n = m[1].toLowerCase();
+      if (['talking', 'speaking', 'it', 'that', 'this', 'the', 'timer', 'timers', 'music'].indexOf(n) >= 0) return null;
+      return { name: n };
+    } },
+    { tool: 'set_timer', test: function (s) {
+      if (!/\b(remind|timer|alarm|alert|in \d)/i.test(s)) return null;
+      var m = s.match(/\b(\d+(?:\.\d+)?|an?|one|two|three|four|five|six|ten|fifteen|twenty|thirty|forty|fifty|sixty)\s*(s|secs?|seconds?|m|mins?|minutes?|h|hrs?|hours?)\b/i);
+      if (!m) return null;
+      var n = WORDNUM[m[1].toLowerCase()] || parseFloat(m[1]);
+      var u = m[2].toLowerCase()[0];
+      var secs = Math.round(n * (u === 'h' ? 3600 : u === 'm' ? 60 : 1));
+      if (!(secs > 0) || secs > 86400) return null;
+      var rest = s.replace(m[0], ' ');
+      var lab = rest.match(/\b(?:to|about|that)\s+(.+?)\s*[.!?]*$/i);
+      return { seconds: secs, label: lab ? lab[1].replace(/^(i\s+(?:need|have)\s+to\s+)/i, '') : '' };
+    } },
+    { tool: 'get_weather', test: function (s, ctx) {
+      if (!/\b(weather|temperature|forecast|raining|rain|snowing|sunny|how (?:hot|cold|warm))\b/i.test(s)) return null;
+      var p = place(s, ctx);
+      if (p) ctx.lastPlace = p;
+      return { location: p };
+    } },
+    { tool: 'get_time', test: function (s, ctx) {
+      if (!/\b(what time|the time|time is it|time in|current time|time there)\b/i.test(s)) return null;
+      var p = place(s, ctx);
+      if (p) ctx.lastPlace = p;
+      return { location: p };
+    } },
+    { tool: 'get_date', test: function (s) { return /\b(what(?:'s| is) the date|today'?s date|what day is (?:it|today)|what(?:'s| is) today)\b/i.test(s) ? {} : null; } },
+    { tool: 'convert_units', test: function (s) {
+      var m = s.match(/(-?\d+(?:\.\d+)?)\s*(°?\s?[a-z]+)\s+(?:to|in|into|as)\s+(°?\s?[a-z]+)/i);
+      if (!m) return null;
+      var f = ALIAS[m[2].toLowerCase().replace(/\s/g, '')], t = ALIAS[m[3].toLowerCase().replace(/\s/g, '')];
+      if (!f || !t || f === t) return null;
+      return { value: parseFloat(m[1]), from: f, to: t };
+    } },
+    { tool: 'calculate', test: function (s) {
+      if (!/\d/.test(s)) return null;
+      if (!/(\d\s*[-+*/x×÷^%]\s*[\d(]|\b(times|plus|minus|divided|squared|cubed|square root|sqrt|percent|power|calculate|compute)\b|%\s*of)/i.test(s)) return null;
+      var e = toExpression(s);
+      return e && /\d/.test(e) ? { expression: e } : null;
+    } },
+    { tool: 'system_health', test: function (s) { return /\b(system (?:health|status|check|info)|health check|diagnostic|how(?:'s| is) (?:my|this) (?:pc|computer|device|system|machine)|device info|specs)\b/i.test(s) ? {} : null; } },
+    { tool: 'clear_notes', test: function (s) { return /\b(clear|delete|wipe|erase|remove)\s+(?:all\s+)?(?:of\s+)?(?:my\s+|the\s+)?notes\b/i.test(s) ? {} : null; } },
+    { tool: 'list_notes', test: function (s) { return /\b((?:show|list|read|what are|see)\s+(?:me\s+)?(?:all\s+)?(?:my\s+|the\s+)?notes|my notes)\b/i.test(s) ? {} : null; } },
+    { tool: 'save_note', test: function (s) {
+      var m = s.match(/\b(?:take a note|make a note|add a note|save a note|note that|note:|remember that|write down)\s*:?\s*(?:that\s+)?(.+)/i);
+      return m && m[1].trim() ? { text: m[1].trim().replace(/[.!]+$/, '') } : null;
+    } },
+    { tool: 'remember_name', test: function (s) {
+      var m = s.match(/\b(?:my name is|call me|i am called|i'm called)\s+([a-zà-ÿ][a-zà-ÿ'\-]{0,30})/i);
+      return m ? { name: m[1][0].toUpperCase() + m[1].slice(1) } : null;
+    } },
+    { tool: 'recall_memory', test: function (s) { return /\b(what(?:'s| is) my name|who am i|do you (?:know|remember) (?:me|my name))\b/i.test(s) ? { key: 'name' } : null; } },
+    { tool: 'open_website', test: function (s) {
+      var m = s.match(/\b(?:open|launch|go to|pull up)\s+(?:up\s+)?([a-z0-9\-]+(?:\.[a-z0-9\-]+)+|[a-z]+)/i);
+      if (!m) return null;
+      var k = m[1].toLowerCase();
+      if (SITES[k]) return { name: SITE_NAMES[k] || k[0].toUpperCase() + k.slice(1), url: SITES[k] };
+      if (k.indexOf('.') > 0) return { name: k, url: 'https://' + k };
+      return null;
+    } },
+    { tool: 'web_search', test: function (s) {
+      var m = s.match(/^\s*(?:search(?:\s+the\s+web)?\s+for|search|google|look up|find)\s+(.+)/i);
+      return m ? { query: m[1].replace(/[?.!]+$/, '') } : null;
+    } },
+    { tool: 'flip_coin', test: function (s) { return /\b(flip|toss) a coin|coin flip|heads or tails\b/i.test(s) ? {} : null; } },
+    { tool: 'roll_dice', test: function (s) {
+      var m = s.match(/\broll\s+(?:a\s+)?(?:d(\d+)|(\d+)[\s-]*sided|dice|die)/i);
+      if (!m) return null;
+      var n = parseInt(m[1] || m[2] || '6', 10);
+      return { sides: Math.max(2, Math.min(1000, n)) };
+    } },
+    { tool: 'tell_joke', test: function (s) { return /\bjoke\b|make me laugh|something funny/i.test(s) ? {} : null; } },
+    { tool: 'describe_screen', test: function (s) { return /\b(on my screen|see my screen|what(?:'s| is) on (?:the |my )?screen|read my screen)\b/i.test(s) ? {} : null; } },
+    { tool: 'list_tools', test: function (s) { return /\b(what can you do|what do you do|help me out|your tools|capabilities|commands|what are you able)\b|^\s*help\s*[?!.]*$/i.test(s) ? {} : null; } }
+  ];
+
+  function smalltalk(text) {
+    var t = text.toLowerCase().trim();
+    var name = state.memory.name ? ', ' + state.memory.name : '';
+    if (/^(hi|hello|hey|yo|good (morning|afternoon|evening)|greetings|howdy)\b/.test(t)) return 'Hello' + name + '. What can I do for you?';
+    if (/\b(thank|thanks|thx|appreciate)/.test(t)) return 'Anytime' + name + '.';
+    if (/\bhow are you|how's it going|how are things/.test(t)) return 'All systems nominal. Thanks for asking.';
+    if (/\b(who|what) (are|r) (you|u)\b|about yourself|are you real/.test(t)) return 'I\'m a lite version of JARVIS, the offline assistant Diego built for his Windows PC. The real one runs a local language model with 48 tools. In this browser demo, a small rule-based planner stands in for the model and I have ' + toolCount() + ' tools.';
+    if (/\bwho (made|built|created|wrote) (you|this)/.test(t)) return 'Diego Ortega built me. The full version is a Python app with a PyQt and Three.js interface, Whisper for speech and a local LLM through Ollama.';
+    if (/\b(are you (an? )?ai|chatgpt|gpt|llm|language model)\b/.test(t)) return 'In this demo I\'m not a language model. A rule-based planner picks my tools. The desktop JARVIS runs qwen3:14b locally, with no cloud at all.';
+    return null;
+  }
+
+  function plan(text) {
+    var ctx = { lastPlace: null };
+    var parts = text.split(/\s*(?:;|,?\s+and then\s+|,?\s+then\s+|,?\s+also\s+|,\s*and\s+|\s+and\s+(?=(?:what|what's|whats|how|set|remind|tell|flip|roll|convert|calculate|check|save|note|open|search|show|list|roll|shut|restart|kill|close|give|is)\b))\s*/i).filter(function (p) { return p && p.trim(); });
+    var calls = [];
+    parts.forEach(function (p) {
+      for (var i = 0; i < INTENTS.length; i++) {
+        var args = INTENTS[i].test(p, ctx);
+        if (args) { calls.push({ tool: INTENTS[i].tool, args: args }); return; }
+      }
+    });
+    return calls;
+  }
+
+  /* ==================================================================
+     RENDERING
+  ================================================================== */
+  var transcriptEl = $('transcript'), welcomeEl = $('welcome');
+  var chatHeader = $('chat-header'), chTitle = $('ch-title'), chStatus = $('ch-status');
+  var GEAR = '<svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+
+  function argString(args) {
+    return Object.keys(args).filter(function (k) { return args[k] !== null && args[k] !== '' && args[k] !== undefined; }).map(function (k) {
+      return k + '=' + JSON.stringify(args[k]);
+    }).join(', ');
+  }
+  function short(obj) {
+    var s = JSON.stringify(obj);
+    return s.length > 220 ? s.slice(0, 217) + '…' : s;
+  }
+
+  function traceEl(trace) {
+    if (!trace || !trace.length) return null;
+    var d = document.createElement('details');
+    d.className = 'trace';
+    var ms = trace.reduce(function (a, t) { return a + (t.ms || 0); }, 0);
+    var bad = trace.filter(function (t) { return t.status !== 'ok'; }).length;
+    d.innerHTML = '<summary>' + GEAR + '<span>' + trace.length + ' tool call' + (trace.length === 1 ? '' : 's') + '</span><b></b><span class="' + (bad ? 'no' : 'ok') + '">' + (bad ? bad + ' not run' : Math.round(ms) + ' ms') + '</span></summary><ol></ol>';
+    d.querySelector('summary b').textContent = trace.map(function (t) { return t.tool; }).join(' · ');
+    var ol = d.querySelector('ol');
+    trace.forEach(function (t) {
+      var li = document.createElement('li');
+      var call = document.createElement('div'); call.className = 'call';
+      call.textContent = t.tool + '(' + argString(t.args) + ')';
+      var st = document.createElement('span'); st.className = 'st ' + t.status; st.textContent = t.status === 'ok' ? '✓ ' + Math.round(t.ms) + ' ms' : t.status;
+      call.appendChild(st);
+      var res = document.createElement('div'); res.className = 'res';
+      res.textContent = '→ ' + short(t.result);
+      li.appendChild(call); li.appendChild(res);
+      ol.appendChild(li);
+    });
+    return d;
+  }
+
+  function actionsEl(actions) {
+    if (!actions || !actions.length) return null;
+    var wrap = document.createElement('div');
+    wrap.className = 'actions';
+    actions.forEach(function (a) {
+      var el = document.createElement('a');
+      el.className = 'act';
+      el.href = a.href; el.target = '_blank'; el.rel = 'noopener';
+      el.textContent = a.label;
+      wrap.appendChild(el);
+    });
+    return wrap;
+  }
+
+  function renderMessage(m) {
+    var wrap = document.createElement('div');
+    wrap.className = 'msg ' + (m.role === 'user' ? 'user' : 'jarvis');
+    var b = document.createElement('div');
+    b.className = 'bubble' + (m.sys ? ' sys' : '');
+    b.textContent = m.text;
+    var acts = actionsEl(m.actions);
+    if (acts) b.appendChild(acts);
+    wrap.appendChild(b);
+    var tr = traceEl(m.trace);
+    if (tr) wrap.appendChild(tr);
+    return wrap;
+  }
+
+  function scrollDown() { transcriptEl.scrollTop = transcriptEl.scrollHeight; }
+
+  function greeting() {
+    var h = new Date().getHours();
+    var g = h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    return g + (state.memory.name ? ', ' + state.memory.name : '') + '.';
+  }
+
+  function renderChat() {
+    var c = activeChat();
+    transcriptEl.innerHTML = '';
+    var has = c && c.messages.length;
+    welcomeEl.hidden = !!has;
+    transcriptEl.hidden = !has;
+    chatHeader.hidden = !has;
+    document.body.classList.toggle('chatting', !!has);
+    $('w-title').textContent = greeting();
+    if (has) {
+      c.messages.forEach(function (m) { transcriptEl.appendChild(renderMessage(m)); });
+      chTitle.textContent = c.title;
+      setStatus('ready');
+      scrollDown();
+    }
+    renderChats();
+  }
+
+  function setStatus(s) { chStatus.textContent = 'demo planner · ' + toolCount() + ' tools · ' + s; }
+
+  function ago(t) {
+    var s = (Date.now() - t) / 1000;
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+    return new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+
+  var chatsEl = $('chats');
+  function renderChats() {
+    chatsEl.innerHTML = '';
+    var list = state.chats.filter(function (c) { return c.messages.length; });
+    if (!list.length) { chatsEl.innerHTML = '<div class="empty">No conversations yet</div>'; return; }
+    list.forEach(function (c) {
+      var item = document.createElement('div');
+      item.className = 'chat-item' + (c.id === state.active ? ' active' : '') + (c.ping ? ' ping' : '');
+      item.setAttribute('role', 'button');
+      item.tabIndex = 0;
+      item.innerHTML = '<div><div class="ct"></div><div class="cm"></div></div><button class="del" type="button" aria-label="Delete chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+      item.querySelector('.ct').textContent = c.title;
+      item.querySelector('.cm').textContent = (c.ping ? 'Timer went off · ' : '') + ago(c.updated);
+      function open() { if (busy) return; state.active = c.id; c.ping = false; save(); renderChat(); closeDrawer(); }
+      item.addEventListener('click', open);
+      item.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+      var del = item.querySelector('.del');
+      del.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (busy) return;
+        if (!del.classList.contains('armed')) {
+          del.classList.add('armed');
+          del.setAttribute('aria-label', 'Click again to delete');
+          setTimeout(function () { del.classList.remove('armed'); del.setAttribute('aria-label', 'Delete chat'); }, 3000);
+          return;
+        }
+        state.chats = state.chats.filter(function (x) { return x.id !== c.id; });
+        if (state.active === c.id) state.active = null;
+        save(); renderChat();
+      });
+      chatsEl.appendChild(item);
+    });
+  }
+
+  function addMessage(chat, m) {
+    chat.messages.push(m);
+    chat.updated = Date.now();
+    if (chat.title === 'New chat' && m.role === 'user') chat.title = m.text.length > 42 ? m.text.slice(0, 40).trim() + '…' : m.text;
+    // Most recently used chats rise to the top.
+    state.chats.splice(state.chats.indexOf(chat), 1);
+    state.chats.unshift(chat);
+    save();
+  }
+
+  /* ==================================================================
+     VOICE — speech out (speechSynthesis) and in (SpeechRecognition)
+  ================================================================== */
+  var synth = window.speechSynthesis || null;
+  var chosenVoice = null;
+  function pickVoice() {
+    if (!synth) return;
+    var vs = synth.getVoices();
+    var prefs = [/UK English Male/i, /Ryan/i, /Daniel/i, /George/i, /Arthur/i, /Oliver/i, /en-GB/i, /English/i];
+    for (var i = 0; i < prefs.length && !chosenVoice; i++) {
+      for (var j = 0; j < vs.length; j++) {
+        if (prefs[i].test(vs[j].name) || prefs[i].test(vs[j].lang)) { if (vs[j].lang && vs[j].lang.indexOf('en') === 0) { chosenVoice = vs[j]; break; } }
+      }
+    }
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+  function speak(text) {
+    if (!synth || !state.voice) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text.replace(/[•]/g, '').replace(/\n+/g, '. ').replace(/°([CF])/g, ' degrees').replace(/°/g, ' degrees'));
+    if (chosenVoice) u.voice = chosenVoice;
+    u.rate = 1.03; u.pitch = 0.92;
+    u.onstart = function () { holo.speaking = true; };
+    u.onboundary = function () { holo.level = 1; };
+    u.onend = u.onerror = function () { holo.speaking = false; };
+    synth.speak(u);
+  }
+  function stopSpeaking() { if (synth) synth.cancel(); holo.speaking = false; }
+
+  var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var micBtn = $('mic'), rec = null, listening = false;
+  if (!Rec) {
+    micBtn.disabled = true;
+    micBtn.title = 'Voice input needs Chrome, Edge or Safari';
+    micBtn.setAttribute('aria-label', 'Voice input is not supported in this browser');
+    $('sys-voice').textContent = 'typed in / browser voice out';
+  }
+  micBtn.addEventListener('click', function () {
+    if (!Rec || busy) return;
+    if (listening && rec) { rec.stop(); return; }
+    stopSpeaking();
+    rec = new Rec();
+    rec.lang = navigator.language || 'en-US';
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    var finalText = '';
+    rec.onstart = function () { listening = true; holo.listening = true; micBtn.classList.add('live'); inputEl.placeholder = 'Listening…'; };
+    rec.onresult = function (e) {
+      var interim = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript; else interim += e.results[i][0].transcript;
+      }
+      inputEl.value = (finalText + interim).trim();
+      syncBar();
+    };
+    rec.onerror = function (e) {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') inputEl.placeholder = 'Microphone access was blocked. Type instead.';
+    };
+    rec.onend = function () {
+      listening = false; holo.listening = false; micBtn.classList.remove('live');
+      if (inputEl.placeholder === 'Listening…') inputEl.placeholder = 'Message JARVIS…';
+      if (finalText.trim()) { inputEl.value = ''; syncBar(); handle(finalText.trim()); }
+    };
+    try { rec.start(); } catch (err) { listening = false; }
+  });
+
+  var voiceBtn = $('voice'), cfgVoice = $('cfg-voice');
+  function renderVoice() {
+    voiceBtn.setAttribute('aria-pressed', state.voice ? 'true' : 'false');
+    voiceBtn.setAttribute('aria-label', state.voice ? 'Spoken replies on' : 'Spoken replies off');
+    $('voice-waves').style.display = state.voice ? '' : 'none';
+    cfgVoice.setAttribute('aria-checked', state.voice ? 'true' : 'false');
+  }
+  function toggleVoice() { state.voice = !state.voice; if (!state.voice) stopSpeaking(); save(); renderVoice(); }
+  voiceBtn.addEventListener('click', toggleVoice);
+  cfgVoice.addEventListener('click', toggleVoice);
+  if (!synth) { voiceBtn.disabled = true; state.voice = false; }
+
+  /* ==================================================================
+     THE AGENT LOOP
+  ================================================================== */
+  var busy = false;
+  var inputEl = $('input'), barEl = $('bar'), sendBtn = $('send');
+  function syncBar() { barEl.classList.toggle('has-text', !!inputEl.value.trim()); }
+  inputEl.addEventListener('input', syncBar);
+
+  function showThinking() {
+    var w = document.createElement('div');
+    w.className = 'msg jarvis';
+    w.innerHTML = '<div class="bubble thinking" aria-label="JARVIS is thinking"><span></span><span></span><span></span></div>';
+    transcriptEl.appendChild(w);
+    scrollDown();
+    return w;
+  }
+
+  function askConfirm(call, tool) {
+    return new Promise(function (resolve) {
+      var w = document.createElement('div');
+      w.className = 'msg jarvis';
+      var b = document.createElement('div');
+      b.className = 'bubble sys';
+      var what = tool.ask ? tool.ask(call.args) : 'do that';
+      var line = (state.mode === 'strict' && tool.kind !== 'danger' ? 'Strict mode is on, so I\'ll check first. OK to ' : 'That\'s a risky one. OK to ') + what + '?';
+      b.textContent = line;
+      var code = document.createElement('code');
+      code.className = 'confirm-code';
+      code.textContent = call.tool + '(' + argString(call.args) + ')';
+      b.appendChild(code);
+      var acts = document.createElement('div');
+      acts.className = 'actions';
+      var yes = document.createElement('button'); yes.type = 'button'; yes.className = 'act warn'; yes.textContent = 'Allow';
+      var no = document.createElement('button'); no.type = 'button'; no.className = 'act ghost'; no.textContent = 'Cancel';
+      acts.appendChild(yes); acts.appendChild(no);
+      b.appendChild(acts);
+      w.appendChild(b);
+      transcriptEl.appendChild(w);
+      scrollDown();
+      setStatus('waiting for you');
+      holo.thinking = false;
+      speak(line);
+      yes.focus({ preventScroll: true });
+      function done(ok) {
+        acts.remove();
+        var r = document.createElement('div');
+        r.className = 'resolved';
+        r.textContent = ok ? 'You allowed it.' : 'You cancelled it.';
+        b.appendChild(r);
+        holo.thinking = true;
+        setStatus('working');
+        resolve(ok);
+      }
+      yes.addEventListener('click', function () { done(true); });
+      no.addEventListener('click', function () { done(false); });
+    });
+  }
+
+  function reveal(el, text) {
+    // Word-by-word, like the streamed replies in the desktop app.
+    return new Promise(function (resolve) {
+      if (reduceMotion) { el.textContent = text; resolve(); return; }
+      var words = text.split(/(\s+)/), i = 0;
+      el.textContent = '';
+      holo.streaming = true;
+      (function step() {
+        var n = 0;
+        while (i < words.length && n < 2) { el.textContent += words[i++]; n++; }
+        holo.level = Math.max(holo.level, 0.6);
+        scrollDown();
+        if (i < words.length) setTimeout(step, 28);
+        else { holo.streaming = false; resolve(); }
+      })();
+    });
+  }
+
+  function handle(text) {
+    text = text.trim();
+    if (!text || busy) return;
+    var chat = ensureChat();
+
+    // Fast path, like the real app: stop/cancel never goes through the planner.
+    if (/^(stop|cancel|be quiet|shut up|quiet|silence|never ?mind)[.!]*$/i.test(text)) {
+      stopSpeaking();
+      addMessage(chat, { role: 'user', text: text });
+      addMessage(chat, { role: 'jarvis', text: 'Stopped.' });
+      renderChat();
+      return;
+    }
+
+    busy = true;
+    sendBtn.disabled = true;
+    stopSpeaking();
+    addMessage(chat, { role: 'user', text: text });
+    renderChat();
+    setStatus('working');
+    holo.thinking = true;
+    var dots = showThinking();
+    var started = performance.now();
+
+    var calls = plan(text);
+    var trace = [], sentences = [], actions = [];
+    var ctx = { chatId: chat.id };
+
+    var chain = Promise.resolve();
+    calls.forEach(function (call) {
+      chain = chain.then(function () {
+        var tool = TOOLS[call.tool];
+        var rail = hardRail(call);
+        if (rail) {
+          trace.push({ tool: call.tool, args: call.args, status: 'blocked', result: { error: 'hard rail', reason: rail } });
+          sentences.push('I can\'t do that. ' + rail + ' Hard rails hold in every autonomy mode, even Autonomous.');
+          return;
+        }
+        var gate = needsConfirm(tool) ? (dots.remove(), askConfirm(call, tool).then(function (ok) { dots = showThinking(); return ok; })) : Promise.resolve(true);
+        return gate.then(function (ok) {
+          if (!ok) {
+            trace.push({ tool: call.tool, args: call.args, status: 'declined', result: { skipped: 'user said no' } });
+            sentences.push('Okay, I won\'t.');
+            return;
+          }
+          var t0 = performance.now();
+          return Promise.resolve().then(function () { return tool.run(call.args, ctx); }).then(function (res) {
+            sessionCalls++;
+            trace.push({ tool: call.tool, args: call.args, status: 'ok', result: res, ms: performance.now() - t0 });
+            var said = tool.say(res, call.args);
+            if (typeof said === 'string') sentences.push(said);
+            else { sentences.push(said.text); if (said.actions) actions = actions.concat(said.actions); }
+          }, function (err) {
+            trace.push({ tool: call.tool, args: call.args, status: 'error', result: { error: String(err && err.message || err) }, ms: performance.now() - t0 });
+            var msg = String(err && err.message || err);
+            sentences.push(/fetch|network|load failed/i.test(msg) ? 'I couldn\'t reach the ' + (call.tool === 'get_weather' ? 'weather' : 'lookup') + ' service. Check your connection and try again.' : 'That didn\'t work: ' + msg + '.');
+          });
+        });
+      });
+    });
+
+    chain.then(function () {
+      if (!calls.length) {
+        sentences.push(smalltalk(text) || 'I can\'t answer that in the web demo. The desktop JARVIS would hand this to a local qwen3:14b model, but here a small rule-based planner picks from ' + toolCount() + ' tools. Try the weather, a timer, some math, or ask "what can you do?"');
+      }
+      // Give the "thinking" state a beat so it reads as a step, not a flicker.
+      var wait = Math.max(0, 380 - (performance.now() - started));
+      return sleep(wait);
+    }).then(function () {
+      dots.remove();
+      holo.thinking = false;
+      var reply = sentences.join(sentences.some(function (s) { return s.indexOf('\n') >= 0; }) ? '\n\n' : ' ');
+      var m = { role: 'jarvis', text: reply, trace: trace, actions: actions };
+      var el = renderMessage(m);
+      var bubble = el.querySelector('.bubble');
+      var acts = bubble.querySelector('.actions');
+      if (acts) acts.remove();
+      var tr = el.querySelector('.trace');
+      if (tr) tr.hidden = true;
+      transcriptEl.appendChild(el);
+      speak(reply);
+      return reveal(bubble, reply).then(function () {
+        if (acts) bubble.appendChild(acts);
+        if (tr) tr.hidden = false;
+        scrollDown();
+        addMessage(chat, m);
+        renderChats();
+        chTitle.textContent = chat.title;
+      });
+    }).catch(function (err) {
+      if (dots) dots.remove();
+      addMessage(chat, { role: 'jarvis', text: 'Something went wrong in the demo: ' + (err && err.message || err) });
+      renderChat();
+    }).then(function () {
+      busy = false;
+      sendBtn.disabled = false;
+      holo.thinking = false;
+      setStatus('ready');
+      $('sys-calls').textContent = sessionCalls;
+    });
+  }
+
+  function fireTimer(t) {
+    // Wait for any reply in progress so the chat keeps its order.
+    if (busy) { setTimeout(function () { fireTimer(t); }, 250); return; }
+    timers = timers.filter(function (x) { return x !== t; });
+    var chat = null;
+    for (var i = 0; i < state.chats.length; i++) if (state.chats[i].id === t.chat) chat = state.chats[i];
+    var text = 'Time\'s up' + (t.label ? ': ' + t.label : '') + '.';
+    if (chat) {
+      addMessage(chat, { role: 'jarvis', text: text, sys: true });
+      if (chat.id !== state.active) { chat.ping = true; save(); renderChats(); }
+      else renderChat();
+    }
+    holo.level = 1; holo.alert = performance.now();
+    speak(text);
+    var old = document.title, n = 0;
+    var iv = setInterval(function () { document.title = n++ % 2 ? old : '⏰ ' + text; if (n > 7) { clearInterval(iv); document.title = old; } }, 700);
+  }
+
+  barEl.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = inputEl.value;
+    if (!v.trim() || busy) return;
+    inputEl.value = '';
+    syncBar();
+    handle(v);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+    c.addEventListener('click', function () { handle(c.textContent); });
+  });
+
+  $('new-chat').addEventListener('click', function () {
+    if (busy) return;
+    var c = activeChat();
+    if (!c || c.messages.length) {
+      state.chats = state.chats.filter(function (x) { return x.messages.length; });
+      state.active = null;
+    }
+    save();
+    renderChat();
+    closeDrawer();
+    inputEl.focus();
+  });
+
+  /* ==================================================================
+     SIDEBAR + PANELS
+  ================================================================== */
+  var mobileQ = window.matchMedia('(max-width: 860px)');
+  var scrim = $('scrim');
+  function closeDrawer() { document.body.classList.remove('sb-open'); scrim.hidden = true; }
+  $('collapse').addEventListener('click', function () { document.body.classList.add('sb-collapsed'); });
+  $('open-sb').addEventListener('click', function () {
+    if (mobileQ.matches) { document.body.classList.add('sb-open'); scrim.hidden = false; }
+    else document.body.classList.remove('sb-collapsed');
+  });
+  scrim.addEventListener('click', closeDrawer);
+
+  var panels = [[$('sys-btn'), $('sys-panel')], [$('cfg-btn'), $('cfg-panel')]];
+  panels.forEach(function (p) {
+    p[0].addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = p[1].hidden;
+      panels.forEach(function (q) { q[1].hidden = true; q[0].setAttribute('aria-expanded', 'false'); });
+      p[1].hidden = !open;
+      p[0].setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    p[1].addEventListener('click', function (e) { e.stopPropagation(); });
+  });
+  document.addEventListener('click', function () {
+    panels.forEach(function (q) { q[1].hidden = true; q[0].setAttribute('aria-expanded', 'false'); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    panels.forEach(function (q) { if (!q[1].hidden) { q[1].hidden = true; q[0].setAttribute('aria-expanded', 'false'); q[0].focus(); } });
+    closeDrawer();
+  });
+
+  (function buildToolList() {
+    var el = $('tool-list');
+    Object.keys(TOOLS).forEach(function (k) {
+      var c = document.createElement('code');
+      c.className = TOOLS[k].kind;
+      c.textContent = k;
+      c.title = TOOLS[k].desc;
+      el.appendChild(c);
+    });
+    $('sys-tools').textContent = toolCount() + ' of 48';
+  })();
+
+  var segBtns = document.querySelectorAll('.seg button');
+  function renderMode() {
+    Array.prototype.forEach.call(segBtns, function (b) { b.setAttribute('aria-pressed', b.dataset.mode === state.mode ? 'true' : 'false'); });
+    $('mode-note').textContent = MODES[state.mode];
+  }
+  Array.prototype.forEach.call(segBtns, function (b) {
+    b.addEventListener('click', function () { state.mode = b.dataset.mode; save(); renderMode(); });
+  });
+
+  var wipe = $('wipe'), wipeTimer = null;
+  wipe.addEventListener('click', function () {
+    if (!wipe.classList.contains('armed')) {
+      wipe.classList.add('armed');
+      wipe.textContent = 'Click again to clear everything';
+      wipeTimer = setTimeout(function () { wipe.classList.remove('armed'); wipe.textContent = 'Clear all demo data'; }, 4000);
+      return;
+    }
+    clearTimeout(wipeTimer);
+    timers.forEach(function (t) { clearTimeout(t.handle); });
+    timers = [];
+    state = { chats: [], active: null, notes: [], memory: {}, mode: 'tiered', voice: !!synth };
+    save();
+    wipe.classList.remove('armed');
+    wipe.textContent = 'Cleared';
+    setTimeout(function () { wipe.textContent = 'Clear all demo data'; }, 1600);
+    renderMode(); renderVoice(); renderChat();
+  });
+
+  /* ==================================================================
+     HOLOGRAM — a 2D canvas take on the desktop app's Three.js core:
+     a wobbling wireframe sphere, a glowing core, orbit rings, a tick
+     dial and drifting particles. Reacts to thinking, listening, speech.
+  ================================================================== */
+  var holo = { thinking: false, speaking: false, streaming: false, listening: false, level: 0, alert: -1e9, fps: 60 };
+  (function () {
+    var cv = $('holo'), cx = cv.getContext('2d');
+    var W = 0, H = 0, DPR = 1;
+    var stars = [];
+    function resize() {
+      DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+      W = innerWidth; H = innerHeight;
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      stars = [];
+      var n = Math.round(Math.min(220, W * H / 7000));
+      for (var i = 0; i < n; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + 0.3, p: Math.random() * 6.28, s: Math.random() * 0.12 + 0.03 });
+    }
+    addEventListener('resize', resize);
+    resize();
+
+    var LAT = 12, LON = 18, SEG = 40;
+    var buckets = [[], [], [], []];
+    var ALPHA = [0.07, 0.15, 0.3, 0.55];
+    var spin = 0, dialSpin = 0, amp = 0.03, glow = 0, zoom = 1, dim = 1;
+    var last = performance.now(), fAcc = 0, fN = 0;
+    var color = [140, 230, 255];
+
+    function rot(x, y, z, ay, ax) {
+      var c = Math.cos(ay), s = Math.sin(ay);
+      var x1 = x * c + z * s, z1 = -x * s + z * c;
+      var c2 = Math.cos(ax), s2 = Math.sin(ax);
+      return [x1, y * c2 - z1 * s2, y * s2 + z1 * c2];
+    }
+
+    function frame(now) {
+      var dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      fAcc += dt; fN++;
+      if (fAcc > 0.5) { holo.fps = fN / fAcc; fAcc = 0; fN = 0; var fe = $('sys-fps'); if (fe) fe.textContent = Math.round(holo.fps) + ' fps'; }
+
+      var speed = reduceMotion ? 0.15 : 1;
+      var active = holo.speaking || holo.streaming;
+      holo.level *= Math.pow(0.04, dt);
+      if (active && !reduceMotion) holo.level = Math.max(holo.level, 0.25 + Math.random() * 0.35);
+      var targetAmp = reduceMotion ? 0.015 : holo.thinking ? 0.06 : holo.listening ? 0.045 : 0.028 + holo.level * 0.09;
+      amp += (targetAmp - amp) * Math.min(1, dt * 6);
+      var spinRate = holo.thinking ? 0.9 : holo.listening ? 0.45 : 0.22;
+      spin += dt * spinRate * speed;
+      dialSpin += dt * (holo.thinking ? 0.25 : 0.05) * speed;
+      glow += ((holo.thinking ? 1 : 0) + holo.level * 0.8 - glow) * Math.min(1, dt * 4);
+      var chatting = document.body.classList.contains('chatting');
+      zoom += ((chatting ? 0.66 : 1) - zoom) * Math.min(1, dt * 4);
+      dim += ((chatting ? 0.55 : 1) - dim) * Math.min(1, dt * 4);
+      var tgt = holo.listening ? [60, 232, 136] : [140, 230, 255];
+      for (var q = 0; q < 3; q++) color[q] += (tgt[q] - color[q]) * Math.min(1, dt * 5);
+      var alertA = Math.max(0, 1 - (now - holo.alert) / 1600);
+
+      var mobile = W <= 860;
+      var sb = mobile || document.body.classList.contains('sb-collapsed') ? 0 : 288;
+      var areaW = W - sb;
+      var cxp = sb + areaW / 2;
+      var cyp = H * (mobile ? (chatting ? 0.26 : 0.3) : (chatting ? 0.3 : 0.37));
+      var R = Math.min(areaW, H) * (mobile ? 0.27 : 0.23) * zoom;
+      var rgb = Math.round(color[0]) + ',' + Math.round(color[1]) + ',' + Math.round(color[2]);
+
+      cx.clearRect(0, 0, W, H);
+
+      // particles
+      var t = now / 1000;
+      for (var i = 0; i < stars.length; i++) {
+        var st = stars[i];
+        st.y -= st.s * dt * 20 * speed; st.x += st.s * dt * 6 * speed;
+        if (st.y < -2) { st.y = H + 2; st.x = Math.random() * W; }
+        if (st.x > W + 2) st.x = -2;
+        var a = 0.25 + 0.35 * Math.sin(t * 1.3 + st.p);
+        cx.fillStyle = 'rgba(' + rgb + ',' + (a * 0.6).toFixed(3) + ')';
+        cx.fillRect(st.x, st.y, st.r, st.r);
+      }
+
+      cx.save();
+      cx.globalAlpha = dim;
+      cx.globalCompositeOperation = 'lighter';
+
+      // outer halo + tick dial
+      cx.strokeStyle = 'rgba(' + rgb + ',0.10)';
+      cx.lineWidth = 1;
+      cx.beginPath(); cx.arc(cxp, cyp, R * 1.62, 0, Math.PI * 2); cx.stroke();
+      cx.strokeStyle = 'rgba(' + rgb + ',' + (0.22 + glow * 0.2).toFixed(3) + ')';
+      cx.beginPath();
+      for (var k = 0; k < 90; k++) {
+        var ang = dialSpin + k / 90 * Math.PI * 2;
+        var r1 = R * 1.42, r2 = R * (k % 5 === 0 ? 1.49 : 1.455);
+        cx.moveTo(cxp + Math.cos(ang) * r1, cyp + Math.sin(ang) * r1);
+        cx.lineTo(cxp + Math.cos(ang) * r2, cyp + Math.sin(ang) * r2);
+      }
+      cx.stroke();
+
+      // core glow
+      var g = cx.createRadialGradient(cxp, cyp, 0, cxp, cyp, R * 0.8);
+      g.addColorStop(0, 'rgba(60,150,255,' + (0.32 + glow * 0.2 + alertA * 0.3).toFixed(3) + ')');
+      g.addColorStop(0.5, 'rgba(20,90,200,' + (0.14 + glow * 0.08).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(0,40,120,0)');
+      cx.fillStyle = g;
+      cx.beginPath(); cx.arc(cxp, cyp, R * 0.8, 0, Math.PI * 2); cx.fill();
+
+      // wireframe sphere, bucketed by depth so it's one stroke per bucket
+      for (var bq = 0; bq < 4; bq++) buckets[bq].length = 0;
+      var tilt = 0.38, f = R * 4.2;
+      function pt(th, ph) {
+        var d = 1 + amp * (Math.sin(3 * th + t * 1.3) * Math.cos(2 * ph - t * 0.9) * 0.6 + Math.sin(5 * ph + th * 2 + t * 1.7) * 0.4);
+        var x = R * d * Math.sin(th) * Math.cos(ph), y = R * d * Math.cos(th), z = R * d * Math.sin(th) * Math.sin(ph);
+        var p = rot(x, y, z, spin, tilt);
+        var s = f / (f - p[2]);
+        return [cxp + p[0] * s, cyp + p[1] * s, p[2]];
+      }
+      function seg(a, b) {
+        var z = (a[2] + b[2]) / 2 / R;
+        var bi = Math.max(0, Math.min(3, Math.floor((z + 1) / 2 * 4)));
+        buckets[bi].push(a[0], a[1], b[0], b[1]);
+      }
+      var i2, j2, prev, cur;
+      for (i2 = 1; i2 < LAT; i2++) {
+        var th = i2 / LAT * Math.PI;
+        prev = pt(th, 0);
+        for (j2 = 1; j2 <= SEG; j2++) { cur = pt(th, j2 / SEG * Math.PI * 2); seg(prev, cur); prev = cur; }
+      }
+      for (i2 = 0; i2 < LON; i2++) {
+        var ph = i2 / LON * Math.PI * 2;
+        prev = pt(0, ph);
+        for (j2 = 1; j2 <= SEG / 2; j2++) { cur = pt(j2 / (SEG / 2) * Math.PI, ph); seg(prev, cur); prev = cur; }
+      }
+      cx.lineWidth = 1;
+      for (bq = 0; bq < 4; bq++) {
+        var arr = buckets[bq];
+        cx.strokeStyle = 'rgba(' + rgb + ',' + (ALPHA[bq] * (0.85 + glow * 0.4)).toFixed(3) + ')';
+        cx.beginPath();
+        for (var s2 = 0; s2 < arr.length; s2 += 4) { cx.moveTo(arr[s2], arr[s2 + 1]); cx.lineTo(arr[s2 + 2], arr[s2 + 3]); }
+        cx.stroke();
+      }
+
+      // orbit rings
+      var rings = [[1.22, 1.1, 0.3, 0.35], [1.3, 0.28, -0.5, -0.22], [0.62, 1.45, 1.1, 0.9]];
+      rings.forEach(function (rg) {
+        var pts = [];
+        var ay = spin * rg[3] * 2 + rg[2];
+        for (var u = 0; u <= 72; u++) {
+          var an = u / 72 * Math.PI * 2;
+          var x = R * rg[0] * Math.cos(an), z = R * rg[0] * Math.sin(an);
+          var p = rot(x, 0, z, ay, rg[1]);
+          var sc = f / (f - p[2]);
+          pts.push([cxp + p[0] * sc, cyp + p[1] * sc, p[2]]);
+        }
+        [[6, 0.06], [1.6, 0.8]].forEach(function (pass) {
+          cx.lineWidth = pass[0];
+          for (var half = 0; half < 2; half++) {
+            cx.strokeStyle = half ? 'rgba(235,250,255,' + (pass[1] * (0.9 + glow * 0.2)).toFixed(3) + ')' : 'rgba(' + rgb + ',' + (pass[1] * 0.3).toFixed(3) + ')';
+            cx.beginPath();
+            for (var u2 = 1; u2 < pts.length; u2++) {
+              var front = (pts[u2][2] + pts[u2 - 1][2]) > 0;
+              if (front === !!half) { cx.moveTo(pts[u2 - 1][0], pts[u2 - 1][1]); cx.lineTo(pts[u2][0], pts[u2][1]); }
+            }
+            cx.stroke();
+          }
+        });
+      });
+
+      // center point
+      cx.fillStyle = 'rgba(220,245,255,' + (0.7 + holo.level * 0.3).toFixed(3) + ')';
+      cx.beginPath(); cx.arc(cxp, cyp, 2.4 + holo.level * 2, 0, Math.PI * 2); cx.fill();
+      cx.restore();
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  /* ==================================================================
+     BOOT
+  ================================================================== */
+  // A reload drops any open chat that never got a message.
+  state.chats = state.chats.filter(function (c) { return c.messages.length; });
+  if (!activeChat()) state.active = null;
+  save();
+  renderMode();
+  renderVoice();
+  renderChat();
+  setStatus('ready');
+  setInterval(function () { if (!busy) renderChats(); }, 60000);
+  if (!mobileQ.matches) inputEl.focus({ preventScroll: true });
+})();
+</script>
+</body>
+</html>

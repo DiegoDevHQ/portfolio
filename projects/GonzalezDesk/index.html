@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0d1117">
+<title>GonzalezDesk Lite — Diego A. Ortega</title>
+<meta name="description" content="A browser demo of GonzalezDesk, a custom remote desktop app: real tile-delta JPEG encoding, a 12-byte binary wire header, and relayed mouse and keyboard input.">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --dim: #8b949e;
+    --accent: #e94560;
+    --green: #3fb950;
+    --btn-green: #238636;
+    --blue: #58a6ff;
+    --red: #f85149;
+    --amber: #e3a94b;
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
+  button { font: inherit; }
+  a { color: var(--blue); }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .demo-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
+    padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--card);
+    font-size: 13px;
+  }
+  .demo-bar a { text-decoration: none; font-weight: 600; }
+  .demo-bar a:hover { text-decoration: underline; }
+  .demo-bar .what { color: var(--dim); }
+  .demo-bar b { font-weight: 600; }
+
+  .app {
+    max-width: 1280px; margin: 0 auto; padding: 20px;
+    display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start;
+  }
+  @media (max-width: 900px) { .app { grid-template-columns: 1fr; } }
+
+  /* ---- the client window, styled after the real Tk app ---- */
+  .client { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg); }
+  .c-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--card); padding: 14px 16px; }
+  .logo { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; min-width: 0; }
+  .logo svg { width: 22px; height: 22px; flex: 0 0 auto; }
+  .badge { background: var(--accent); color: #fff; border-radius: 6px; padding: 5px 11px; text-align: center; line-height: 1.25; white-space: nowrap; flex: 0 0 auto; }
+  .badge b { display: block; font-size: 13px; }
+  .badge small { display: block; font-size: 10px; color: #ffdde4; }
+  .status { display: flex; align-items: center; gap: 9px; padding: 12px 16px; color: var(--dim); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); flex: 0 0 auto; transition: background .3s; }
+  .dot.on { background: var(--green); box-shadow: 0 0 0 3px rgba(63,185,80,.18); }
+  .dot.wait { background: var(--amber); }
+  .c-sec { margin: 6px 16px 8px; font-size: 13px; font-weight: 700; }
+  .peers { display: grid; gap: 8px; padding: 0 16px; }
+  .peer {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .peer.active { border-color: var(--green); }
+  .peer svg { width: 20px; height: 20px; color: var(--green); }
+  .peer .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .peer .id { display: block; font-family: var(--mono); font-size: 11.5px; color: var(--dim); font-weight: 400; }
+  .btn { border: 0; border-radius: 6px; padding: 7px 12px; font-weight: 700; font-size: 13px; cursor: pointer; color: #fff; background: var(--btn-green); }
+  .btn:hover { filter: brightness(1.12); }
+  .btn.ghost { background: transparent; color: var(--dim); border: 1px solid var(--border); }
+  .btn.stop { background: transparent; color: var(--red); border: 1px solid rgba(248,81,73,.55); }
+  .btn:disabled { opacity: .45; cursor: default; filter: none; }
+  .c-hint { margin: 0 16px 8px; color: var(--dim); font-size: 12px; line-height: 1.5; }
+  .numgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 0 16px; }
+  .numgrid button {
+    background: var(--card); border: 1px solid var(--border); color: var(--dim); border-radius: 6px;
+    padding: 8px 0; font-family: var(--mono); font-size: 13px; cursor: pointer;
+  }
+  .numgrid button.on { color: var(--green); border-color: rgba(63,185,80,.5); font-weight: 700; }
+  .numgrid button:hover { background: #1c2230; }
+  .c-msg { min-height: 20px; margin: 10px 16px 16px; font-size: 12.5px; color: var(--amber); }
+
+  /* ---- session window ---- */
+  .session { min-width: 0; display: grid; gap: 12px; }
+  .s-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
+  }
+  .s-title { flex: 1 1 220px; font-weight: 700; min-width: 0; }
+  .s-title span { color: var(--dim); font-weight: 400; }
+  .tog { display: inline-flex; align-items: center; gap: 7px; color: var(--dim); font-size: 13px; cursor: pointer; user-select: none; }
+  .tog input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+  .stage {
+    position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9;
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #05070b;
+  }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #overlay.live { cursor: none; touch-action: none; }
+  .idle {
+    position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+    padding: 20px; color: var(--dim); background: #05070b; font-size: 15px; line-height: 1.6;
+  }
+  .idle strong { display: block; color: var(--text); font-size: 17px; margin-bottom: 4px; }
+  #kb { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none; }
+  .try { margin: 0; color: var(--dim); font-size: 13px; line-height: 1.55; }
+  .try b { color: var(--text); font-weight: 600; }
+
+  .panels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+  .panel.wide { grid-column: 1 / -1; }
+  @media (max-width: 700px) { .panels { grid-template-columns: minmax(0, 1fr); } }
+  .panel h2 { margin: 0 0 12px; font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px 18px; }
+  .metric b { display: block; font-family: var(--mono); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .metric span { display: block; margin-top: 3px; font-size: 12px; color: var(--dim); line-height: 1.4; }
+
+  .bars { display: grid; gap: 12px; }
+  .bar-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; margin-bottom: 5px; }
+  .bar-top b { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bar-top span { color: var(--dim); }
+  .track { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+  .fill { height: 100%; width: 0; border-radius: 4px; transition: width .4s ease; }
+  .bars .note { margin: 2px 0 0; color: var(--dim); font-size: 12px; line-height: 1.5; }
+
+  .hdr { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+  .hdr .hx {
+    font-family: var(--mono); font-size: 13px; text-align: center; padding: 7px 0;
+    background: var(--bg); border-radius: 4px; font-variant-numeric: tabular-nums;
+  }
+  .hdr .lb { font-size: 10.5px; color: var(--dim); text-align: center; padding-top: 6px; border-top: 2px solid var(--border); margin-top: 2px; }
+  .hdr .lb.k { border-top-color: var(--green); color: var(--text); }
+  .hdr-note { margin: 12px 0 0; color: var(--dim); font-size: 12px; line-height: 1.5; }
+
+  .log { height: 230px; overflow: auto; margin: 0; padding: 0; list-style: none; font-family: var(--mono); font-size: 12px; }
+  .log li { display: grid; grid-template-columns: 94px 50px 16px minmax(0, 1fr); gap: 6px; padding: 2px 0; line-height: 1.45; }
+  .log time { color: #5b6470; font-variant-numeric: tabular-nums; }
+  .lane { font-weight: 600; }
+  .lane.ctrl { color: var(--blue); }
+  .lane.auth { color: var(--amber); }
+  .lane.frame { color: var(--green); }
+  .lane.input { color: var(--accent); }
+  .log .dir { color: var(--dim); }
+  .log .msg { word-break: break-word; }
+  @media (max-width: 520px) { .log li { grid-template-columns: 50px 16px minmax(0, 1fr); } .log time { display: none; } }
+
+  .real { max-width: 1280px; margin: 0 auto; padding: 8px 20px 56px; }
+  .real h2 { font-size: 20px; margin: 10px 0 6px; }
+  .real > p { color: var(--dim); margin: 0 0 16px; max-width: 70ch; line-height: 1.6; }
+  .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .fig { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .fig .k { font-size: 12px; color: var(--dim); }
+  .fig .v { font-family: var(--mono); font-size: 18px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .fig .v s { color: var(--dim); text-decoration-color: var(--red); }
+  .fig .v b { color: var(--green); font-weight: 600; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px 28px; margin-top: 18px; }
+  .cols h3 { font-size: 14px; margin: 0 0 6px; }
+  .cols ul { margin: 0; padding-left: 18px; color: var(--dim); line-height: 1.65; }
+  .cols li b { color: var(--text); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) { .fill, .dot { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <a href="../../index.html#projects">&larr; Portfolio</a>
+  <b>GonzalezDesk Lite</b>
+  <span class="what">Both ends of the connection run in this tab. The frames are really JPEG-encoded, packed into binary packets, and decoded on the other side.</span>
+</div>
+
+<div class="app">
+  <aside class="client" aria-label="GonzalezDesk client">
+    <div class="c-head">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8 20.5h8M12 16.5v4"/></svg>
+        GonzalezDesk
+      </div>
+      <div class="badge"><b>Owner</b><small>Your Computer ID: 0</small></div>
+    </div>
+    <div class="status"><span class="dot wait" id="dot"></span><span id="status">Connecting to relay…</span></div>
+
+    <div class="c-sec">Computers online</div>
+    <div class="peers" id="peers"></div>
+
+    <div class="c-sec" style="margin-top:16px">Connect by number</div>
+    <p class="c-hint">Tap a number to connect. Green numbers are online now.</p>
+    <div class="numgrid" id="numgrid"></div>
+    <div class="c-msg" id="c-msg" role="status"></div>
+  </aside>
+
+  <main class="session">
+    <div class="s-bar">
+      <div class="s-title" id="s-title">Not controlling a computer <span>· pick one on the left</span></div>
+      <label class="tog"><input type="checkbox" id="show-tiles" checked> Show changed tiles</label>
+      <button class="btn stop" id="disconnect" type="button" disabled>Disconnect</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <canvas id="view" width="960" height="540"></canvas>
+      <canvas id="overlay" width="960" height="540"></canvas>
+      <div class="idle" id="idle"><div><strong>No remote session</strong>Pick an online computer to take control of it.</div></div>
+      <input id="kb" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Keyboard input for the remote computer">
+    </div>
+
+    <p class="try"><b>Try this:</b> drag a window by its title bar, click into Notepad and type, or click a folder. Then stop and watch the traffic fall to almost nothing. Only the <b>64&nbsp;px tiles</b> that changed get sent.</p>
+
+    <div class="panels">
+      <section class="panel wide" aria-label="Live stats">
+        <h2>Live link</h2>
+        <div class="metrics">
+          <div class="metric"><b id="m-rate">0.0 KB/s</b><span>screen data, last 3 s</span></div>
+          <div class="metric"><b id="m-fps">0</b><span>packets sent per second</span></div>
+          <div class="metric"><b id="m-tiles">0 / 135</b><span>tiles in the last packet</span></div>
+          <div class="metric"><b id="m-last">0 B</b><span>size of the last packet</span></div>
+          <div class="metric"><b id="m-moves">0 → 0</b><span>mouse moves → packets sent (coalesced)</span></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Bandwidth comparison">
+        <h2>Same screen, three ways to send it</h2>
+        <div class="bars">
+          <div><div class="bar-top"><span>v1 · JSON + base64 full frames</span><b id="b-v1">–</b></div><div class="track"><div class="fill" id="f-v1" style="background:var(--accent)"></div></div></div>
+          <div><div class="bar-top"><span>Binary header, full frame every time</span><b id="b-full">–</b></div><div class="track"><div class="fill" id="f-full" style="background:var(--blue)"></div></div></div>
+          <div><div class="bar-top"><span>v2 · binary header + changed tiles</span><b id="b-v2">–</b></div><div class="track"><div class="fill" id="f-v2" style="background:var(--green)"></div></div></div>
+          <p class="note" id="b-note">Connect to a computer to measure.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Last packet header">
+        <h2>Last packet header · 12 bytes</h2>
+        <div class="hdr" id="hdr"></div>
+        <p class="hdr-note">The relay routes a frame by reading these 12 bytes and never opens the JPEG data behind them. v1 wrapped every frame in JSON and base64-encoded the image, which made it 33% bigger.</p>
+      </section>
+
+      <section class="panel wide" aria-label="Wire log">
+        <h2>Wire log</h2>
+        <ol class="log" id="log"></ol>
+      </section>
+    </div>
+  </main>
+</div>
+
+<section class="real" aria-label="About the real app">
+  <h2>The real one</h2>
+  <p>GonzalezDesk replaced paid remote-access licenses for a multi-office practice. A Windows client runs on 20 machines, and one relay server routes every session. These are the numbers measured at 1920×1080 before and after the v2 rewrite.</p>
+  <div class="figs">
+    <div class="fig"><div class="k">Host CPU per frame</div><div class="v"><s>18.3 ms</s> → <b>2.64 ms</b></div></div>
+    <div class="fig"><div class="k">Data per frame</div><div class="v"><s>42.3 KB</s> → <b>4.2 KB</b></div></div>
+    <div class="fig"><div class="k">Four live sessions</div><div class="v"><s>~55 Mbps</s> → <b>~5.6 Mbps</b></div></div>
+    <div class="fig"><div class="k">Picture sent</div><div class="v"><s>960 px Q30</s> → <b>1920 px Q65</b></div></div>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>Same as the real app</h3>
+      <ul>
+        <li><b>Tile-delta codec:</b> only changed tiles are JPEG-encoded. A full keyframe goes out every 5 s, or whenever more than 60% of the screen changed.</li>
+        <li><b>Wire format:</b> the same 12-byte header (magic, version, kind, flags, source, destination, sequence, length) and the same tile record layout.</li>
+        <li><b>Input lane:</b> mouse moves are merged down to the latest position, but clicks and keys are never dropped. The cursor travels as its own tiny packet.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Simulated here</h3>
+      <ul>
+        <li><b>The network:</b> packets are handed across with a fixed 35&nbsp;ms delay in place of a real relay server.</li>
+        <li><b>Sign-in:</b> the real owner device proves who it is with an Ed25519 key signature, so ID&nbsp;0 needs no password and can't be impersonated. Here that exchange is only logged.</li>
+        <li><b>Screen capture:</b> the real client grabs the Windows desktop through DXGI. Here the "remote desktop" is drawn on a canvas at half size.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     Constants mirror remote-connect/shared/wire.py and codec.py.
+     The demo desktop is 960x540, so 64 px tiles here cover the same
+     share of the screen as the real 128 px tiles at 1920x1080.
+  ------------------------------------------------------------------ */
+  var W = 960, H = 540, T = 64;
+  var COLS = Math.ceil(W / T), ROWS = Math.ceil(H / T), TOTAL = COLS * ROWS;
+  var QUALITY = 0.65, FRAME_MS = 1000 / 15, LATENCY = 35;
+  var KEYFRAME_MS = 5000, FULL_FRAME_RATIO = 0.6;
+  var MAGIC = 0x47, VERSION = 2;
+  var KIND = { FULL: 1, TILES: 2, INPUT: 3, CURSOR: 4 };
+  var KIND_NAME = { 1: 'FULL_FRAME', 2: 'TILES', 3: 'INPUT', 4: 'CURSOR' };
+  var FLAG_KEYFRAME = 1;
+  var IN = { MOVE: 1, DOWN: 2, UP: 3, KEY: 5 };
+  var OWNER_ID = 0;
+
+  var PEERS = [
+    { id: 3, name: 'Front Desk', hue: 212 },
+    { id: 5, name: 'Billing', hue: 158 },
+    { id: 8, name: 'Operatory 2', hue: 262 },
+    { id: 12, name: 'Imaging', hue: 20 }
+  ];
+
+  function $(id) { return document.getElementById(id); }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------------------------------
+     WIRE
+  ------------------------------------------------------------------ */
+  function pack(kind, flags, src, dst, seq, payload) {
+    var buf = new ArrayBuffer(12 + payload.length);
+    var dv = new DataView(buf);
+    dv.setUint8(0, MAGIC); dv.setUint8(1, VERSION); dv.setUint8(2, kind); dv.setUint8(3, flags);
+    dv.setUint8(4, src & 0xff); dv.setUint8(5, dst & 0xff);
+    dv.setUint16(6, seq & 0xffff, true);
+    dv.setUint32(8, payload.length, true);
+    new Uint8Array(buf, 12).set(payload);
+    return buf;
+  }
+
+  // Everything crosses the "relay" with the same fixed delay.
+  function relay(buf, deliver) {
+    var s = session;
+    setTimeout(function () { if (session && session === s) deliver(buf); }, LATENCY);
+  }
+
+  /* ------------------------------------------------------------------
+     LOG
+  ------------------------------------------------------------------ */
+  var logEl = $('log');
+  function ts() {
+    var d = new Date();
+    function p(n, l) { return String(n).padStart(l, '0'); }
+    return p(d.getHours(), 2) + ':' + p(d.getMinutes(), 2) + ':' + p(d.getSeconds(), 2) + '.' + p(d.getMilliseconds(), 3);
+  }
+  function log(lane, dir, text) {
+    var li = document.createElement('li');
+    var t = document.createElement('time'); t.textContent = ts();
+    var l = document.createElement('span'); l.className = 'lane ' + lane.toLowerCase(); l.textContent = lane;
+    var d = document.createElement('span'); d.className = 'dir'; d.textContent = dir;
+    var m = document.createElement('span'); m.className = 'msg'; m.textContent = text;
+    li.appendChild(t); li.appendChild(l); li.appendChild(d); li.appendChild(m);
+    var atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 30;
+    logEl.appendChild(li);
+    while (logEl.children.length > 120) logEl.removeChild(logEl.firstChild);
+    if (atBottom) logEl.scrollTop = logEl.scrollHeight;
+    return li;
+  }
+  // Busy streams get one line per second instead of one per packet.
+  var groups = {};
+  function logGrouped(key, lane, dir, add, render) {
+    var now = performance.now(), g = groups[key];
+    if (!g || now > g.until || !g.li.isConnected) {
+      g = groups[key] = { until: now + 1000, n: 0, a: 0, b: 0, li: log(lane, dir, '') };
+    }
+    add(g);
+    g.li.lastChild.textContent = render(g);
+  }
+  function kb(n) { return n >= 1024 ? (n / 1024).toFixed(1) + ' KB' : n + ' B'; }
+
+  /* ------------------------------------------------------------------
+     THE REMOTE DESKTOP (host side)
+  ------------------------------------------------------------------ */
+  var host = document.createElement('canvas');
+  host.width = W; host.height = H;
+  var hx = host.getContext('2d', { willReadFrequently: true });
+  var wall = document.createElement('canvas');
+  wall.width = W; wall.height = H;
+
+  var scene;
+  function resetScene(peer) {
+    scene = {
+      peer: peer,
+      wins: [
+        { id: 'files', title: 'Files — Shared', x: 330, y: 262, w: 360, h: 196 },
+        { id: 'perf', title: 'Performance', x: 560, y: 70, w: 340, h: 196 },
+        { id: 'notes', title: 'Notepad — shift-notes.txt', x: 60, y: 54, w: 390, h: 250 }
+      ],
+      focus: 'notes',
+      text: peer.name + ' PC\n- Printer toner is low\n- Backup finished 6:02 AM\n- ',
+      drag: null,
+      selRow: -1,
+      cpu: [],
+      cpuAt: 0
+    };
+    for (var i = 0; i < 48; i++) scene.cpu.push(18 + Math.random() * 14);
+    buildWall(peer.hue);
+  }
+
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function buildWall(hue) {
+    var c = wall.getContext('2d');
+    var g = c.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, 'hsl(' + hue + ',48%,16%)');
+    g.addColorStop(1, 'hsl(' + (hue + 28) + ',58%,34%)');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    var blobs = [[760, 120, 260, .22], [180, 470, 300, .16], [520, 330, 180, .12]];
+    blobs.forEach(function (b) {
+      var r = c.createRadialGradient(b[0], b[1], 0, b[0], b[1], b[2]);
+      r.addColorStop(0, 'hsla(' + (hue + 40) + ',80%,70%,' + b[3] + ')');
+      r.addColorStop(1, 'hsla(' + (hue + 40) + ',80%,70%,0)');
+      c.fillStyle = r; c.fillRect(0, 0, W, H);
+    });
+    var icons = [['Recycle Bin', '#9fb3c8'], ['Scans', '#f2c14e'], ['Browser', '#4da3ff'], ['Schedule', '#6fcf97']];
+    c.font = '11px "Segoe UI", system-ui, sans-serif';
+    c.textAlign = 'center';
+    icons.forEach(function (ic, i) {
+      var y = 14 + i * 74;
+      rr(c, 14, y, 40, 40, 8); c.fillStyle = ic[1]; c.fill();
+      c.fillStyle = 'rgba(255,255,255,.35)'; rr(c, 22, y + 8, 24, 6, 3); c.fill();
+      c.fillStyle = '#fff';
+      c.fillText(ic[0], 34, y + 56);
+    });
+    c.textAlign = 'left';
+  }
+
+  function winAt(x, y) {
+    for (var i = scene.wins.length - 1; i >= 0; i--) {
+      var w = scene.wins[i];
+      if (x >= w.x && x <= w.x + w.w && y >= w.y && y <= w.y + w.h) return w;
+    }
+    return null;
+  }
+  function toFront(w) {
+    scene.wins.splice(scene.wins.indexOf(w), 1);
+    scene.wins.push(w);
+  }
+
+  function drawWindow(w, now) {
+    var focused = scene.focus === w.id;
+    hx.save();
+    hx.shadowColor = 'rgba(0,0,0,.38)'; hx.shadowBlur = 18; hx.shadowOffsetY = 6;
+    rr(hx, w.x, w.y, w.w, w.h, 8); hx.fillStyle = '#f6f7f9'; hx.fill();
+    hx.restore();
+    hx.save();
+    rr(hx, w.x, w.y, w.w, w.h, 8); hx.clip();
+    hx.fillStyle = focused ? '#ffffff' : '#e9ecf0';
+    hx.fillRect(w.x, w.y, w.w, 30);
+    hx.fillStyle = focused ? '#1b1f24' : '#5c6470';
+    hx.font = '600 12px "Segoe UI", system-ui, sans-serif';
+    hx.fillText(w.title, w.x + 12, w.y + 19);
+    // caption buttons
+    hx.strokeStyle = '#5c6470'; hx.lineWidth = 1.2;
+    var bx = w.x + w.w - 84;
+    hx.beginPath(); hx.moveTo(bx + 8, w.y + 15.5); hx.lineTo(bx + 18, w.y + 15.5); hx.stroke();
+    hx.strokeRect(bx + 36, w.y + 10.5, 9, 9);
+    hx.beginPath(); hx.moveTo(bx + 64, w.y + 10); hx.lineTo(bx + 73, w.y + 19); hx.moveTo(bx + 73, w.y + 10); hx.lineTo(bx + 64, w.y + 19); hx.stroke();
+    hx.fillStyle = '#e3e6ea'; hx.fillRect(w.x, w.y + 30, w.w, 1);
+
+    if (w.id === 'notes') drawNotes(w, now, focused);
+    else if (w.id === 'perf') drawPerf(w);
+    else drawFiles(w);
+    hx.restore();
+  }
+
+  function wrapLines(text, max) {
+    var out = [];
+    text.split('\n').forEach(function (line) {
+      if (!line.length) { out.push(''); return; }
+      for (var i = 0; i < line.length; i += max) out.push(line.slice(i, i + max));
+      if (line.length % max === 0) out.push('');
+    });
+    return out;
+  }
+
+  function drawNotes(w, now, focused) {
+    hx.fillStyle = '#f0f2f5'; hx.fillRect(w.x, w.y + 31, w.w, 22);
+    hx.fillStyle = '#4a515c'; hx.font = '12px "Segoe UI", system-ui, sans-serif';
+    hx.fillText('File     Edit     View', w.x + 12, w.y + 46);
+    hx.fillStyle = '#ffffff'; hx.fillRect(w.x, w.y + 53, w.w, w.h - 53);
+    hx.font = '13px Consolas, "Cascadia Code", "Courier New", monospace';
+    var cw = hx.measureText('M').width;
+    var max = Math.max(10, Math.floor((w.w - 28) / cw));
+    var lines = wrapLines(scene.text, max);
+    var fit = Math.floor((w.h - 64) / 18);
+    var shown = lines.slice(Math.max(0, lines.length - fit));
+    hx.fillStyle = '#1b1f24';
+    shown.forEach(function (l, i) { hx.fillText(l, w.x + 14, w.y + 72 + i * 18); });
+    if (focused && Math.floor(now / 530) % 2 === 0) {
+      var last = shown[shown.length - 1] || '';
+      var cx = w.x + 14 + hx.measureText(last).width + 1;
+      var cy = w.y + 72 + (shown.length - 1) * 18;
+      hx.fillRect(cx, cy - 12, 1.5, 16);
+    }
+  }
+
+  function drawPerf(w) {
+    var cur = scene.cpu[scene.cpu.length - 1];
+    hx.fillStyle = '#1b1f24';
+    hx.font = '600 12px "Segoe UI", system-ui, sans-serif';
+    hx.fillText('CPU', w.x + 16, w.y + 54);
+    hx.font = '600 22px "Segoe UI", system-ui, sans-serif';
+    hx.fillText(Math.round(cur) + '%', w.x + 16, w.y + 80);
+    hx.font = '11px "Segoe UI", system-ui, sans-serif';
+    hx.fillStyle = '#5c6470';
+    hx.fillText('Memory  3.9 / 8.0 GB', w.x + 16, w.y + 100);
+    hx.fillText('Up time  6:14:22:09', w.x + 16, w.y + 116);
+    var gx = w.x + 140, gy = w.y + 44, gw = w.w - 156, gh = w.h - 60;
+    hx.fillStyle = '#f1f6fd'; hx.fillRect(gx, gy, gw, gh);
+    hx.strokeStyle = '#d7e3f3'; hx.lineWidth = 1;
+    for (var i = 1; i < 4; i++) { hx.beginPath(); hx.moveTo(gx, gy + gh * i / 4 + .5); hx.lineTo(gx + gw, gy + gh * i / 4 + .5); hx.stroke(); }
+    hx.strokeStyle = '#1f6fd1'; hx.fillStyle = 'rgba(31,111,209,.14)'; hx.lineWidth = 1.5;
+    hx.beginPath();
+    scene.cpu.forEach(function (v, j) {
+      var x = gx + gw * j / (scene.cpu.length - 1), y = gy + gh - gh * v / 100;
+      if (j) hx.lineTo(x, y); else hx.moveTo(x, y);
+    });
+    hx.stroke();
+    hx.lineTo(gx + gw, gy + gh); hx.lineTo(gx, gy + gh); hx.closePath(); hx.fill();
+    hx.strokeStyle = '#c3d3e8'; hx.strokeRect(gx + .5, gy + .5, gw - 1, gh - 1);
+  }
+
+  var FILES = [['Scans', 'Today, 9:41 AM'], ['Forms', 'Yesterday'], ['Schedules', 'Mon'], ['Backups', 'Today, 6:02 AM'], ['Invoices', 'Last week']];
+  function drawFiles(w) {
+    hx.fillStyle = '#ffffff'; hx.fillRect(w.x, w.y + 31, w.w, w.h - 31);
+    hx.font = '600 11px "Segoe UI", system-ui, sans-serif';
+    hx.fillStyle = '#5c6470';
+    hx.fillText('Name', w.x + 42, w.y + 50);
+    hx.fillText('Modified', w.x + 220, w.y + 50);
+    hx.fillStyle = '#e3e6ea'; hx.fillRect(w.x + 10, w.y + 57, w.w - 20, 1);
+    hx.font = '12px "Segoe UI", system-ui, sans-serif';
+    FILES.forEach(function (f, i) {
+      var y = w.y + 62 + i * 26;
+      if (scene.selRow === i) { hx.fillStyle = '#cce4ff'; hx.fillRect(w.x + 8, y, w.w - 16, 24); }
+      hx.fillStyle = '#f2c14e';
+      rr(hx, w.x + 18, y + 7, 16, 11, 2); hx.fill();
+      hx.fillRect(w.x + 18, y + 5, 7, 3);
+      hx.fillStyle = '#1b1f24'; hx.fillText(f[0], w.x + 42, y + 16);
+      hx.fillStyle = '#5c6470'; hx.fillText(f[1], w.x + 220, y + 16);
+    });
+  }
+
+  function drawTaskbar() {
+    var y = H - 38;
+    hx.fillStyle = 'rgba(16,20,28,.9)'; hx.fillRect(0, y, W, 38);
+    hx.fillStyle = 'rgba(255,255,255,.08)'; hx.fillRect(0, y, W, 1);
+    var sx = W / 2 - 70;
+    hx.fillStyle = '#4da3ff';
+    [[0, 0], [8, 0], [0, 8], [8, 8]].forEach(function (p) { hx.fillRect(sx + p[0], y + 12 + p[1], 7, 7); });
+    [['#f2c14e', 'files'], ['#6c8cff', 'notes'], ['#39b36b', 'perf']].forEach(function (a, i) {
+      var ax = sx + 34 + i * 34;
+      rr(hx, ax, y + 9, 20, 20, 5); hx.fillStyle = a[0]; hx.fill();
+      if (scene.focus === a[1]) { hx.fillStyle = '#4da3ff'; hx.fillRect(ax + 5, y + 34, 10, 2); }
+    });
+    var d = new Date();
+    hx.fillStyle = '#e6edf3';
+    hx.font = '12px "Segoe UI", system-ui, sans-serif';
+    hx.textAlign = 'right';
+    hx.fillText(d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }), W - 14, y + 17);
+    hx.fillText(d.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: 'numeric' }), W - 14, y + 31);
+    hx.textAlign = 'left';
+  }
+
+  function drawHost(now) {
+    if (now - scene.cpuAt > 500) {
+      scene.cpuAt = now;
+      var last = scene.cpu[scene.cpu.length - 1];
+      scene.cpu.push(Math.max(4, Math.min(96, last + (Math.random() - .5) * 16 + (22 - last) * .08)));
+      scene.cpu.shift();
+    }
+    hx.drawImage(wall, 0, 0);
+    scene.wins.forEach(function (w) { drawWindow(w, now); });
+    drawTaskbar();
+  }
+
+  function hostInput(action, x, y, code) {
+    if (action === IN.MOVE) {
+      var d = scene.drag;
+      if (d) {
+        d.win.x = Math.max(-d.win.w + 80, Math.min(W - 80, x - d.dx));
+        d.win.y = Math.max(0, Math.min(H - 38 - 30, y - d.dy));
+      }
+    } else if (action === IN.DOWN) {
+      var w = winAt(x, y);
+      if (!w) return;
+      toFront(w);
+      scene.focus = w.id;
+      if (y - w.y <= 30) scene.drag = { win: w, dx: x - w.x, dy: y - w.y };
+      else if (w.id === 'files') {
+        var row = Math.floor((y - (w.y + 62)) / 26);
+        scene.selRow = row >= 0 && row < FILES.length ? row : -1;
+      }
+    } else if (action === IN.UP) {
+      scene.drag = null;
+    } else if (action === IN.KEY) {
+      if (scene.focus !== 'notes') return;
+      if (code === 8) scene.text = scene.text.slice(0, -1);
+      else if (code === 13) scene.text += '\n';
+      else if (code >= 32) scene.text += String.fromCodePoint(code);
+      if (scene.text.length > 600) scene.text = scene.text.slice(-600);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     ENCODER (host side) — tile-delta, same rules as codec.TileEncoder
+  ------------------------------------------------------------------ */
+  var snap = document.createElement('canvas');
+  snap.width = W; snap.height = H;
+  var sctx = snap.getContext('2d', { willReadFrequently: true });
+  var ref = null, lastKeyframe = 0, forceKeyframe = false, busy = false, lastTick = 0, lastEstimate = 0;
+  var fullFrameBytes = 0;
+
+  function diffTiles(cur, prev) {
+    var out = [];
+    for (var ty = 0; ty < ROWS; ty++) {
+      for (var tx = 0; tx < COLS; tx++) {
+        var x0 = tx * T, y0 = ty * T, x1 = Math.min(x0 + T, W), y1 = Math.min(y0 + T, H);
+        scan:
+        for (var y = y0; y < y1; y++) {
+          var row = y * W;
+          for (var x = x0; x < x1; x++) {
+            if (cur[row + x] !== prev[row + x]) { out.push([tx, ty]); break scan; }
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  function jpeg(x, y, w, h) {
+    return new Promise(function (resolve) {
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(snap, x, y, w, h, 0, 0, w, h);
+      c.toBlob(function (b) {
+        if (!b) { resolve(new Uint8Array(0)); return; }
+        b.arrayBuffer().then(function (ab) { resolve(new Uint8Array(ab)); });
+      }, 'image/jpeg', QUALITY);
+    });
+  }
+
+  function capture(now) {
+    var s = session;
+    busy = true;
+    sctx.drawImage(host, 0, 0);
+    var cur = new Uint32Array(sctx.getImageData(0, 0, W, H).data.buffer);
+    stats.ticks.push(now);
+    var periodic = !forceKeyframe && now - lastKeyframe >= KEYFRAME_MS;
+    var key = forceKeyframe || !ref || periodic;
+    var changed = key ? null : diffTiles(cur, ref);
+    ref = cur;
+
+    var job;
+    if (!key && changed.length === 0) {
+      job = Promise.resolve();
+    } else if (key || changed.length / TOTAL > FULL_FRAME_RATIO) {
+      var why = forceKeyframe ? 'new session' : periodic ? 'every 5 s' : Math.round(changed.length / TOTAL * 100) + '% changed';
+      forceKeyframe = false;
+      lastKeyframe = now;
+      job = jpeg(0, 0, W, H).then(function (blob) {
+        fullFrameBytes = blob.length; lastEstimate = now;
+        if (session !== s) return;
+        sendFrame(KIND.FULL, FLAG_KEYFRAME, blob, TOTAL, why);
+      });
+    } else {
+      job = Promise.all(changed.map(function (c) {
+        var x = c[0] * T, y = c[1] * T;
+        return jpeg(x, y, Math.min(T, W - x), Math.min(T, H - y));
+      })).then(function (blobs) {
+        if (session !== s) return;
+        var len = 2;
+        blobs.forEach(function (b) { len += 8 + b.length; });
+        var p = new Uint8Array(len), dv = new DataView(p.buffer), o = 2;
+        dv.setUint16(0, changed.length, true);
+        changed.forEach(function (c, i) {
+          dv.setUint16(o, c[0], true); dv.setUint16(o + 2, c[1], true); dv.setUint32(o + 4, blobs[i].length, true);
+          p.set(blobs[i], o + 8);
+          o += 8 + blobs[i].length;
+        });
+        sendFrame(KIND.TILES, 0, p, changed.length);
+        // Re-measure a whole-frame JPEG now and then, for the comparison bars.
+        if (now - lastEstimate > 2000) {
+          lastEstimate = now;
+          return jpeg(0, 0, W, H).then(function (b) { fullFrameBytes = b.length; });
+        }
+      });
+    }
+    job.then(function () { busy = false; }, function () { busy = false; });
+  }
+
+  function sendFrame(kind, flags, payload, tiles, why) {
+    var s = session;
+    var buf = pack(kind, flags, s.peer.id, OWNER_ID, s.seq++, payload);
+    stats.down.push([performance.now(), buf.byteLength]);
+    stats.packets.push(performance.now());
+    stats.lastTiles = tiles;
+    stats.lastBytes = buf.byteLength;
+    stats.header = new Uint8Array(buf.slice(0, 12));
+    if (kind === KIND.FULL) {
+      log('FRAME', '←', 'FULL_FRAME keyframe · ' + why + ' · ' + kb(buf.byteLength));
+    } else {
+      logGrouped('tiles', 'FRAME', '←', function (g) { g.n++; g.a += tiles; g.b += buf.byteLength; }, function (g) {
+        return 'TILES ×' + g.n + ' packets · ' + g.a + ' tiles · ' + kb(g.b);
+      });
+    }
+    relay(buf, viewerRecv);
+  }
+
+  function sendCursor(x, y) {
+    var s = session;
+    var p = new Uint8Array(4), dv = new DataView(p.buffer);
+    dv.setUint16(0, x, true); dv.setUint16(2, y, true);
+    var buf = pack(KIND.CURSOR, 0, s.peer.id, OWNER_ID, s.seq++, p);
+    stats.down.push([performance.now(), buf.byteLength]);
+    relay(buf, viewerRecv);
+  }
+
+  function hostRecv(buf) {
+    var dv = new DataView(buf);
+    if (dv.getUint8(0) !== MAGIC || dv.getUint8(2) !== KIND.INPUT) return;
+    var a = dv.getUint8(12), x = dv.getUint16(13, true), y = dv.getUint16(15, true), code = dv.getUint32(21, true);
+    hostInput(a, x, y, code);
+    if (a === IN.MOVE || a === IN.DOWN) sendCursor(x, y);
+  }
+
+  /* ------------------------------------------------------------------
+     VIEWER (your side)
+  ------------------------------------------------------------------ */
+  var view = $('view'), vctx = view.getContext('2d');
+  var overlay = $('overlay'), octx = overlay.getContext('2d');
+  var idleEl = $('idle'), kbEl = $('kb');
+  var marks = new Float64Array(TOTAL);
+  var cursor = null;
+  var keyflash = -1e9;
+  var queue = Promise.resolve();
+
+  function viewerRecv(buf) {
+    var dv = new DataView(buf);
+    if (dv.getUint8(0) !== MAGIC || dv.getUint8(1) !== VERSION) return;
+    var kind = dv.getUint8(2);
+    if (kind === KIND.CURSOR) {
+      cursor = { x: dv.getUint16(12, true), y: dv.getUint16(14, true) };
+      return;
+    }
+    // Frames decode in arrival order so a late tile never paints over a newer one.
+    queue = queue.then(function () { return applyFrame(buf, kind); }).catch(function () {});
+  }
+
+  function decode(bytes) {
+    return createImageBitmap(new Blob([bytes], { type: 'image/jpeg' }));
+  }
+
+  function applyFrame(buf, kind) {
+    var dv = new DataView(buf), len = dv.getUint32(8, true);
+    var s = session;
+    if (kind === KIND.FULL) {
+      return decode(new Uint8Array(buf, 12, len)).then(function (bmp) {
+        if (session !== s) return;
+        vctx.drawImage(bmp, 0, 0);
+        idleEl.hidden = true;
+        keyflash = performance.now();
+      });
+    }
+    if (kind === KIND.TILES) {
+      var n = dv.getUint16(12, true), o = 14, jobs = [];
+      for (var i = 0; i < n; i++) {
+        var tx = dv.getUint16(o, true), ty = dv.getUint16(o + 2, true), bl = dv.getUint32(o + 4, true);
+        jobs.push({ tx: tx, ty: ty, bytes: new Uint8Array(buf, o + 8, bl) });
+        o += 8 + bl;
+      }
+      return Promise.all(jobs.map(function (j) { return decode(j.bytes); })).then(function (bmps) {
+        if (session !== s) return;
+        var now = performance.now();
+        bmps.forEach(function (b, k) {
+          vctx.drawImage(b, jobs[k].tx * T, jobs[k].ty * T);
+          marks[jobs[k].ty * COLS + jobs[k].tx] = now;
+        });
+      });
+    }
+  }
+
+  var showTiles = $('show-tiles');
+  function drawOverlay(now) {
+    octx.clearRect(0, 0, W, H);
+    if (!session) return;
+    if (showTiles.checked) {
+      var life = reduceMotion ? 900 : 700;
+      for (var i = 0; i < TOTAL; i++) {
+        var age = now - marks[i];
+        if (age < 0 || age > life) continue;
+        var a = 1 - age / life;
+        var x = (i % COLS) * T, y = Math.floor(i / COLS) * T;
+        octx.fillStyle = 'rgba(233,69,96,' + (a * .16).toFixed(3) + ')';
+        octx.fillRect(x, y, T, T);
+        octx.strokeStyle = 'rgba(233,69,96,' + (a * .9).toFixed(3) + ')';
+        octx.lineWidth = 2;
+        octx.strokeRect(x + 1, y + 1, T - 2, T - 2);
+      }
+    }
+    // A keyframe replaces the whole picture: outline the screen and tag it.
+    var ka = now - keyflash;
+    if (showTiles.checked && ka >= 0 && ka < 900) {
+      var al = 1 - ka / 900;
+      octx.strokeStyle = 'rgba(88,166,255,' + al.toFixed(3) + ')';
+      octx.lineWidth = 4;
+      octx.strokeRect(2, 2, W - 4, H - 4);
+      octx.fillStyle = 'rgba(88,166,255,' + (al * .92).toFixed(3) + ')';
+      rr(octx, 12, 12, 150, 26, 6); octx.fill();
+      octx.fillStyle = 'rgba(5,7,11,' + al.toFixed(3) + ')';
+      octx.font = '600 13px "Segoe UI", system-ui, sans-serif';
+      octx.fillText('Keyframe · full screen', 22, 30);
+    }
+    if (cursor) {
+      var cx = cursor.x, cy = cursor.y;
+      octx.beginPath();
+      octx.moveTo(cx, cy); octx.lineTo(cx, cy + 17); octx.lineTo(cx + 4.5, cy + 13); octx.lineTo(cx + 8, cy + 20);
+      octx.lineTo(cx + 10.5, cy + 19); octx.lineTo(cx + 7.2, cy + 12); octx.lineTo(cx + 12.5, cy + 12); octx.closePath();
+      octx.fillStyle = '#ffffff'; octx.fill();
+      octx.strokeStyle = '#111'; octx.lineWidth = 1.2; octx.stroke();
+    }
+  }
+
+  function sendInput(action, x, y, code) {
+    if (!session) return;
+    var p = new Uint8Array(13), dv = new DataView(p.buffer);
+    dv.setUint8(0, action);
+    dv.setUint16(1, Math.max(0, Math.round(x)), true);
+    dv.setUint16(3, Math.max(0, Math.round(y)), true);
+    dv.setInt16(5, 0, true); dv.setInt16(7, 0, true);
+    dv.setUint32(9, code || 0, true);
+    var buf = pack(KIND.INPUT, 0, OWNER_ID, session.peer.id, session.seq++, p);
+    relay(buf, hostRecv);
+    return buf.byteLength;
+  }
+
+  // Mouse moves are coalesced to one per animation frame (latest position
+  // wins). Clicks and keys go out immediately and are never dropped.
+  var pendingMove = null;
+  function flushMove() {
+    if (!pendingMove) return;
+    sendInput(IN.MOVE, pendingMove.x, pendingMove.y);
+    stats.movesSent++;
+    pendingMove = null;
+  }
+  function toRemote(e) {
+    var r = overlay.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+  }
+  var downAt = null;
+  overlay.addEventListener('pointermove', function (e) {
+    if (!session) return;
+    pendingMove = toRemote(e);
+    stats.movesSeen++;
+  });
+  overlay.addEventListener('pointerdown', function (e) {
+    if (!session) return;
+    e.preventDefault();
+    try { overlay.setPointerCapture(e.pointerId); } catch (err) {}
+    var p = toRemote(e);
+    pendingMove = p; stats.movesSeen++; flushMove();
+    var bytes = sendInput(IN.DOWN, p.x, p.y);
+    downAt = p;
+    log('INPUT', '→', 'mouse down (' + Math.round(p.x) + ', ' + Math.round(p.y) + ') · ' + bytes + ' B · control lane');
+  });
+  overlay.addEventListener('pointerup', function (e) {
+    if (!session) return;
+    var p = toRemote(e);
+    flushMove();
+    sendInput(IN.UP, p.x, p.y);
+    // Bring up the keyboard when the tap lands in Notepad's text area.
+    var w = downAt && winAt(downAt.x, downAt.y);
+    if (w && w.id === 'notes' && downAt.y - w.y > 30) kbEl.focus({ preventScroll: true });
+    else if (e.pointerType === 'mouse') kbEl.focus({ preventScroll: true });
+    downAt = null;
+  });
+
+  function sendKey(code, label) {
+    var bytes = sendInput(IN.KEY, 0, 0, code);
+    if (!bytes) return;
+    logGrouped('keys', 'INPUT', '→', function (g) { g.n++; g.b += bytes; g.s = ((g.s || '') + label).slice(-24); }, function (g) {
+      return 'key ×' + g.n + ' "' + g.s + '" · ' + kb(g.b) + ' · control lane';
+    });
+  }
+  kbEl.addEventListener('keydown', function (e) {
+    if (!session) return;
+    if (e.key === 'Backspace') { e.preventDefault(); sendKey(8, '⌫'); }
+    else if (e.key === 'Enter') { e.preventDefault(); sendKey(13, '↵'); }
+  });
+  kbEl.addEventListener('input', function () {
+    var v = kbEl.value;
+    kbEl.value = '';
+    if (!session) return;
+    Array.from(v).forEach(function (ch) { sendKey(ch.codePointAt(0), ch); });
+  });
+
+  /* ------------------------------------------------------------------
+     STATS
+  ------------------------------------------------------------------ */
+  var stats = { down: [], packets: [], ticks: [], lastTiles: 0, lastBytes: 0, header: null, movesSeen: 0, movesSent: 0 };
+  function prune(arr, since, isPair) {
+    while (arr.length && (isPair ? arr[0][0] : arr[0]) < since) arr.shift();
+  }
+  var hdrEl = $('hdr');
+  (function buildHeader() {
+    var html = '';
+    for (var i = 0; i < 12; i++) html += '<div class="hx" id="hx' + i + '">--</div>';
+    [['magic', 1, 1], ['ver', 1, 0], ['kind', 1, 1], ['flags', 1, 0], ['src', 1, 1], ['dst', 1, 0], ['seq', 2, 1], ['length', 4, 0]].forEach(function (f) {
+      html += '<div class="lb' + (f[2] ? ' k' : '') + '" style="grid-column: span ' + f[1] + '">' + f[0] + '</div>';
+    });
+    hdrEl.innerHTML = html;
+  })();
+
+  function fmtRate(bps) { return bps >= 1024 * 1024 ? (bps / 1048576).toFixed(1) + ' MB/s' : (bps / 1024).toFixed(1) + ' KB/s'; }
+
+  function renderStats() {
+    var now = performance.now();
+    prune(stats.down, now - 3000, true);
+    prune(stats.packets, now - 1000);
+    prune(stats.ticks, now - 3000);
+    var bytes = 0;
+    stats.down.forEach(function (d) { bytes += d[1]; });
+    var rate = bytes / 3;
+    $('m-rate').textContent = fmtRate(rate);
+    $('m-fps').textContent = stats.packets.length;
+    $('m-tiles').textContent = stats.lastTiles + ' / ' + TOTAL;
+    $('m-last').textContent = kb(stats.lastBytes);
+    $('m-moves').textContent = stats.movesSeen + ' → ' + stats.movesSent;
+
+    if (stats.header) {
+      for (var i = 0; i < 12; i++) $('hx' + i).textContent = stats.header[i].toString(16).padStart(2, '0');
+    }
+
+    if (session && fullFrameBytes) {
+      var tickRate = stats.ticks.length / 3 || 15;
+      var full = (fullFrameBytes + 12) * tickRate;
+      var v1 = (Math.ceil(fullFrameBytes / 3) * 4 + 40) * tickRate;
+      $('b-v1').textContent = fmtRate(v1);
+      $('b-full').textContent = fmtRate(full);
+      $('b-v2').textContent = fmtRate(rate);
+      $('f-v1').style.width = '100%';
+      $('f-full').style.width = (full / v1 * 100).toFixed(1) + '%';
+      $('f-v2').style.width = Math.max(0.6, rate / v1 * 100).toFixed(1) + '%';
+      $('b-note').textContent = rate > 0
+        ? 'Right now v2 sends ' + Math.round(v1 / Math.max(rate, 1)) + '× less than v1 would for this screen. This demo desktop is quieter than a real one. The real app averages 10× less, and up to 30× on a quiet screen.'
+        : 'Nothing is changing, so nothing is being sent.';
+    }
+  }
+  setInterval(renderStats, 250);
+
+  /* ------------------------------------------------------------------
+     SESSION + CLIENT PANEL
+  ------------------------------------------------------------------ */
+  var session = null;
+  var relayUp = false;
+  var connectToken = 0;
+  var dot = $('dot'), statusEl = $('status'), msgEl = $('c-msg');
+  var peersEl = $('peers'), gridEl = $('numgrid'), titleEl = $('s-title'), stopBtn = $('disconnect');
+
+  function peerById(id) { for (var i = 0; i < PEERS.length; i++) if (PEERS[i].id === id) return PEERS[i]; return null; }
+
+  var MONITOR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8 20.5h8M12 16.5v4"/></svg>';
+  function renderPeers() {
+    peersEl.innerHTML = '';
+    PEERS.forEach(function (p) {
+      var row = document.createElement('div');
+      var active = session && session.peer.id === p.id;
+      row.className = 'peer' + (active ? ' active' : '');
+      row.innerHTML = MONITOR + '<div class="nm"></div>';
+      row.querySelector('.nm').innerHTML = '<span></span><span class="id">Computer #' + p.id + '</span>';
+      row.querySelector('.nm span').textContent = p.name;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn' + (active ? ' ghost' : '');
+      b.textContent = active ? 'Connected' : 'Connect';
+      b.disabled = !relayUp || active;
+      b.addEventListener('click', function () { connect(p); });
+      row.appendChild(b);
+      peersEl.appendChild(row);
+    });
+  }
+  (function buildGrid() {
+    for (var i = 1; i <= 20; i++) {
+      (function (id) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = id;
+        var p = peerById(id);
+        if (p) { b.className = 'on'; b.setAttribute('aria-label', 'Computer ' + id + ', ' + p.name + ', online'); }
+        else b.setAttribute('aria-label', 'Computer ' + id + ', offline');
+        b.addEventListener('click', function () {
+          if (!relayUp) return;
+          if (p) connect(p);
+          else msgEl.textContent = 'Computer #' + id + ' is offline right now. Green numbers are online.';
+        });
+        gridEl.appendChild(b);
+      })(i);
+    }
+  })();
+
+  function connect(p) {
+    if (session && session.peer.id === p.id) return;
+    if (session) disconnect(true);
+    msgEl.textContent = '';
+    log('CTRL', '→', 'request_control {"dst": ' + p.id + '}');
+    var token = ++connectToken;
+    session = null;
+    titleEl.innerHTML = 'Connecting to <span></span>…';
+    titleEl.querySelector('span').textContent = p.name + ' (#' + p.id + ')';
+    setTimeout(function () {
+      if (token !== connectToken) return;
+      log('CTRL', '←', 'accepted by #' + p.id + ' ' + p.name + ' · unattended access');
+      resetScene(p);
+      session = { peer: p, seq: 0 };
+      ref = null; forceKeyframe = true; fullFrameBytes = 0;
+      cursor = null; queue = Promise.resolve();
+      stats.lastTiles = 0; stats.lastBytes = 0;
+      titleEl.innerHTML = 'Controlling — <span></span>';
+      titleEl.querySelector('span').textContent = p.name + ' (#' + p.id + ')';
+      titleEl.querySelector('span').style.color = 'var(--text)';
+      stopBtn.disabled = false;
+      overlay.classList.add('live');
+      renderPeers();
+    }, LATENCY * 2 + 40);
+  }
+
+  function disconnect(quiet) {
+    connectToken++;
+    if (!session) return;
+    log('CTRL', '→', 'end_session {"dst": ' + session.peer.id + '}');
+    session = null;
+    pendingMove = null;
+    overlay.classList.remove('live');
+    stopBtn.disabled = true;
+    vctx.clearRect(0, 0, W, H);
+    octx.clearRect(0, 0, W, H);
+    idleEl.hidden = false;
+    if (!quiet) titleEl.innerHTML = 'Not controlling a computer <span>· pick one on the left</span>';
+    renderPeers();
+  }
+  stopBtn.addEventListener('click', function () { disconnect(false); });
+
+  // Sign in to the relay as the owner.
+  function signIn() {
+    renderPeers();
+    var steps = [
+      [0, 'CTRL', '→', 'register {"id": 0, "role": "client"}'],
+      [LATENCY * 2, 'AUTH', '←', 'challenge · 32-byte random nonce'],
+      [LATENCY * 2 + 30, 'AUTH', '→', 'response · Ed25519 signature, 64 B'],
+      [LATENCY * 4 + 30, 'AUTH', '✓', 'ID 0 matches the enrolled owner key · no password needed'],
+      [LATENCY * 4 + 60, 'CTRL', '←', 'peers online: #3, #5, #8, #12']
+    ];
+    steps.forEach(function (s) {
+      setTimeout(function () { log(s[1], s[2], s[3]); }, s[0]);
+    });
+    setTimeout(function () {
+      relayUp = true;
+      dot.className = 'dot on';
+      statusEl.textContent = 'Connected to relay · 4 computers online';
+      renderPeers();
+    }, LATENCY * 4 + 60);
+  }
+
+  /* ------------------------------------------------------------------
+     MAIN LOOP
+  ------------------------------------------------------------------ */
+  function loop(now) {
+    flushMove();
+    // The remote desktop is only redrawn when the encoder is ready for a frame.
+    if (session && !busy && now - lastTick >= FRAME_MS) {
+      lastTick = now;
+      drawHost(now);
+      capture(now);
+    }
+    drawOverlay(now);
+    requestAnimationFrame(loop);
+  }
+
+  signIn();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
