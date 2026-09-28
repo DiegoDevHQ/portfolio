@@ -246,7 +246,7 @@
 
 <section class="real" aria-label="About the real app">
   <h2>The real one</h2>
-  <p>GonzalezDesk replaced paid remote-access licenses for a multi-office practice. A Windows client runs on 20 machines, and one relay server routes every session. These are the numbers measured at 1920×1080 before and after the v2 rewrite.</p>
+  <p>GonzalezDesk replaced paid remote-access licenses for a multi-office practice. Windows clients at each office connect through one relay server that routes every session. The v2 rewrite of its streaming engine was benchmarked against the original at 1920×1080:</p>
   <div class="figs">
     <div class="fig"><div class="k">Host CPU per frame</div><div class="v"><s>18.3 ms</s> → <b>2.64 ms</b></div></div>
     <div class="fig"><div class="k">Data per frame</div><div class="v"><s>42.3 KB</s> → <b>4.2 KB</b></div></div>
@@ -255,7 +255,7 @@
   </div>
   <div class="cols">
     <div>
-      <h3>Same as the real app</h3>
+      <h3>Same as the v2 code</h3>
       <ul>
         <li><b>Tile-delta codec:</b> only changed tiles are JPEG-encoded. A full keyframe goes out every 5 s, or whenever more than 60% of the screen changed.</li>
         <li><b>Wire format:</b> the same 12-byte header (magic, version, kind, flags, source, destination, sequence, length) and the same tile record layout.</li>

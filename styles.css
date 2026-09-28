@@ -349,6 +349,11 @@ input:focus, textarea:focus{
   border-color: rgba(124,92,255,.45);
 }
 .form-note{ margin: 0; font-size: .95rem; }
+.form-note[data-tone="ok"]{ color: var(--accent-2); }
+.form-note[data-tone="warn"]{ color: #ffb86b; }
+.contact-form .btn:disabled{ opacity: .6; cursor: default; }
+/* Spam trap: kept off-screen instead of display:none so bots still see it. */
+.contact-form .hp{ position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
 .site-footer{
   padding: 22px 0 40px;

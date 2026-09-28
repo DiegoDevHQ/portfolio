@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Software engineer with 10 years building production systems in healthcare IT. Python, JavaScript, automation, and local AI." />
     <title>Diego A. Ortega — Software Engineer</title>
+    <link rel="canonical" href="https://diegodevhq.space/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://diegodevhq.space/" />
+    <meta property="og:title" content="Diego A. Ortega — Software Engineer" />
+    <meta property="og:description" content="Ten years building and operating production software. Python, JavaScript, networking, automation, and local AI. Try live demos of GonzalezDesk and JARVIS." />
+    <meta property="og:image" content="https://diegodevhq.space/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Diego A. Ortega, Software Engineer. Python, automation and local AI." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Diego A. Ortega — Software Engineer" />
+    <meta name="twitter:description" content="Ten years building and operating production software. Python, JavaScript, networking, automation, and local AI." />
+    <meta name="twitter:image" content="https://diegodevhq.space/og-image.png" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="./favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
@@ -42,6 +55,7 @@
 
           <div class="cta-row">
             <a class="btn primary" href="#projects">View projects</a>
+            <a class="btn" href="resume/Diego-Ortega-Resume.pdf" download>Download résumé</a>
             <a class="btn" href="#experience">Experience</a>
             <a class="btn" href="#contact">Contact</a>
           </div>
@@ -59,10 +73,10 @@
             <div class="chips" aria-label="Top skills">
               <span class="chip">Python</span>
               <span class="chip">JavaScript</span>
+              <span class="chip">TCP/IP networking</span>
+              <span class="chip">Local LLMs</span>
+              <span class="chip">Automation</span>
               <span class="chip">SQL</span>
-              <span class="chip">Git</span>
-              <span class="chip">Machine Learning</span>
-              <span class="chip">APIs</span>
             </div>
           </div>
         </aside>
@@ -87,30 +101,53 @@
             <h2>Core skills</h2>
             <div class="skills-grid">
               <div class="skill-group">
-                <h3>Programming</h3>
+                <h3>Languages</h3>
                 <ul class="inline-list">
                   <li>Python</li>
-                  <li>Java</li>
                   <li>JavaScript</li>
+                  <li>SQL</li>
                   <li>HTML/CSS</li>
+                  <li>Java</li>
                 </ul>
               </div>
               <div class="skill-group">
-                <h3>AI / Data</h3>
+                <h3>Systems &amp; networking</h3>
                 <ul class="inline-list">
-                  <li>NumPy</li>
-                  <li>Pandas</li>
-                  <li>scikit-learn</li>
-                  <li>Model evaluation</li>
+                  <li>TCP/IP and WebSockets</li>
+                  <li>Binary wire protocols</li>
+                  <li>Screen capture (DXGI)</li>
+                  <li>Ed25519 device auth</li>
                 </ul>
               </div>
               <div class="skill-group">
-                <h3>Tools</h3>
+                <h3>AI &amp; voice</h3>
+                <ul class="inline-list">
+                  <li>Ollama / local LLMs</li>
+                  <li>Tool-calling agents</li>
+                  <li>Whisper</li>
+                  <li>Piper TTS</li>
+                  <li>WebLLM / WebGPU</li>
+                  <li>Pandas, scikit-learn</li>
+                </ul>
+              </div>
+              <div class="skill-group">
+                <h3>Interfaces</h3>
+                <ul class="inline-list">
+                  <li>PyQt</li>
+                  <li>Tkinter</li>
+                  <li>Three.js</li>
+                  <li>HTML Canvas</li>
+                  <li>Flask</li>
+                </ul>
+              </div>
+              <div class="skill-group">
+                <h3>Tools &amp; delivery</h3>
                 <ul class="inline-list">
                   <li>Git/GitHub</li>
-                  <li>VS Code</li>
+                  <li>PyInstaller</li>
+                  <li>Remote update pipelines</li>
+                  <li>Vercel</li>
                   <li>Linux</li>
-                  <li>REST APIs</li>
                 </ul>
               </div>
               <div class="skill-group">
@@ -140,6 +177,8 @@
                 <ul class="bullets">
                   <li>Architected and shipped GonzalezDesk, a custom remote desktop platform in Python deployed across 20 machines at multiple office locations, supporting LAN and cross location access over TCP/IP.</li>
                   <li>Replaced all commercial remote access licensing by self hosting on organization owned infrastructure, retaining full data control and eliminating recurring per seat costs.</li>
+                  <li>Rewrote its streaming engine around a 12 byte binary wire protocol and a tile-delta JPEG codec. In 1920×1080 benchmarks this cut data per frame 10× (42.3 KB to 4.2 KB) and host CPU per frame 7× (18.3 ms to 2.64 ms) while raising image quality.</li>
+                  <li>Secured owner access with Ed25519 device keys, so the admin account needs no password and cannot be impersonated.</li>
                   <li>Built a live remote update pipeline that pushes fixes and features to every deployed machine with no on site visits.</li>
                   <li>Write and maintain Python automation for recurring clinical and administrative workflows.</li>
                   <li>Work directly with dental insurance claims, EOB processing, and payer billing workflows.</li>
@@ -185,7 +224,8 @@
                 ships fixes remotely.
               </p>
               <ul class="bullets">
-                <li>Custom TCP/IP client and server handling screen transport, input relay, and cross location access via port forwarding.</li>
+                <li>Custom TCP/IP client and relay server handling screen transport, input relay, and cross location access via port forwarding.</li>
+                <li>v2 engine: binary wire protocol plus tile-delta JPEG codec, benchmarked at 10× less data and 7× less CPU per frame than v1.</li>
                 <li>Remote update pipeline pushes new builds to all deployed machines with no on site visit required.</li>
                 <li>Replaced commercial per seat licensing entirely while keeping all data on organization controlled hardware.</li>
               </ul>
@@ -198,16 +238,17 @@
             <article class="card project">
               <div class="card-top">
                 <h3>J.A.R.V.I.S v2</h3>
-                <p class="meta">Python • Whisper • Piper TTS • Ollama • PyQt • Three.js</p>
+                <p class="meta">Python • Ollama (qwen3:14b) • Tool-calling agent • Whisper • Piper TTS • PyQt • Three.js</p>
               </div>
               <p>
-                A fully offline AI assistant packaged as a standalone Windows executable. No cloud, no subscriptions, no
-                third party APIs.
+                A fully offline AI agent packaged as a standalone Windows executable. It doesn't just chat: it plans,
+                calls tools, checks the results, and tries again. No cloud, no subscriptions, no third party APIs.
               </p>
               <ul class="bullets">
-                <li>Real time voice pipeline using PyAudio and Whisper, with a custom Piper TTS audio chain featuring EQ, voice doubling, and reverb.</li>
-                <li>Local LLM running through Ollama with persistent memory and user preferences stored in JSON.</li>
-                <li>Holographic interface built in PyQt WebEngine and Three.js with animated bloom, particle systems, and layered rings.</li>
+                <li>Rebuilt from a keyword router into a tool-calling agent: a local model works through a plan, call, observe loop across 48 tools in 6 packs (apps, files, shell, system, web, assistant).</li>
+                <li>Autonomy policy with three modes and per-tool overrides, plus hard rails that block killing critical processes, protected apps, or itself in every mode.</li>
+                <li>Real time voice with Whisper and a custom Piper voice chain. Turning the model's thinking mode off by default made replies 2.9× faster (9.4 s to 3.3 s) with no loss in tool accuracy.</li>
+                <li>Multi-chat sidebar with per-chat memory, inside a holographic PyQt WebEngine and Three.js interface.</li>
               </ul>
               <div class="links">
                 <a href="projects/Jarvis/index.html" aria-label="JARVIS browser demo">Try the lite demo</a>
@@ -403,27 +444,32 @@
           <div>
             <h2>Contact</h2>
             <p class="muted">
-              Want to collaborate or have an opportunity? Email is best — I usually respond within 24–48 hours.
+              Want to collaborate or have an opportunity? Send a message here or email me directly. I usually respond within 24–48 hours.
             </p>
           </div>
 
           <div class="card">
-            <form class="contact-form" action="mailto:diegoaogc@gmail.com" method="post" enctype="text/plain">
+            <form class="contact-form" id="contact-form" action="/api/contact" method="post" novalidate>
               <label>
                 <span>Name</span>
-                <input name="name" type="text" placeholder="Your name" autocomplete="name" />
+                <input id="cf-name" name="name" type="text" placeholder="Your name" autocomplete="name" maxlength="100" required />
               </label>
               <label>
                 <span>Email</span>
-                <input name="email" type="email" placeholder="you@example.com" autocomplete="email" />
+                <input id="cf-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" maxlength="200" required />
               </label>
               <label>
                 <span>Message</span>
-                <textarea name="message" rows="5" placeholder="Write a short message…"></textarea>
+                <textarea id="cf-message" name="message" rows="5" placeholder="Write a short message…" maxlength="5000" required></textarea>
               </label>
-              <button class="btn primary" type="submit">Send</button>
-              <p class="form-note muted">
-                This form uses your email client (no backend). If it doesn’t open, email me at
+              <!-- Left empty by people; bots tend to fill it in. -->
+              <label class="hp" aria-hidden="true">
+                <span>Company</span>
+                <input id="cf-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+              </label>
+              <button class="btn primary" id="cf-send" type="submit">Send</button>
+              <p class="form-note muted" id="cf-status" role="status">
+                Goes straight to my inbox. You can also email me at
                 <a href="mailto:diegoaogc@gmail.com">diegoaogc@gmail.com</a>.
               </p>
             </form>
@@ -439,6 +485,67 @@
       <script>
         // Tiny progressive enhancement (optional)
         document.getElementById("year").textContent = new Date().getFullYear();
+
+        // Contact form: sends through /api/contact. If that isn't set up or
+        // can't be reached, it says so and offers the email address instead.
+        (function () {
+          var form = document.getElementById("contact-form");
+          if (!form) return;
+          var status = document.getElementById("cf-status");
+          var send = document.getElementById("cf-send");
+          var EMAIL = "diegoaogc@gmail.com";
+
+          function say(text, tone, withMail) {
+            status.textContent = text;
+            status.dataset.tone = tone || "";
+            if (withMail) {
+              var a = document.createElement("a");
+              a.href = withMail;
+              a.textContent = EMAIL;
+              status.appendChild(document.createTextNode(" "));
+              status.appendChild(a);
+              status.appendChild(document.createTextNode("."));
+            }
+          }
+
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            function field(id) { return document.getElementById(id); }
+            var name = field("cf-name").value.trim();
+            var email = field("cf-email").value.trim();
+            var message = field("cf-message").value.trim();
+            if (!name || !message) { say("Please add your name and a message.", "warn"); return; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Please enter a valid email so I can reply.", "warn"); field("cf-email").focus(); return; }
+
+            var mailto = "mailto:" + EMAIL + "?subject=" + encodeURIComponent("Portfolio message from " + name) +
+              "&body=" + encodeURIComponent(message + "\n\n— " + name + " (" + email + ")");
+            send.disabled = true;
+            send.textContent = "Sending…";
+            say("Sending…");
+
+            fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: name, email: email, message: message, company: field("cf-company").value })
+            }).then(function (r) {
+              return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, status: r.status, body: j }; });
+            }).then(function (res) {
+              if (res.ok) {
+                form.reset();
+                say("Thanks, " + name + ". Your message was sent. I usually reply within 24–48 hours.", "ok");
+              } else if ((res.status === 400 || res.status === 429) && res.body.error) {
+                say(res.body.error, "warn");
+              } else {
+                say("The form couldn't send right now. Please email me directly at", "warn", mailto);
+              }
+            }).catch(function () {
+              say("The form couldn't send right now. Please email me directly at", "warn", mailto);
+            }).then(function () {
+              send.disabled = false;
+              send.textContent = "Send";
+            });
+          });
+        })();
       </script>
     </footer>
   </body>
