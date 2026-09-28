@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0b0f">
+<meta name="color-scheme" content="dark">
+<title>The Road to Doomsday</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0b0f'/%3E%3Cpath d='M6 23 8 11l5.5 5L16 8l2.5 8 5.5-5 2 12z' fill='%23d4a24c'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --bg-row: #14161c;
+    --bg-row-hover: #1a1d25;
+    --ink: #e8e6df;
+    --ink-dim: #8a8e99;
+    --ink-faint: #5f636e;
+    --line: #23262f;
+    --gold: #d4a24c;
+    --gold-dim: #8a6f3d;
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', 'Cascadia Code', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+
+  html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -10%, #14171f 0%, var(--bg) 55%);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding: 0 0 8vh;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  #fx-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  }
+
+  .fx-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 998;
+    opacity: 0;
+  }
+
+  header {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 7vh 24px 4vh;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin: 0 0 14px;
+  }
+
+  .eb-br { display: none; }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(32px, 6vw, 46px);
+    line-height: 1.08;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .dateline {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+    margin: 0 0 16px;
+  }
+
+  .sub {
+    color: var(--ink-dim);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 30px;
+  }
+
+  .progress-wrap {
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 4px;
+    background: var(--bg-row);
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    border-radius: 4px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+  }
+
+  .progress-tag {
+    color: var(--gold);
+  }
+
+  /* ---- up next ---- */
+  .next-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 420px;
+    margin: 22px auto 0;
+    padding: 14px 14px 14px 16px;
+    background: var(--bg-row);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--next-color, var(--gold));
+    border-radius: 12px;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.3s ease;
+  }
+  .next-card:disabled { cursor: default; }
+  .next-card:active:not(:disabled) { background: var(--bg-row-hover); }
+
+  .next-icon {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+  }
+  .next-icon svg { width: 100%; height: 100%; display: block; }
+
+  .next-text { flex: 1 1 auto; min-width: 0; }
+
+  .next-eyebrow {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+
+  .next-title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 19px;
+    line-height: 1.25;
+    margin-top: 3px;
+  }
+
+  .next-meta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+  }
+  .next-meta .yr { color: var(--yr-color, var(--gold)); font-weight: 600; }
+
+  .next-go {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+  }
+  .next-go svg { width: 16px; height: 16px; }
+
+  .next-card.swap .next-text,
+  .next-card.swap .next-icon { animation: nextIn 0.45s cubic-bezier(.2,.7,.3,1); }
+
+  @keyframes nextIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .gap-link {
+    display: block;
+    margin: 10px auto 0;
+    padding: 4px 8px;
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  /* ---- slim bar that follows you down the list ---- */
+  .mini {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: rgba(10, 11, 15, 0.94);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    transform: translateY(-110%);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  .mini.show { transform: translateY(0); }
+
+  .mini-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 11px 24px;
+    background: none;
+    border: none;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mini-count {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gold);
+  }
+
+  .mini-next {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mini-next b { color: var(--ink); font-weight: 500; margin-left: 4px; }
+
+  .mini-go { flex: 0 0 auto; display: flex; color: var(--gold); }
+  .mini-go svg { width: 15px; height: 15px; }
+
+  .mini-track { height: 2px; }
+  .mini-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px 24px 0;
+  }
+
+  .noscript {
+    color: var(--ink-dim);
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+    padding: 24px 12px;
+  }
+
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 13px 14px;
+    margin: 6px 0;
+    border-radius: 10px;
+    background: var(--bg-row);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--row-color, var(--line));
+    transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .row:active {
+    background: var(--bg-row-hover);
+  }
+
+  .row.done {
+    opacity: 0.5;
+  }
+
+  .row.done .title {
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-faint);
+    text-decoration-thickness: 1.5px;
+  }
+
+  .row.found { animation: rowFind 1.8s ease-out; }
+
+  @keyframes rowFind {
+    0%   { box-shadow: 0 0 0 0 var(--row-color); }
+    20%  { box-shadow: 0 0 0 3px var(--row-color); }
+    100% { box-shadow: 0 0 0 3px transparent; }
+  }
+
+  .cb-wrap {
+    position: relative;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+  }
+
+  .cb-wrap input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+
+  .cb-box {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    border: 1.5px solid var(--ink-faint);
+    background: transparent;
+    color: var(--tick, #0a0b0f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  }
+
+  .cb-wrap input:checked ~ .cb-box {
+    background: var(--row-color, var(--gold));
+    border-color: var(--row-color, var(--gold));
+  }
+
+  .cb-wrap input:focus-visible ~ .cb-box {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .cb-box svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .cb-wrap input:checked ~ .cb-box svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .body-text { flex: 1 1 auto; min-width: 0; }
+
+  .title {
+    display: block;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .meta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    margin-top: 3px;
+  }
+
+  .meta .yr { color: var(--yr-color, var(--row-color, var(--gold))); font-weight: 600; }
+
+  footer {
+    max-width: 700px;
+    margin: 40px auto 0;
+    padding: 20px 24px 0;
+    text-align: center;
+    border-top: 1px solid var(--line);
+  }
+
+  footer p {
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    line-height: 1.7;
+  }
+
+  #reset-link {
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+  #reset-link.armed { color: #ff6b5e; font-weight: 600; text-decoration: none; }
+
+  .next-card:focus-visible,
+  .gap-link:focus-visible,
+  .mini-btn:focus-visible,
+  #reset-link:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) {
+    .row:hover { background: var(--bg-row-hover); }
+    .next-card:not(:disabled):hover { background: var(--bg-row-hover); }
+    .gap-link:hover { color: var(--gold); }
+    #reset-link:hover { color: var(--gold); }
+    #reset-link.armed:hover { color: #ff8577; }
+  }
+
+  /* ---- fx particles ---- */
+  .fx-p {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--s, 16px);
+    height: var(--s, 16px);
+    transform: translate(-50%, -50%);
+    will-change: transform, opacity;
+  }
+  .fx-p svg { width: 100%; height: 100%; display: block; }
+
+  @keyframes fxBurst {
+    0%   { transform: translate(-50%, -50%) translate(0,0) rotate(0deg) scale(0.3); opacity: 1; }
+    12%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(var(--sc, 1)); opacity: 0; }
+  }
+  @keyframes fxRise {
+    0%   { transform: translate(-50%, -50%) translate(0,0) scale(0.6); opacity: 0.95; }
+    100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(var(--sc,1)); opacity: 0; }
+  }
+  @keyframes fxFall {
+    0%   { transform: translate(-50%, -50%) translate(0,0) rotate(0deg); opacity: 0.95; }
+    100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+  }
+  @keyframes fxRing {
+    0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0.9; }
+    100% { transform: translate(-50%, -50%) scale(var(--sc, 3)); opacity: 0; }
+  }
+  @keyframes fxSpin {
+    0%   { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+    30%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1) rotate(var(--rot, 540deg)); opacity: 0; }
+  }
+  @keyframes fxSweep {
+    0%   { transform: translate(-50%, -50%) scaleX(0); opacity: 0.9; }
+    60%  { transform: translate(-50%, -50%) scaleX(1); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scaleX(1.05); opacity: 0; }
+  }
+  @keyframes fxShoot {
+    0%   { transform: translate(-50%,-50%) translate(0,0) rotate(-8deg); opacity: 1; }
+    100% { transform: translate(-50%,-50%) translate(var(--tx), var(--ty)) rotate(-8deg); opacity: 0; }
+  }
+  @keyframes fxDrip {
+    0%   { transform: translate(-50%, -50%) scaleY(0.4) translateY(0); border-radius: 50%; opacity: 1; }
+    55%  { transform: translate(-50%, -50%) scaleY(1.6) translateY(4px); border-radius: 40% 40% 55% 55%; }
+    100% { transform: translate(-50%, -50%) scaleY(2.1) translateY(var(--ty)); border-radius: 30% 30% 60% 60%; opacity: 0; }
+  }
+  @keyframes fxPulseRow {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(0.94); }
+    65%  { transform: scale(1.035); }
+    100% { transform: scale(1); }
+  }
+  @keyframes fxFlash {
+    0%   { opacity: 0; }
+    18%  { opacity: 0.16; }
+    100% { opacity: 0; }
+  }
+  @keyframes fxScan {
+    0%   { background-position: 0 -100%; opacity: 0.55; }
+    100% { background-position: 0 220%; opacity: 0; }
+  }
+  @keyframes fxGlitchText {
+    0%, 100% { text-shadow: none; transform: translateX(0); }
+    20% { text-shadow: 2px 0 var(--g1), -2px 0 var(--g2); transform: translateX(-1px); }
+    40% { text-shadow: -2px 0 var(--g1), 2px 0 var(--g2); transform: translateX(1px); }
+    60% { text-shadow: 2px 0 var(--g1), -2px 0 var(--g2); transform: translateX(-1px); }
+    80% { text-shadow: -1px 0 var(--g1), 1px 0 var(--g2); transform: translateX(0); }
+  }
+  .fx-scan-overlay {
+    position: absolute;
+    inset: -2px;
+    border-radius: 10px;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, transparent 0, transparent 3px, var(--sc-color, rgba(212,162,76,.5)) 4px, transparent 5px);
+    background-size: 100% 200%;
+    animation: fxScan 0.65s ease-out forwards;
+  }
+  .fx-glitching { animation: fxGlitchText 0.5s steps(2) forwards; }
+  .fx-pulsing { animation: fxPulseRow 0.55s cubic-bezier(.4,0,.2,1); }
+
+  @media (max-width: 520px) {
+    header { padding: 6vh 18px 3vh; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.14em; line-height: 1.7; }
+    .eb-sep { display: none; }
+    .eb-br { display: inline; }
+    main { padding: 16px 14px 0; }
+    .row { padding: 11px 12px; gap: 11px; }
+    .title { font-size: 14px; }
+    .next-title { font-size: 17.5px; }
+    .mini-btn { padding: 10px 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fx-p, .fx-scan-overlay, .fx-flash { animation: none !important; display: none !important; }
+    .fx-pulsing, .fx-glitching { animation: none !important; }
+    .row, .progress-fill, .mini, .mini-fill, .next-card { transition: none !important; }
+    .next-card.swap .next-text, .next-card.swap .next-icon { animation: none !important; }
+    .row.found { animation: none !important; box-shadow: 0 0 0 3px var(--row-color); }
+  }
+</style>
+</head>
+<body>
+
+<div id="fx-layer"></div>
+<div class="fx-flash" id="fx-flash"></div>
+
+<div class="mini" id="mini" aria-hidden="true">
+  <button type="button" class="mini-btn" id="mini-btn" tabindex="-1">
+    <span class="mini-count" id="mini-count">0 / 97</span>
+    <span class="mini-next"><span id="mini-label">Up next</span><b id="mini-title"></b></span>
+    <span class="mini-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>
+  </button>
+  <div class="mini-track"><div class="mini-fill" id="mini-fill"></div></div>
+</div>
+
+<header>
+  <p class="eyebrow">Earth&#8209;616 &nbsp;&middot;&nbsp; the X&#8209;Men's Earth<span class="eb-sep"> &nbsp;&middot;&nbsp; </span><br class="eb-br">Earth&#8209;828 &nbsp;&middot;&nbsp; Sony</p>
+  <h1>The Road to <em>Doomsday</em></h1>
+  <p class="dateline" id="dateline">December 18, 2026</p>
+  <p class="sub"><span id="stop-count">97</span> stops, one order. Tap a title once you've both watched it &mdash; each one reacts differently. Nothing happens when you uncheck, on purpose. Your progress is saved on this device automatically.</p>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label">
+      <span id="progress-count">0 / 97 watched</span>
+      <span class="progress-tag" id="progress-tag">Not started</span>
+    </div>
+  </div>
+  <button type="button" class="next-card" id="next-card" hidden>
+    <span class="next-icon" id="next-icon" aria-hidden="true"></span>
+    <span class="next-text">
+      <span class="next-eyebrow" id="next-eyebrow">Up next</span>
+      <span class="next-title" id="next-title"></span>
+      <span class="next-meta" id="next-meta"></span>
+    </span>
+    <span class="next-go" id="next-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>
+  </button>
+  <button type="button" class="gap-link" id="gap-link" hidden></button>
+</header>
+
+<main id="list"><noscript><p class="noscript">This page needs JavaScript to show the list. If it opened in your phone's file preview, open it in a web browser instead.</p></noscript></main>
+
+<footer>
+  <p>December 18, 2026. &nbsp;&bull;&nbsp; <button id="reset-link" type="button">clear progress</button></p>
+</footer>
+
+<script>
+(function(){
+
+/* ---------------------------------------------------------------
+   DATA
+   c / c2   = the two colors an entry draws from
+   icon     = which shape spawns
+   mode     = which animation plays
+   big      = extra weight for the tentpole moments
+   quiet    = plays a hushed version instead of a celebration
+----------------------------------------------------------------*/
+var DATA = [
+{t:"Eyes of Wakanda", y:"2025", n:"animated", c:"#5b3fa0", c2:"#b8860b", icon:"mask", mode:"sparkle"},
+{t:"Captain America: The First Avenger", y:"2011", n:"", c:"#c0392b", c2:"#2d4373", icon:"star", mode:"burst"},
+{t:"Agent Carter", n2:"Season 1", y:"2015", n:"", c:"#8a1f2d", c2:"#c9a15a", icon:"star", mode:"static"},
+{t:"Agent Carter", n2:"Season 2", y:"2016", n:"", c:"#8a1f2d", c2:"#c9a15a", icon:"star", mode:"static"},
+{t:"The Fantastic Four: First Steps", y:"2025", n:"", c:"#1f8a8c", c2:"#e8823c", icon:"planet", mode:"spin"},
+{t:"X\u2011Men Origins: Wolverine", y:"2009", n:"", c:"#7a6a4f", c2:"#c0392b", icon:"claw", mode:"slash"},
+{t:"X\u2011Men", y:"2000", n:"", c:"#2b2f3a", c2:"#c0392b", icon:"cross", mode:"burst"},
+{t:"X2: X\u2011Men United", y:"2003", n:"", c:"#4b0082", c2:"#1a1a2e", icon:"spiral", mode:"smoke"},
+{t:"X\u2011Men: The Last Stand", y:"2006", n:"", c:"#ff6b1a", c2:"#2b2f3a", icon:"flame", mode:"shatter"},
+{t:"X\u2011Men: First Class", y:"2011", n:"", c:"#5b3fa0", c2:"#2d8fd1", icon:"ring", mode:"wave"},
+{t:"X\u2011Men: Days of Future Past", y:"2014", n:"", c:"#6b7280", c2:"#c0392b", icon:"gear", mode:"glitch"},
+{t:"X\u2011Men: Apocalypse", y:"2016", n:"", c:"#b8860b", c2:"#4b0082", icon:"eye", mode:"shatter"},
+{t:"Dark Phoenix", y:"2019", n:"", c:"#e8590c", c2:"#ffd23f", icon:"flame", mode:"flame"},
+{t:"Captain Marvel", y:"2019", n:"", c:"#ffd700", c2:"#0033a0", icon:"star", mode:"burst", big:true},
+{t:"The New Mutants", y:"2020", n:"", c:"#3a1f4d", c2:"#8b0000", icon:"eye", mode:"glitch"},
+{t:"Iron Man", y:"2008", n:"", c:"#c8102e", c2:"#ffd700", icon:"ring", mode:"burst", big:true},
+{t:"The Incredible Hulk", y:"2008", n:"", c:"#3aa63a", c2:"#1a3d1a", icon:"star", mode:"pulse"},
+{t:"Iron Man 2", y:"2010", n:"", c:"#c8102e", c2:"#00bcd4", icon:"bolt", mode:"spin"},
+{t:"Thor", y:"2011", n:"", c:"#3d5a80", c2:"#ffd700", icon:"bolt", mode:"burst"},
+{t:"The Avengers", y:"2012", n:"", c:"#ffd700", c2:"#3d5a80", icon:"star", mode:"burst", big:true},
+{t:"Iron Man 3", y:"2013", n:"", c:"#e8590c", c2:"#c8102e", icon:"ring", mode:"burst"},
+{t:"Thor: The Dark World", y:"2013", n:"", c:"#3a1f5c", c2:"#1a1a1a", icon:"ring", mode:"smoke"},
+{t:"The Wolverine", y:"2013", n:"", c:"#8b0000", c2:"#1a1a1a", icon:"claw", mode:"slash"},
+{t:"Captain America: The Winter Soldier", y:"2014", n:"", c:"#6b6f7a", c2:"#c0392b", icon:"star", mode:"glitch"},
+{t:"Guardians of the Galaxy", y:"2014", n:"", c:"#ff8c42", c2:"#2cb1bc", icon:"star", mode:"sparkle"},
+{t:"Guardians of the Galaxy Vol. 2", y:"2017 release", n:"", c:"#ffd700", c2:"#ff8c42", icon:"planet", mode:"spin"},
+{t:"Avengers: Age of Ultron", y:"2015", n:"", c:"#8a1220", c2:"#8c8c8c", icon:"gear", mode:"glitch"},
+{t:"Ant\u2011Man", y:"2015", n:"", c:"#c0392b", c2:"#1a1a1a", icon:"atom", mode:"pulse"},
+{t:"Daredevil", n2:"Season 1", y:"2015", n:"", c:"#8b0000", c2:"#1a1a1a", icon:"claw", mode:"slash"},
+{t:"Jessica Jones", n2:"Season 1", y:"2015", n:"", c:"#4b0082", c2:"#1a1a1a", icon:"gem", mode:"shatter"},
+{t:"Daredevil", n2:"Season 2", y:"2016", n:"", c:"#8b0000", c2:"#e8e6df", icon:"target", mode:"burst"},
+{t:"Luke Cage", n2:"Season 1", y:"2016", n:"", c:"#f0b429", c2:"#1a1a1a", icon:"target", mode:"burst"},
+{t:"Deadpool", y:"2016", n:"", c:"#c8102e", c2:"#1a1a1a", icon:"cross", mode:"slash"},
+{t:"Captain America: Civil War", y:"2016", n:"", c:"#c0392b", c2:"#2d4373", icon:"shield", mode:"burst", big:true},
+{t:"Black Widow", y:"2021 release", n:"", c:"#8b0000", c2:"#1a1a1a", icon:"hourglass", mode:"shatter"},
+{t:"Black Panther", y:"2018 release", n:"", c:"#3a1f5c", c2:"#8c8c8c", icon:"paw", mode:"sparkle"},
+{t:"Spider\u2011Man: Homecoming", y:"2017 release", n:"", c:"#c8102e", c2:"#2d4373", icon:"web", mode:"webdraw"},
+{t:"Doctor Strange", y:"2016", n:"", c:"#ff8c00", c2:"#7b2cbf", icon:"ring", mode:"portal"},
+{t:"Iron Fist", n2:"Season 1", y:"2017", n:"", c:"#f0b429", c2:"#1a1a1a", icon:"star", mode:"burst"},
+{t:"The Defenders", y:"2017", n:"", c:"#8b0000", c2:"#4b0082", icon:"cross", mode:"burst"},
+{t:"The Punisher", n2:"Season 1", y:"2017", n:"", c:"#e8e6df", c2:"#1a1a1a", icon:"skull", mode:"burst"},
+{t:"Thor: Ragnarok", y:"2017", n:"", c:"#ff2fb0", c2:"#3aa63a", icon:"bolt", mode:"burst"},
+{t:"Jessica Jones", n2:"Season 2", y:"2018", n:"", c:"#4b0082", c2:"#1a1a1a", icon:"gem", mode:"shatter"},
+{t:"Luke Cage", n2:"Season 2", y:"2018", n:"", c:"#f0b429", c2:"#1a1a1a", icon:"target", mode:"burst"},
+{t:"Iron Fist", n2:"Season 2", y:"2018", n:"", c:"#f0b429", c2:"#1a1a1a", icon:"star", mode:"burst"},
+{t:"Daredevil", n2:"Season 3", y:"2018", n:"", c:"#8b0000", c2:"#1a1a1a", icon:"claw", mode:"slash"},
+{t:"Deadpool 2", y:"2018", n:"", c:"#c8102e", c2:"#ffd700", icon:"cross", mode:"slash"},
+{t:"Venom", y:"2018", n:"", c:"#0a0a0a", c2:"#8b0000", icon:"drop", mode:"drip"},
+{t:"The Punisher", n2:"Season 2", y:"2019", n:"", c:"#e8e6df", c2:"#1a1a1a", icon:"skull", mode:"burst"},
+{t:"Jessica Jones", n2:"Season 3", y:"2019", n:"", c:"#4b0082", c2:"#1a1a1a", icon:"gem", mode:"shatter"},
+{t:"Ant\u2011Man and the Wasp", y:"2018", n:"", c:"#ffd700", c2:"#c0392b", icon:"wing", mode:"pulse"},
+{t:"Avengers: Infinity War", y:"2018", n:"", c:"#4b0082", c2:"#8c8c8c", icon:"gem", mode:"shatter", big:true},
+{t:"Avengers: Endgame", y:"2019", n:"", c:"#f0d264", c2:"#2d4373", icon:"cross", mode:"burst", big:true, extraBig:true},
+{t:"Spider\u2011Man: Far From Home", y:"2019", n:"", c:"#2ecc71", c2:"#c8102e", icon:"eye", mode:"glitch"},
+{t:"WandaVision", y:"2021", n:"", c:"#8b0000", c2:"#c9a15a", icon:"ring", mode:"static"},
+{t:"The Falcon and the Winter Soldier", y:"2021", n:"", c:"#c0392b", c2:"#8c8c8c", icon:"wing", mode:"burst"},
+{t:"VisionQuest", y:"2026 release", n:"", c:"#e8e6df", c2:"#8c8c8c", icon:"gear", mode:"glitch"},
+{t:"Loki", n2:"Season 1", y:"2021", n:"", c:"#2d5a3d", c2:"#ffd700", icon:"spiral", mode:"glitch"},
+{t:"What If\u2026?", n2:"Season 1", y:"2021", n:"animated", c:"#7b2cbf", c2:"#2cb1bc", icon:"eye", mode:"sparkle"},
+{t:"Venom: Let There Be Carnage", y:"2021", n:"", c:"#c0392b", c2:"#0a0a0a", icon:"drop", mode:"drip"},
+{t:"Shang\u2011Chi and the Legend of the Ten Rings", y:"2021", n:"", c:"#b8860b", c2:"#8b0000", icon:"ring", mode:"spin"},
+{t:"Eternals", y:"2021", n:"", c:"#f0d264", c2:"#2cb1bc", icon:"planet", mode:"burst"},
+{t:"Hawkeye", y:"2021", n:"", c:"#5b3fa0", c2:"#1a1a1a", icon:"arrow", mode:"shoot"},
+{t:"Moon Knight", y:"2022", n:"", c:"#d8d8d8", c2:"#1a1a1a", icon:"moon", mode:"sparkle"},
+{t:"Doctor Strange in the Multiverse of Madness", y:"2022", n:"", c:"#8b0000", c2:"#ff8c00", icon:"ring", mode:"portal"},
+{t:"Ms. Marvel", y:"2022", n:"", c:"#ff6fae", c2:"#7b2cbf", icon:"gem", mode:"sparkle"},
+{t:"Thor: Love and Thunder", y:"2022", n:"", c:"#ff2fb0", c2:"#2cb1bc", icon:"bolt", mode:"sparkle"},
+{t:"She\u2011Hulk: Attorney at Law", y:"2022", n:"", c:"#3aa63a", c2:"#e8e6df", icon:"cross", mode:"pulse"},
+{t:"Black Panther: Wakanda Forever", y:"2022", n:"", c:"#0f3d5c", c2:"#5b3fa0", icon:"wave", mode:"wave"},
+{t:"Werewolf by Night", y:"2022", n:"", c:"#c8c8c8", c2:"#1a1a1a", icon:"moon", mode:"static"},
+{t:"Guardians of the Galaxy Holiday Special", y:"2022", n:"", c:"#c0392b", c2:"#3aa63a", icon:"star", mode:"snow"},
+{t:"Ant\u2011Man and the Wasp: Quantumania", y:"2023", n:"", c:"#7b2cbf", c2:"#ff2fb0", icon:"spiral", mode:"pulse"},
+{t:"Secret Invasion", y:"2023", n:"", c:"#3aa63a", c2:"#1a1a1a", icon:"mask", mode:"glitch"},
+{t:"Guardians of the Galaxy Vol. 3", y:"2023", n:"", c:"#ff8c42", c2:"#ff6fae", icon:"helix", mode:"burst"},
+{t:"The Marvels", y:"2023", n:"", c:"#2d4373", c2:"#ffd700", icon:"star", mode:"glitch"},
+{t:"Loki", n2:"Season 2", y:"2023", n:"", c:"#2d5a3d", c2:"#ffd700", icon:"spiral", mode:"glitch"},
+{t:"What If\u2026?", n2:"Season 2", y:"2023", n:"animated", c:"#7b2cbf", c2:"#2cb1bc", icon:"eye", mode:"sparkle"},
+{t:"Echo", y:"2024", n:"", c:"#8b0000", c2:"#c9a15a", icon:"arrow", mode:"burst"},
+{t:"X\u2011Men \u201997", n2:"Season 1", y:"2024", n:"animated", c:"#ffd700", c2:"#4b0082", icon:"cross", mode:"static"},
+{t:"Agatha All Along", y:"2024", n:"", c:"#2d5a3d", c2:"#4b0082", icon:"spiral", mode:"smoke"},
+{t:"What If\u2026?", n2:"Season 3", y:"2024", n:"animated", c:"#7b2cbf", c2:"#2cb1bc", icon:"eye", mode:"sparkle"},
+{t:"Logan", y:"2017 release", n:"", c:"#6b6f7a", c2:"#8a6a3d", icon:"claw", mode:"slash", quiet:true},
+{t:"Deadpool & Wolverine", y:"2024", n:"", c:"#c8102e", c2:"#f0b429", icon:"claw", mode:"slash", big:true},
+{t:"Kraven the Hunter", y:"2024", n:"", c:"#5c6b1f", c2:"#e8590c", icon:"paw", mode:"burst"},
+{t:"Venom: The Last Dance", y:"2024", n:"", c:"#0a0a0a", c2:"#8b0000", icon:"drop", mode:"drip"},
+{t:"Your Friendly Neighborhood Spider\u2011Man", y:"2025", n:"animated", c:"#c8102e", c2:"#2d4373", icon:"web", mode:"webdraw"},
+{t:"Daredevil: Born Again", n2:"Season 1", y:"2025", n:"", c:"#1a1a1a", c2:"#8b0000", icon:"claw", mode:"slash"},
+{t:"Captain America: Brave New World", y:"2025", n:"", c:"#c0392b", c2:"#6b7280", icon:"star", mode:"pulse"},
+{t:"Thunderbolts*", y:"2025", n:"", c:"#2b2f3a", c2:"#f0b429", icon:"star", mode:"glitch", big:true},
+{t:"Ironheart", y:"2025", n:"", c:"#c8102e", c2:"#ffd700", icon:"gear", mode:"spin"},
+{t:"Marvel Zombies", y:"2025", n:"animated", c:"#5c6b1f", c2:"#6b6f7a", icon:"skull", mode:"glitch"},
+{t:"Wonder Man", y:"2025", n:"", c:"#ffd700", c2:"#c8102e", icon:"star", mode:"burst"},
+{t:"Daredevil: Born Again", n2:"Season 2", y:"2026", n:"", c:"#1a1a1a", c2:"#8b0000", icon:"claw", mode:"slash"},
+{t:"The Punisher: One Last Kill", y:"2026", n:"", c:"#e8e6df", c2:"#1a1a1a", icon:"skull", mode:"burst"},
+{t:"X\u2011Men \u201997", n2:"Season 2", y:"2026", n:"animated", c:"#ffd700", c2:"#b8860b", icon:"eye", mode:"static"},
+{t:"Spider\u2011Man: Brand New Day", y:"2026", n:"", c:"#c8102e", c2:"#2d4373", icon:"web", mode:"webdraw"},
+{t:"Avengers: Doomsday", y:"2026", n:"", c:"#2d5a3d", c2:"#c9a15a", icon:"crown", mode:"burst", big:true, extraBig:true}
+];
+
+/* ---------------------------------------------------------------
+   ICONS  \u2014  each returns inner SVG markup in a 24x24 box
+----------------------------------------------------------------*/
+function ringPts(cx, cy, spikes, rOut, rIn){
+  var pts = [], rot = Math.PI / 2 * 3, step = Math.PI / spikes;
+  for (var i = 0; i < spikes; i++) {
+    pts.push((cx + Math.cos(rot) * rOut) + ',' + (cy + Math.sin(rot) * rOut));
+    rot += step;
+    pts.push((cx + Math.cos(rot) * rIn) + ',' + (cy + Math.sin(rot) * rIn));
+    rot += step;
+  }
+  return pts.join(' ');
+}
+var ICONS = {
+  star: function(f){ return '<polygon points="'+ringPts(12,12,5,10,4)+'" fill="'+f+'"/>'; },
+  gear: function(f){ return '<polygon points="'+ringPts(12,12,10,10,8)+'" fill="'+f+'"/><circle cx="12" cy="12" r="3.4" fill="'+f+'"/>'; },
+  crown: function(f){ return '<polygon points="'+ringPts(12,11,6,10,6)+'" fill="'+f+'"/>'; },
+  bolt: function(f){ return '<polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="'+f+'"/>'; },
+  claw: function(f){ return '<g stroke="'+f+'" stroke-width="2.3" stroke-linecap="round" fill="none">'+
+    '<path d="M4 2 Q9 12 6 22"/><path d="M12 1 Q16 12 13 23"/><path d="M20 2 Q23 12 20 22"/></g>'; },
+  flame: function(f){ return '<path d="M12 1c-1.3 4.6-6.8 6.7-6.8 12.3a6.8 6.8 0 0 0 13.6 0c0-3.4-2.3-4.5-2.3-8 0 3.4-2.3 3.4-2.3 5.7a2.3 2.3 0 0 1-4.5 0c0-4.6 3.4-5.7 2.3-10z" fill="'+f+'"/>'; },
+  ring: function(f){ return '<circle cx="12" cy="12" r="8.5" fill="none" stroke="'+f+'" stroke-width="2.6"/><circle cx="12" cy="12" r="3" fill="'+f+'"/>'; },
+  wave: function(f){ return '<path d="M1 12c2.5-5 5-5 7.5 0s5 5 7.5 0 5-5 7-1" fill="none" stroke="'+f+'" stroke-width="2.4" stroke-linecap="round"/>'; },
+  skull: function(f){ return '<circle cx="12" cy="10" r="8" fill="'+f+'"/><circle cx="9" cy="10" r="1.8" fill="#0a0a0a"/><circle cx="15" cy="10" r="1.8" fill="#0a0a0a"/><rect x="9" y="16" width="6" height="5" fill="'+f+'"/><rect x="9.3" y="16" width="1.6" height="4.5" fill="#0a0a0a"/><rect x="13" y="16" width="1.6" height="4.5" fill="#0a0a0a"/>'; },
+  gem: function(f){ return '<polygon points="12,1 22,9 12,23 2,9" fill="'+f+'"/>'; },
+  paw: function(f){ return '<ellipse cx="12" cy="15.5" rx="7" ry="6" fill="'+f+'"/><circle cx="4.5" cy="7" r="2.6" fill="'+f+'"/><circle cx="10" cy="3.5" r="2.6" fill="'+f+'"/><circle cx="15.5" cy="3.5" r="2.6" fill="'+f+'"/><circle cx="20.5" cy="7.5" r="2.6" fill="'+f+'"/>'; },
+  arrow: function(f){ return '<polygon points="1,10 15,10 15,4 23,12 15,20 15,14 1,14" fill="'+f+'"/>'; },
+  moon: function(f){ return '<path d="M15 2a10 10 0 1 0 7 17 10 10 0 0 1-7-17z" fill="'+f+'"/>'; },
+  atom: function(f){ return '<g fill="none" stroke="'+f+'" stroke-width="1.8"><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/></g><circle cx="12" cy="12" r="2.6" fill="'+f+'"/>'; },
+  helix: function(f){ return '<g stroke="'+f+'" stroke-width="1.8" fill="none"><path d="M4 1c8 4 8 7 0 11s-8 7 0 11"/><path d="M20 1c-8 4-8 7 0 11s8 7 0 11"/>'+
+    '<line x1="6.4" y1="4" x2="17.6" y2="4"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="6.4" y1="20" x2="17.6" y2="20"/></g>'; },
+  planet: function(f){ return '<circle cx="12" cy="12" r="6.2" fill="'+f+'"/><ellipse cx="12" cy="12" rx="11" ry="3.2" fill="none" stroke="'+f+'" stroke-width="1.8" transform="rotate(-18 12 12)"/>'; },
+  mask: function(f){ return '<path d="M2 9c0-4 4.5-8 10-8s10 4 10 8-4 12-10 12S2 13 2 9z" fill="'+f+'"/><ellipse cx="8.3" cy="9.5" rx="2.1" ry="2.6" fill="#0a0a0a"/><ellipse cx="15.7" cy="9.5" rx="2.1" ry="2.6" fill="#0a0a0a"/>'; },
+  hourglass: function(f){ return '<polygon points="4,1 20,1 12,12 20,23 4,23 12,12" fill="'+f+'"/>'; },
+  web: function(f){ return '<g stroke="'+f+'" stroke-width="1.6" fill="none"><line x1="12" y1="1" x2="12" y2="23"/><line x1="1" y1="12" x2="23" y2="12"/><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/>'+
+    '<circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8"/></g>'; },
+  spiral: function(f){
+    var d = 'M12 12', a = 0, r = 0.6;
+    for (var i=0;i<40;i++){ a += 0.55; r += 0.24; d += ' L' + (12+Math.cos(a)*r).toFixed(1) + ',' + (12+Math.sin(a)*r).toFixed(1); }
+    return '<path d="'+d+'" fill="none" stroke="'+f+'" stroke-width="2" stroke-linecap="round"/>';
+  },
+  eye: function(f){ return '<path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" fill="none" stroke="'+f+'" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="'+f+'"/>'; },
+  cross: function(f){ return '<rect x="10" y="1" width="4" height="22" rx="1.5" fill="'+f+'" transform="rotate(45 12 12)"/><rect x="10" y="1" width="4" height="22" rx="1.5" fill="'+f+'" transform="rotate(-45 12 12)"/>'; },
+  target: function(f){ return '<circle cx="12" cy="12" r="10" fill="none" stroke="'+f+'" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="'+f+'" stroke-width="2"/><circle cx="12" cy="12" r="1.8" fill="'+f+'"/>'; },
+  wing: function(f){ return '<path d="M1 18c6 2 10-1 12-8 2 6 6 9 10 6-4 8-10 10-14 6-1 3-4 4-8 1 3-1 4-3 0-5z" fill="'+f+'"/>'; },
+  drop: function(f){ return '<path d="M12 1c4 6 8 11 8 15a8 8 0 0 1-16 0c0-4 4-9 8-15z" fill="'+f+'"/>'; },
+  shield: function(f){ return '<path d="M12 1l9 3.4V12c0 6-4 9.6-9 10.6C7 21.6 3 18 3 12V4.4L12 1z" fill="'+f+'"/>'; }
+};
+function svg(iconKey, color, size){
+  size = size || 16;
+  return '<svg viewBox="0 0 24 24">' + (ICONS[iconKey] ? ICONS[iconKey](color) : ICONS.star(color)) + '</svg>';
+}
+
+/* ---------------------------------------------------------------
+   COLOR
+   Every entry keeps its own two colors. Colors too dark to see on
+   the dark rows get lifted toward white just until they read, so
+   every stripe, year, checkmark and particle actually shows up.
+----------------------------------------------------------------*/
+var ROW_BG = '#14161c';
+function hexRgb(h){
+  var n = parseInt(h.replace('#', ''), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function lum(hex){
+  var c = hexRgb(hex).map(function(v){
+    v = v / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+function contrast(a, b){
+  var la = lum(a), lb = lum(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+function mix(a, b, t){
+  var x = hexRgb(a), y = hexRgb(b);
+  return '#' + x.map(function(v, i){
+    var m = Math.round(v + (y[i] - v) * t);
+    return (m < 16 ? '0' : '') + m.toString(16);
+  }).join('');
+}
+function lift(hex, min){
+  var out = hex, t = 0;
+  while (contrast(out, ROW_BG) < min && t < 1){
+    t = Math.min(1, t + 0.04);
+    out = mix(hex, '#ffffff', t);
+  }
+  return out;
+}
+function isNeutral(hex){
+  var c = hexRgb(hex);
+  return Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) < 40;
+}
+DATA.forEach(function(e){
+  var base = e.c;
+  if (isNeutral(e.c) && contrast(e.c, ROW_BG) < 2.2 && contrast(e.c2, ROW_BG) > contrast(e.c, ROW_BG)) base = e.c2;
+  e.key = e.t + (e.n2 ? '::' + e.n2 : '');
+  e.accent = lift(base, 3);
+  e.label = lift(e.accent, 4.5);
+  e.tick = contrast(e.accent, '#0a0b0f') >= contrast(e.accent, '#f4f1ea') ? '#0a0b0f' : '#f4f1ea';
+  e.fx = { c: lift(e.c, 2), c2: lift(e.c2, 2), icon: e.icon };
+});
+function fullTitle(e){ return e.t + (e.n2 ? ' \u2014 ' + e.n2 : ''); }
+function metaHTML(e){ return '<span class="yr">' + e.y + '</span>' + (e.n ? ' &nbsp;\u00b7&nbsp; ' + e.n : ''); }
+
+var fxLayer = document.getElementById('fx-layer');
+var fxFlash = document.getElementById('fx-flash');
+var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------------------------------------------------------
+   STATE
+   Same storage key as always, so progress you already saved on a
+   device carries straight over.
+----------------------------------------------------------------*/
+var STORE_KEY = 'doomsdayTrackerV1';
+function loadState(){
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    var s = raw ? JSON.parse(raw) : {};
+    return (s && typeof s === 'object') ? s : {};
+  } catch(e){ return {}; }
+}
+function saveState(state){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){}
+}
+var state = loadState();
+var TOTAL = DATA.length;
+function isDone(i){ return !!state[DATA[i].key]; }
+
+/* ---------------------------------------------------------------
+   RENDER
+   The whole row is the tap target, not just the little box.
+----------------------------------------------------------------*/
+var listEl = document.getElementById('list');
+var frag = document.createDocumentFragment();
+var rows = [];
+
+DATA.forEach(function(entry, i){
+  var row = document.createElement('label');
+  row.className = 'row' + (state[entry.key] ? ' done' : '');
+  row.style.setProperty('--row-color', entry.accent);
+  row.style.setProperty('--yr-color', entry.label);
+  row.style.setProperty('--tick', entry.tick);
+
+  var cbWrap = document.createElement('span');
+  cbWrap.className = 'cb-wrap';
+
+  var input = document.createElement('input');
+  input.type = 'checkbox';
+  input.checked = !!state[entry.key];
+  input.id = 'cb-' + i;
+
+  var box = document.createElement('span');
+  box.className = 'cb-box';
+  box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,13 9,18 20,5"/></svg>';
+
+  cbWrap.appendChild(input);
+  cbWrap.appendChild(box);
+
+  var bodyText = document.createElement('span');
+  bodyText.className = 'body-text';
+
+  var title = document.createElement('span');
+  title.className = 'title';
+  title.textContent = fullTitle(entry);
+
+  var meta = document.createElement('span');
+  meta.className = 'meta';
+  meta.innerHTML = metaHTML(entry);
+
+  bodyText.appendChild(title);
+  bodyText.appendChild(meta);
+  row.appendChild(cbWrap);
+  row.appendChild(bodyText);
+  frag.appendChild(row);
+
+  input.addEventListener('change', function(){
+    var justChecked = input.checked;
+    state[entry.key] = justChecked;
+    saveState(state);
+    row.classList.toggle('done', justChecked);
+    refresh(true);
+    if (justChecked) celebrate(row, entry);
+  });
+
+  rows.push({ row: row, input: input });
+});
+listEl.appendChild(frag);
+
+/* ---------------------------------------------------------------
+   COUNTDOWN
+----------------------------------------------------------------*/
+var today = new Date();
+today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+var daysLeft = Math.round((new Date(2026, 11, 18) - today) / 86400000);
+var countdown = daysLeft > 1 ? daysLeft + ' days to go'
+  : daysLeft === 1 ? 'tomorrow'
+  : daysLeft === 0 ? 'today'
+  : 'out now';
+document.getElementById('dateline').textContent = 'December 18, 2026 \u00b7 ' + countdown;
+
+/* ---------------------------------------------------------------
+   PROGRESS
+   Counts only titles that are on the list now, and the milestone
+   tags sit where those moments actually happen in the story.
+----------------------------------------------------------------*/
+var fillEl = document.getElementById('progress-fill');
+var countEl = document.getElementById('progress-count');
+var tagEl = document.getElementById('progress-tag');
+var miniFill = document.getElementById('mini-fill');
+var miniCount = document.getElementById('mini-count');
+document.getElementById('stop-count').textContent = TOTAL;
+
+function indexOfTitle(t, n2){
+  for (var i = 0; i < TOTAL; i++) if (DATA[i].t === t && (!n2 || DATA[i].n2 === n2)) return i;
+  return -1;
+}
+var snapAt = indexOfTitle('Avengers: Infinity War');
+var endgameAt = indexOfTitle('Avengers: Endgame');
+var halfAt = Math.ceil(TOTAL / 2);
+var TAGS = [
+  [0, "Not started"], [1, "Just getting started"], [15, "Building the timeline"],
+  [halfAt, "Halfway to Doomsday"],
+  [Math.max(snapAt - 3, halfAt + 1), "The Blip is close"],
+  [endgameAt + 1, "Deep in the multiverse"],
+  [TOTAL - 17, "Almost caught up"], [TOTAL - 7, "Ready for December 18"], [TOTAL, "Fully caught up"]
+].filter(function(t){ return t[0] > 0 || t[1] === "Not started"; })
+ .sort(function(a, b){ return a[0] - b[0]; });
+
+function doneCount(){
+  var n = 0;
+  for (var i = 0; i < TOTAL; i++) if (isDone(i)) n++;
+  return n;
+}
+
+function updateProgress(){
+  var done = doneCount();
+  var pct = (done / TOTAL) * 100;
+  fillEl.style.width = pct + '%';
+  miniFill.style.width = pct + '%';
+  countEl.textContent = done + ' / ' + TOTAL + ' watched';
+  miniCount.textContent = done + ' / ' + TOTAL;
+  var tag = TAGS[0][1];
+  for (var j = 0; j < TAGS.length; j++) if (done >= TAGS[j][0]) tag = TAGS[j][1];
+  tagEl.textContent = tag;
+}
+
+/* ---------------------------------------------------------------
+   UP NEXT
+   Next is the first unwatched title after the furthest one you've
+   checked, so skipping something never freezes the card on it.
+----------------------------------------------------------------*/
+var nextCard = document.getElementById('next-card');
+var nextIcon = document.getElementById('next-icon');
+var nextEyebrow = document.getElementById('next-eyebrow');
+var nextTitle = document.getElementById('next-title');
+var nextMeta = document.getElementById('next-meta');
+var nextGo = document.getElementById('next-go');
+var gapLink = document.getElementById('gap-link');
+var mini = document.getElementById('mini');
+var miniBtn = document.getElementById('mini-btn');
+var miniLabel = document.getElementById('mini-label');
+var miniTitle = document.getElementById('mini-title');
+var nextIndex = -1, gapIndex = -1, shownKey = null;
+
+function whereNext(){
+  var furthest = -1, next = -1, gaps = [], i;
+  for (i = TOTAL - 1; i >= 0; i--) if (isDone(i)) { furthest = i; break; }
+  for (i = furthest + 1; i < TOTAL; i++) if (!isDone(i)) { next = i; break; }
+  for (i = 0; i < furthest; i++) if (!isDone(i)) gaps.push(i);
+  if (next === -1 && gaps.length) next = gaps.shift();
+  return { next: next, gaps: gaps };
+}
+
+function updateNext(animate){
+  var w = whereNext();
+  var e = w.next >= 0 ? DATA[w.next] : null;
+  nextIndex = w.next;
+
+  if (e){
+    nextCard.style.setProperty('--next-color', e.accent);
+    nextIcon.innerHTML = svg(e.icon, e.accent);
+    nextEyebrow.textContent = 'Up next \u00b7 stop ' + (w.next + 1);
+    nextTitle.textContent = fullTitle(e);
+    nextMeta.innerHTML = metaHTML(e);
+    nextMeta.style.setProperty('--yr-color', e.label);
+    nextGo.hidden = false;
+    nextCard.disabled = false;
+    miniLabel.textContent = 'Up next';
+    miniTitle.textContent = fullTitle(e);
+  } else {
+    nextCard.style.setProperty('--next-color', '#d4a24c');
+    nextIcon.innerHTML = svg('crown', '#d4a24c');
+    nextEyebrow.textContent = 'All ' + TOTAL + ' watched';
+    nextTitle.textContent = daysLeft >= 0 ? 'See you December 18' : 'Enjoy Doomsday';
+    nextMeta.textContent = daysLeft >= 0 ? countdown : '';
+    nextGo.hidden = true;
+    nextCard.disabled = true;
+    miniLabel.textContent = 'All caught up';
+    miniTitle.textContent = '';
+  }
+
+  gapIndex = w.gaps.length ? w.gaps[0] : -1;
+  gapLink.hidden = !w.gaps.length;
+  gapLink.textContent = w.gaps.length === 1
+    ? '1 earlier title is still unchecked'
+    : w.gaps.length + ' earlier titles are still unchecked';
+
+  var key = e ? e.key : 'all-done';
+  if (animate && shownKey !== null && key !== shownKey && !reduceMotion){
+    nextCard.classList.remove('swap');
+    void nextCard.offsetWidth;
+    nextCard.classList.add('swap');
+  }
+  shownKey = key;
+}
+
+function jumpTo(i){
+  if (i < 0 || !rows[i]) return;
+  var r = rows[i].row;
+  r.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  r.classList.remove('found');
+  void r.offsetWidth;
+  r.classList.add('found');
+  clearTimeout(r._found);
+  r._found = setTimeout(function(){ r.classList.remove('found'); }, 1900);
+}
+nextCard.addEventListener('click', function(){ jumpTo(nextIndex); });
+miniBtn.addEventListener('click', function(){ jumpTo(nextIndex); });
+gapLink.addEventListener('click', function(){ jumpTo(gapIndex); });
+
+function setMini(show){
+  if (mini.classList.contains('show') === show) return;
+  mini.classList.toggle('show', show);
+  mini.setAttribute('aria-hidden', show ? 'false' : 'true');
+  miniBtn.tabIndex = show ? 0 : -1;
+}
+
+function refresh(animate){
+  updateProgress();
+  updateNext(animate);
+}
+
+nextCard.hidden = false;
+refresh(false);
+
+// lets iPhone Safari show the pressed state on rows and buttons
+document.addEventListener('touchstart', function(){}, { passive: true });
+
+if ('IntersectionObserver' in window){
+  new IntersectionObserver(function(list){
+    var r = list[list.length - 1];
+    setMini(!r.isIntersecting && r.boundingClientRect.top < 0);
+  }).observe(nextCard);
+} else {
+  window.addEventListener('scroll', function(){
+    setMini(nextCard.getBoundingClientRect().bottom < 0);
+  }, { passive: true });
+}
+
+/* ---------------------------------------------------------------
+   CELEBRATION ENGINE
+   Same effects as always. They now fire from the exact checkbox
+   you tapped instead of a spot guessed from the row's size.
+----------------------------------------------------------------*/
+function rand(min, max){ return Math.random() * (max - min) + min; }
+
+function spawn(x, y, html, animName, duration, extraVars, sizePx){
+  var el = document.createElement('div');
+  el.className = 'fx-p';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.setProperty('--s', (sizePx || 16) + 'px');
+  if (extraVars) for (var k in extraVars) el.style.setProperty(k, extraVars[k]);
+  el.style.animation = animName + ' ' + duration + 'ms cubic-bezier(.2,.7,.3,1) forwards';
+  el.innerHTML = html;
+  fxLayer.appendChild(el);
+  setTimeout(function(){ el.remove(); }, duration + 60);
+  return el;
+}
+
+function flash(color){
+  fxFlash.style.background = 'radial-gradient(circle at 50% 30%, ' + color + ', transparent 70%)';
+  fxFlash.style.animation = 'none';
+  void fxFlash.offsetWidth;
+  fxFlash.style.animation = 'fxFlash 900ms ease-out forwards';
+}
+
+function burst(x, y, entry, count){
+  var n = count || 11;
+  for (var i = 0; i < n; i++){
+    var ang = (Math.PI * 2 / n) * i + rand(-0.25, 0.25);
+    var dist = rand(60, 150);
+    var col = Math.random() > 0.4 ? entry.c : entry.c2;
+    spawn(x, y, svg(entry.icon, col), 'fxBurst', rand(650, 950), {
+      '--tx': (Math.cos(ang) * dist) + 'px',
+      '--ty': (Math.sin(ang) * dist) + 'px',
+      '--rot': rand(-220, 220) + 'deg',
+      '--sc': rand(0.4, 1.1)
+    }, rand(11, 20));
+  }
+}
+
+function shatter(x, y, entry, count){
+  var n = count || 9;
+  for (var i = 0; i < n; i++){
+    var ang = rand(0, Math.PI * 2);
+    var dist = rand(90, 190);
+    var col = Math.random() > 0.5 ? entry.c : entry.c2;
+    spawn(x, y, svg(entry.icon, col), 'fxBurst', rand(400, 550), {
+      '--tx': (Math.cos(ang) * dist) + 'px',
+      '--ty': (Math.sin(ang) * dist) + 'px',
+      '--rot': rand(-90, 90) + 'deg',
+      '--sc': 0.25
+    }, rand(9, 15));
+  }
+}
+
+function smoke(x, y, entry){
+  for (var i = 0; i < 6; i++){
+    var el = document.createElement('div');
+    el.className = 'fx-p';
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    var s = rand(20, 40);
+    el.style.width = s + 'px'; el.style.height = s + 'px';
+    el.style.borderRadius = '50%';
+    el.style.background = 'radial-gradient(circle, ' + (i % 2 ? entry.c : entry.c2) + 'aa, transparent 70%)';
+    el.style.filter = 'blur(1px)';
+    el.style.animation = 'fxRise 900ms ease-out forwards';
+    el.style.setProperty('--tx', rand(-30, 30) + 'px');
+    el.style.setProperty('--ty', rand(-70, -110) + 'px');
+    el.style.setProperty('--sc', rand(1.4, 2.2));
+    fxLayer.appendChild(el);
+    (function(e){ setTimeout(function(){ e.remove(); }, 980); })(el);
+  }
+}
+
+function sparkleFx(x, y, entry){
+  for (var i = 0; i < 7; i++){
+    var ox = x + rand(-45, 45), oy = y + rand(-22, 22);
+    spawn(ox, oy, svg('star', Math.random() > 0.5 ? entry.c : entry.c2), 'fxSpin', rand(500, 750), {'--rot': rand(120,320)+'deg'}, rand(7,13));
+  }
+}
+
+function flameFx(x, y, entry){
+  for (var i = 0; i < 6; i++){
+    var ox = x + rand(-16, 16);
+    spawn(ox, y, svg('flame', i % 2 ? entry.c : entry.c2), 'fxRise', rand(600, 850), {
+      '--tx': rand(-14, 14) + 'px', '--ty': rand(-70, -110) + 'px', '--sc': rand(0.6, 1.2)
+    }, rand(10, 16));
+  }
+}
+
+function snowFx(x, y, entry){
+  for (var i = 0; i < 10; i++){
+    var ox = x + rand(-90, 90);
+    spawn(ox, y - 40, svg('star', i % 3 === 0 ? entry.c : entry.c2), 'fxFall', rand(750, 1050), {
+      '--tx': rand(-25, 25) + 'px', '--ty': rand(70, 110) + 'px', '--rot': rand(90, 260) + 'deg'
+    }, rand(6, 11));
+  }
+}
+
+function ringFx(x, y, entry, big){
+  var count = big ? 3 : 2;
+  for (var i = 0; i < count; i++){
+    (function(idx){
+      setTimeout(function(){
+        var el = document.createElement('div');
+        el.className = 'fx-p';
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        var s = big ? 70 : 46;
+        el.style.width = s + 'px'; el.style.height = s + 'px';
+        el.style.borderRadius = '50%';
+        el.style.border = '2px solid ' + (idx % 2 ? entry.c2 : entry.c);
+        el.style.setProperty('--sc', big ? 4.2 : 2.8);
+        el.style.animation = 'fxRing ' + (big ? 900 : 700) + 'ms ease-out forwards';
+        fxLayer.appendChild(el);
+        setTimeout(function(){ el.remove(); }, 950);
+      }, idx * 130);
+    })(i);
+  }
+}
+
+function webDrawFx(x, y, entry){
+  var el = document.createElement('div');
+  el.className = 'fx-p';
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  el.style.setProperty('--s', '34px');
+  el.style.animation = 'fxBurst 900ms ease-out forwards';
+  el.style.setProperty('--tx', '0px'); el.style.setProperty('--ty', '-4px');
+  el.style.setProperty('--rot', '30deg'); el.style.setProperty('--sc', '1.6');
+  el.innerHTML = svg('web', entry.c, 34);
+  fxLayer.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 950);
+  sparkleFx(x, y, entry);
+}
+
+function dripFx(x, y, entry){
+  for (var i = 0; i < 3; i++){
+    var el = document.createElement('div');
+    el.className = 'fx-p';
+    var ox = x + rand(-10, 10);
+    el.style.left = ox + 'px'; el.style.top = y + 'px';
+    var s = rand(10, 16);
+    el.style.width = s + 'px'; el.style.height = s + 'px';
+    el.style.background = i % 2 ? entry.c : entry.c2;
+    el.style.setProperty('--ty', rand(40, 70) + 'px');
+    el.style.animation = 'fxDrip ' + rand(700, 950) + 'ms ease-in forwards';
+    fxLayer.appendChild(el);
+    (function(e){ setTimeout(function(){ e.remove(); }, 1000); })(el);
+  }
+}
+
+function shootFx(x, y, entry){
+  spawn(x - 10, y, svg('arrow', entry.c), 'fxShoot', 550, {'--tx': '260px', '--ty': rand(-20,20)+'px'}, 22);
+  sparkleFx(x, y, entry);
+}
+
+function waveFx(row, entry){
+  var el = document.createElement('div');
+  el.style.position = 'absolute';
+  el.style.left = '0'; el.style.top = '0'; el.style.right = '0'; el.style.bottom = '0';
+  el.style.borderRadius = '10px';
+  el.style.background = 'linear-gradient(90deg, transparent, ' + entry.c + '55, ' + entry.c2 + '33, transparent)';
+  el.style.transformOrigin = 'left center';
+  el.style.animation = 'fxSweep 750ms ease-out forwards';
+  el.style.pointerEvents = 'none';
+  row.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 800);
+}
+
+function pulseFx(row, x, y, entry, big){
+  row.classList.remove('fx-pulsing'); void row.offsetWidth;
+  row.classList.add('fx-pulsing');
+  setTimeout(function(){ row.classList.remove('fx-pulsing'); }, 600);
+  ringFx(x, y, entry, big);
+}
+
+function staticFx(row, x, y, entry){
+  var overlay = document.createElement('div');
+  overlay.className = 'fx-scan-overlay';
+  overlay.style.setProperty('--sc-color', entry.c + '88');
+  row.appendChild(overlay);
+  setTimeout(function(){ overlay.remove(); }, 700);
+  sparkleFx(x, y, entry);
+}
+
+function glitchFx(row, x, y, entry){
+  var titleEl = row.querySelector('.title');
+  titleEl.style.setProperty('--g1', entry.c);
+  titleEl.style.setProperty('--g2', entry.c2);
+  titleEl.classList.remove('fx-glitching'); void titleEl.offsetWidth;
+  titleEl.classList.add('fx-glitching');
+  setTimeout(function(){ titleEl.classList.remove('fx-glitching'); }, 520);
+  burst(x, y, entry, 6);
+}
+
+function spinFx(x, y, entry, big){
+  spawn(x, y, svg(entry.icon, entry.c), 'fxSpin', 650, {'--rot': (big ? 900 : 540) + 'deg'}, big ? 34 : 22);
+  if (big) spawn(x, y, svg(entry.icon, entry.c2), 'fxSpin', 850, {'--rot': -720 + 'deg'}, 26);
+}
+
+function slashFx(x, y, entry, quiet){
+  var n = quiet ? 2 : 3;
+  for (var i = 0; i < n; i++){
+    var el = document.createElement('div');
+    el.className = 'fx-p';
+    var off = (i - (n-1)/2) * 12;
+    el.style.left = (x + off) + 'px'; el.style.top = (y - 10) + 'px';
+    el.style.width = '3px'; el.style.height = '46px';
+    el.style.background = i % 2 ? entry.c : entry.c2;
+    el.style.opacity = quiet ? '0.35' : '0.95';
+    el.style.transform = 'translate(-50%,-50%) rotate(28deg)';
+    el.style.borderRadius = '2px';
+    el.style.animation = 'fxSweep ' + (quiet ? 1400 : 500) + 'ms ease-out forwards';
+    fxLayer.appendChild(el);
+    (function(e,d){ setTimeout(function(){ e.remove(); }, d+80); })(el, quiet ? 1400 : 500);
+  }
+  if (!quiet) sparkleFx(x, y, entry);
+}
+
+function originOf(row){
+  var r = row.querySelector('.cb-box').getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+
+function celebrate(row, entry){
+  if (reduceMotion) return;
+  var p = originOf(row);
+  var x = p.x, y = p.y;
+  var fx = entry.fx;
+
+  if (entry.quiet){
+    slashFx(x, y, fx, true);
+    return;
+  }
+
+  switch(entry.mode){
+    case 'burst':   burst(x, y, fx, entry.big ? 18 : 11); break;
+    case 'shatter': shatter(x, y, fx, entry.big ? 14 : 9); break;
+    case 'smoke':   smoke(x, y, fx); break;
+    case 'sparkle': sparkleFx(x, y, fx); break;
+    case 'flame':   flameFx(x, y, fx); break;
+    case 'snow':    snowFx(x, y, fx); break;
+    case 'portal':  ringFx(x, y, fx, entry.big); break;
+    case 'webdraw': webDrawFx(x, y, fx); break;
+    case 'drip':    dripFx(x, y, fx); break;
+    case 'shoot':   shootFx(x, y, fx); break;
+    case 'wave':    waveFx(row, fx); break;
+    case 'pulse':   pulseFx(row, x, y, fx, entry.big); break;
+    case 'static':  staticFx(row, x, y, fx); break;
+    case 'glitch':  glitchFx(row, x, y, fx); break;
+    case 'spin':    spinFx(x, y, fx, entry.big); break;
+    case 'slash':   slashFx(x, y, fx, false); break;
+    default:        burst(x, y, fx, 10);
+  }
+
+  if (entry.big) flash(entry.accent);
+  if (entry.extraBig){
+    setTimeout(function(){ burst(x, y, {c: fx.c2, c2: fx.c, icon: fx.icon}, 16); }, 180);
+  }
+}
+
+/* ---------------------------------------------------------------
+   RESET
+   Tap once to arm, tap again to clear. No browser popup, so it
+   works everywhere, including previews that block popups.
+----------------------------------------------------------------*/
+var resetBtn = document.getElementById('reset-link');
+var armed = false, armTimer = null;
+function disarm(){
+  armed = false;
+  clearTimeout(armTimer);
+  resetBtn.textContent = 'clear progress';
+  resetBtn.classList.remove('armed');
+}
+resetBtn.addEventListener('click', function(){
+  if (!armed){
+    armed = true;
+    resetBtn.textContent = 'tap again to clear';
+    resetBtn.classList.add('armed');
+    armTimer = setTimeout(disarm, 4000);
+    return;
+  }
+  disarm();
+  state = {};
+  saveState(state);
+  rows.forEach(function(r){
+    r.row.classList.remove('done');
+    r.input.checked = false;
+  });
+  refresh(true);
+});
+
+})();
+</script>
+</body>
+</html>
