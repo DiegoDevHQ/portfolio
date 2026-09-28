@@ -14,6 +14,7 @@ import html
 import json
 import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -74,11 +75,22 @@ def _send_email(api_key, msg):
     req = urllib.request.Request(
         "https://api.resend.com/emails",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            # Resend's firewall rejects urllib's default "Python-urllib/3.x"
+            # user agent with Cloudflare error 1010, so name ourselves.
+            "User-Agent": "diegodevhq-portfolio-contact/1.0",
+        },
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return 200 <= resp.status < 300
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return 200 <= resp.status < 300
+    except urllib.error.HTTPError as e:
+        # Shows up in the Vercel function logs; never includes the API key.
+        print(f"Resend rejected the email: {e.code} {e.read()[:300]!r}", file=sys.stderr)
+        return False
 
 
 class handler(BaseHTTPRequestHandler):
